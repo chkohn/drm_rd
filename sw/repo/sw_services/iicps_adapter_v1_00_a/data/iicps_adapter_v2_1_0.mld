@@ -1,0 +1,10 @@
+OPTION PSF_VERSION = 2.1.0;
+
+BEGIN LIBRARY iicps_adapter
+
+  OPTION DESC = "IICPS Adapter";
+  OPTION SUPPORTED_PERIPHERALS = (iicps);
+  OPTION DEPENDS = (iic_adapter_v1_00_a);
+  OPTION COPYFILES = all;
+
+END LIBRARY

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!--
+###############################################################
+#
+# (c) Copyright 2012 Xilinx, Inc. All rights reserved.
+#
+# This file contains confidential and proprietary information
+# of Xilinx, Inc. and is protected under U.S. and
+# international copyright and other intellectual property
+# laws.
+#
+# DISCLAIMER
+# This disclaimer is not a license and does not grant any
+# rights to the materials distributed herewith. Except as
+# otherwise provided in a valid license issued to you by
+# Xilinx, and to the maximum extent permitted by applicable
+# law: (1) THESE MATERIALS ARE MADE AVAILABLE "AS IS" AND
+# WITH ALL FAULTS, AND XILINX HEREBY DISCLAIMS ALL WARRANTIES
+# AND CONDITIONS, EXPRESS, IMPLIED, OR STATUTORY, INCLUDING
+# BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, NON-
+# INFRINGEMENT, OR FITNESS FOR ANY PARTICULAR PURPOSE; and
+# (2) Xilinx shall not be liable (whether in contract or tort,
+# including negligence, or under any other theory of
+# liability) for any loss or damage of any kind or nature
+# related to, arising under or in connection with these
+# materials, including for any direct, or any indirect,
+# special, incidental, or consequential loss or damage
+# (including loss of data, profits, goodwill, or any type of
+# loss or damage suffered as a result of any action brought
+# by a third party) even if such damage or loss was
+# reasonably foreseeable or Xilinx had been advised of the
+# possibility of the same.
+#
+# CRITICAL APPLICATIONS
+# Xilinx products are not designed or intended to be fail-
+# safe, or for use in any application requiring fail-safe
+# performance, such as life-support or safety devices or
+# systems, Class III medical devices, nuclear facilities,
+# applications related to the deployment of airbags, or any
+# other applications that could lead to death, personal
+# injury, or severe property or environmental damage
+# (individually and collectively, "Critical
+# Applications"). Customer assumes the sole risk and
+# liability of any use of Xilinx products in Critical
+# Applications, subject only to applicable laws and
+# regulations governing limitations on product liability.
+#
+# THIS COPYRIGHT NOTICE AND DISCLAIMER MUST BE RETAINED AS
+# PART OF THIS FILE AT ALL TIMES.
+#
+#  All rights reserved.
+###############################################################
+-->
+
+<!DOCTYPE doc SYSTEM "../../ipdialog.dtd" [
+  <!-- -->
+
+  <!ENTITY C_S_AXIS_VIDEO_DATA_WIDTH '
+  <widget id="C_S_AXIS_VIDEO_DATA_WIDTH">
+    <key>C_S_AXIS_VIDEO_DATA_WIDTH</key>
+    <label>Component Data Width</label>
+    <tip>Specifies the number of bits in each pixel component</tip>
+  </widget>
+  '>
+  <!ENTITY C_S_AXIS_VIDEO_FORMAT '
+  <widget id="C_S_AXIS_VIDEO_FORMAT">
+    <key>C_S_AXIS_VIDEO_FORMAT</key>
+    <label>Video Format</label>
+    <tip>Video Format. Used to determine the number of pixel components</tip>
+  </widget>
+  '>
+  <!ENTITY VID_OUT_DATA_WIDTH '
+  <widget id="VID_OUT_DATA_WIDTH">
+    <key>VID_OUT_DATA_WIDTH</key>
+    <label>Video Output Data Width</label>
+    <tip></tip>
+  </widget>
+  '>
+  <!ENTITY C_S_AXIS_VIDEO_TDATA_WIDTH '
+  <widget id="C_S_AXIS_VIDEO_TDATA_WIDTH">
+    <key>C_S_AXIS_VIDEO_TDATA_WIDTH</key>
+    <label>AXI4-Stream TDATA Width</label>
+    <tip></tip>
+  </widget>
+  '>
+  <!ENTITY RAM_ADDR_BITS '
+  <widget id="RAM_ADDR_BITS">
+    <key>RAM_ADDR_BITS</key>
+    <label>FIFO Depth</label>
+    <tip>The number of locations in the FIFO</tip>
+  </widget>
+  '>
+  <!ENTITY HYSTERESIS_LEVEL '
+  <widget id="HYSTERESIS_LEVEL">
+    <key>HYSTERESIS_LEVEL</key>
+    <label>Hysteresis Level</label>
+    <tip>The initial fill level of the FIFO. Must be less than FIFO Depth - 16.</tip>
+  </widget>
+  '>
+  <!ENTITY FILL_GUARDBAND '
+  <widget id="FILL_GUARDBAND">
+    <key>FILL_GUARDBAND</key>
+    <label>Fill Guardband</label>
+    <tip></tip>
+  </widget>
+  '>
+  <!ENTITY VTG_MASTER_SLAVE '
+  <widget id="VTG_MASTER_SLAVE">
+    <key>VTG_MASTER_SLAVE</key>
+    <label>Master or Slave mode</label>
+    <tip>Specifies whether the core acts as a timing master or a timing slave</tip>
+  </widget>
+  '>
+  <!ENTITY C_S_AXIS_VIDEO_PROTOCOL '
+  <widget id="C_S_AXIS_VIDEO_PROTOCOL">
+    <key>C_S_AXIS_VIDEO_PROTOCOL</key>
+    <label>AXI4-Stream Master Protocol</label>
+    <tip>AXI4-Stream Master Protocol</tip>
+        <value type="enum" default="XIL_AXI_STREAM_VID_DATA">
+            <range>
+                <discrete data="XIL_AXI_STREAM_VID_DATA" />
+            </range>
+        </value>
+  </widget>
+  '>
+]>
+
+
+<doc>
+      <view id="User">
+        <display>User</display>
+        <group id="General">
+          <display>General</display>
+          <item>&VTG_MASTER_SLAVE;</item>
+          <item>&C_S_AXIS_VIDEO_DATA_WIDTH;</item>
+          <item>&C_S_AXIS_VIDEO_FORMAT;</item>
+          <item>&RAM_ADDR_BITS;</item>
+         <item>&HYSTERESIS_LEVEL;</item>
+        </group>
+        <group id="Hidden">
+          <display>Hidden</display>
+          <item>&VID_OUT_DATA_WIDTH;</item>
+          <item>&C_S_AXIS_VIDEO_TDATA_WIDTH;</item>
+          <item>&FILL_GUARDBAND;</item>
+          <item>&C_S_AXIS_VIDEO_PROTOCOL;</item>
+        </group>
+      </view>
+</doc>
