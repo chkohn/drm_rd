@@ -15,6 +15,7 @@ update_ip_catalog
 source ./build_bd.tcl
 regenerate_bd_layout
 save_bd_design
+validate_bd_design
 make_wrapper -files [get_files $bd_name.bd] -top
 import_files -force -norecurse ./$project_dir/$project_name.srcs/sources_1/bd/$bd_name/hdl/${bd_name}_wrapper.vhd
 update_compile_order -fileset sources_1
