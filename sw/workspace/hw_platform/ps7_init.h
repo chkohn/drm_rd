@@ -98,11 +98,11 @@ extern unsigned long  * ps7_peripherals_init_data;
 /* Freq of all peripherals */
 
 #define APU_FREQ  666666666
-#define DDR_FREQ  533333313
+#define DDR_FREQ  533333333
 #define DCI_FREQ  10159000
 #define QSPI_FREQ  200000000
 #define SMC_FREQ  100000000
-#define ENET0_FREQ  25000000
+#define ENET0_FREQ  125000000
 #define ENET1_FREQ  125000000
 #define USB0_FREQ  60000000
 #define USB1_FREQ  60000000
@@ -115,10 +115,10 @@ extern unsigned long  * ps7_peripherals_init_data;
 #define CAN_FREQ  23809500
 #define PCAP_FREQ  200000000
 #define TPIU_FREQ  0
-#define FPGA0_FREQ  75000000
+#define FPGA0_FREQ  50000000
 #define FPGA1_FREQ  150000000
-#define FPGA2_FREQ  100000000
-#define FPGA3_FREQ  100000000
+#define FPGA2_FREQ  50000000
+#define FPGA3_FREQ  50000000
 
 
 int ps7_config( unsigned long*);
