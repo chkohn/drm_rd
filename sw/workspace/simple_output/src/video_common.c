@@ -227,7 +227,7 @@ const VideoFormat VideoFormat_ARGB32 = {
 
 const VideoFormat VideoFormat_YUYV = {
 	.Name              =  "YUYV",
-	.Id                =  V_YUYV,
+	.Id                =  V_UYVY,
 	.BytesPerPixel     =  2
 };
 

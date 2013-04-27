@@ -76,19 +76,24 @@ static int XAxiVdma_ResetChannel(XAxiVdma *InstancePtr, u16 Direction)
 	return XST_SUCCESS;
 }
 
-int XAxiVdma_SetupReadChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing, const VideoFormat *Format, u32 ReadAddrBase, u8 UseSOF)
+int XAxiVdma_SetupReadChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing, const VideoFormat *Format, u32 ReadAddrBase, int FrameStore, u8 UseSOF)
 {
 	int Index;
 	u32 Addr;
 	int Status;
 	XAxiVdma_DmaSetup ReadCfg;
 
-	XAxiVdma_ResetChannel(InstancePtr, XAXIVDMA_READ);
-	XAxiVdma_SetFrmStore(InstancePtr, InstancePtr->MaxNumFrames, XAXIVDMA_READ);
-	if (UseSOF)
-		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_S2MM_TUSER_FSYNC, XAXIVDMA_READ);
-	else
-		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_CHAN_FSYNC, XAXIVDMA_READ);
+	if (FrameStore > InstancePtr->MaxNumFrames) {
+		xil_printf("Read channel requested frame store (%d) exceeds max number frames (%d)", FrameStore, InstancePtr->MaxNumFrames);
+		return XST_FAILURE;
+	}
+
+//	XAxiVdma_ResetChannel(InstancePtr, XAXIVDMA_READ);
+//	XAxiVdma_SetFrmStore(InstancePtr, FrameStore, XAXIVDMA_READ);
+//	if (UseSOF)
+//		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_S2MM_TUSER_FSYNC, XAXIVDMA_READ);
+//	else
+//		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_CHAN_FSYNC, XAXIVDMA_READ);
 
 	ReadCfg.VertSizeInput = Timing->Field0Height;
 	ReadCfg.HoriSizeInput = Timing->LineWidth * Format->BytesPerPixel;
@@ -115,7 +120,7 @@ int XAxiVdma_SetupReadChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing, 
 	 * These addresses are physical addresses
 	 */
 	Addr = ReadAddrBase;
-	for(Index = 0; Index < InstancePtr->MaxNumFrames; Index++) {
+	for(Index = 0; Index < FrameStore; Index++) {
 		ReadCfg.FrameStoreStartAddr[Index] = Addr;
 		Addr += ReadCfg.VertSizeInput * ReadCfg.HoriSizeInput;
 	}
@@ -132,19 +137,24 @@ int XAxiVdma_SetupReadChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing, 
 	return XST_SUCCESS;
 }
 
-int XAxiVdma_SetupWriteChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing, const VideoFormat *Format, u32 WriteAddrBase, u8 UseSOF)
+int XAxiVdma_SetupWriteChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing, const VideoFormat *Format, u32 WriteAddrBase, int FrameStore, u8 UseSOF)
 {
 	int Index;
 	u32 Addr;
 	int Status;
 	XAxiVdma_DmaSetup WriteCfg;
 
-	XAxiVdma_ResetChannel(InstancePtr, XAXIVDMA_WRITE);
-	XAxiVdma_SetFrmStore(InstancePtr, InstancePtr->MaxNumFrames, XAXIVDMA_WRITE);
-	if (UseSOF)
-		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_S2MM_TUSER_FSYNC, XAXIVDMA_WRITE);
-	else
-		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_CHAN_FSYNC, XAXIVDMA_WRITE);
+	if (FrameStore > InstancePtr->MaxNumFrames) {
+		xil_printf("Write channel requested frame store (%d) exceeds max number frames (%d)", FrameStore, InstancePtr->MaxNumFrames);
+		return XST_FAILURE;
+	}
+
+//	XAxiVdma_ResetChannel(InstancePtr, XAXIVDMA_WRITE);
+//	XAxiVdma_SetFrmStore(InstancePtr, InstancePtr->MaxNumFrames, XAXIVDMA_WRITE);
+//	if (UseSOF)
+//		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_S2MM_TUSER_FSYNC, XAXIVDMA_WRITE);
+//	else
+//		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_CHAN_FSYNC, XAXIVDMA_WRITE);
 
 	WriteCfg.VertSizeInput = Timing->Field0Height;
 	WriteCfg.HoriSizeInput = Timing->LineWidth * Format->BytesPerPixel;
@@ -153,7 +163,7 @@ int XAxiVdma_SetupWriteChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing,
 	WriteCfg.FrameDelay = 0;  /* This example does not test frame delay */
 
 	WriteCfg.EnableCircularBuf = 1;
-	WriteCfg.EnableSync = 0;  /* No Gen-Lock */
+	WriteCfg.EnableSync = 1;  /* No Gen-Lock */
 
 	WriteCfg.PointNum = 0;    /* No Gen-Lock */
 	WriteCfg.EnableFrameCounter = 0; /* Endless transfers */
@@ -171,7 +181,7 @@ int XAxiVdma_SetupWriteChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing,
 	 * Use physical addresses
 	 */
 	Addr = WriteAddrBase;
-	for(Index = 0; Index < InstancePtr->MaxNumFrames; Index++) {
+	for(Index = 0; Index < FrameStore; Index++) {
 		WriteCfg.FrameStoreStartAddr[Index] = Addr;
 		Addr += WriteCfg.VertSizeInput * WriteCfg.HoriSizeInput;
 	}

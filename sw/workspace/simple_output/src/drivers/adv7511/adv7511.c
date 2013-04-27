@@ -161,6 +161,62 @@ IicMsg ADV7511_HdmiYCbCr422[ADV7511_HDMI_YCBCR422_LEN] =
 	{0xF9, 0x00}  	// Fixed I2C Address (This should be set to a non-conflicting I2C address)
 };
 
+/*
+ * The video input format of the ADV7511 is set to YCbCr, 16-bit, 4:2:2,
+ * ID 2 (embedded syncs), Style 1. The video output format is set to
+ * RGB, 24-bit, 4:4:4, DVI mode.
+ *
+ * CSC coefficients (registers 0x18 - 0x2F) are taken from tables 40/57
+ * of the ADV7511 programmer's guide i.e. converting HDTV YCrCb
+ * (16 to 235 or limited range) to RGB (0 to 255 or full range).
+ */
+#define ADV7511_HDMI_YCBCR422_EMB_SYNC_LEN  23
+IicMsg ADV7511_HdmiYCbCr422EmbSync[ADV7511_HDMI_YCBCR422_EMB_SYNC_LEN] =
+{
+	{0x41, 0x10}, 	// Power Down Control
+					//    R0x41[  6] = PowerDown = 0 (power-up)
+	{0xD6, 0xC0}, 	// HPD Control
+					//    R0xD6[7:6] = HPD Control = 11 (always high)
+	{0x15, 0x02}, 	// Input YCbCr 4:2:2 with embedded syncs
+	{0x16, 0xB9}, 	// Output format 4:2:2, Input Color Depth = 8
+					//    R0x16[  7] = Output Video Format = 1 (4:2:2)
+					//    R0x16[5:4] = Input Video Color Depth = 11 (8 bits/color)
+					//    R0x16[3:2] = Input Video Style = 10 (style 1)
+					//    R0x16[  1] = DDR Input Edge = 0 (falling edge)
+					//    R0x16[  0] = Output Color Space = 1 (YCbCr)
+	{0x17, 0x02},   // VSync Polarity = 0(high), HSync Polarity = 0(high)
+	{0x30, 0x16},   // Hsync placement = 0001011000 (0x58) = 88
+	{0x31, 0x02},   // Hsync duration  = 0000101100 (0x2C) = 44
+	{0x32, 0xC0},   //
+	{0x33, 0x10},   // Vsync placement = 0000000100 (0x04) =  4
+	{0x34, 0x05},   // Vsync duration  = 0000000101 (0x05) =  5
+	{0x48, 0x08}, 	// Video Input Justification
+					//    R0x48[4:3] = Video Input Justification = 01 (right justified)
+	{0x55, 0x20}, 	// Set RGB in AVinfo Frame
+					//    R0x55[6:5] = Output Format = 01 (YCbCr)
+	{0x56, 0x28}, 	// Aspect Ratio
+					//    R0x56[5:4] = Picture Aspect Ratio = 10 (16:9)
+					//    R0x56[3:0] = Active Format Aspect Ratio = 1000 (Same as Aspect Ratio)
+	{0x98, 0x03}, 	// ADI Recommended Write
+	{0x9A, 0xE0}, 	// ADI Recommended Write
+	{0x9C, 0x30}, 	// PLL Filter R1 Value
+	{0x9D, 0x61}, 	// Set clock divide
+	{0xA2, 0xA4}, 	// ADI Recommended Write
+	{0xA3, 0xA4}, 	// ADI Recommended Write
+	{0xAF, 0x06}, 	// HDMI/DVI Modes
+					//    R0xAF[  7] = HDCP Enable = 0 (HDCP disabled)
+					//    R0xAF[  4] = Frame Encryption = 0 (Current frame NOT HDCP encrypted)
+					//    R0xAF[3:2] = 01 (fixed)
+					//    R0xAF[  1] = HDMI/DVI Mode Select = 2 (HDMI Mode)
+	{0xBA, 0x70},   // Programmable delay for input video clock
+					//    R0xBA[7:5] = Clock Delay = 011 (no delay)
+					//    R0xBA[  4] = HDCP EEPROM =   1 (external)
+	{0xE0, 0xD0}, 	// Must be set to 0xD0 for proper operation
+	{0xF9, 0x00}  	// Fixed I2C Address (This should be set to a non-conflicting I2C address)
+};
+
+//TODO have proper config struct for adv7511
+
 
 int ADV7511_CfgInitialize(ADV7511 *Instance, ADV7511_Config *Config)
 {
@@ -201,8 +257,10 @@ int ADV7511_SetVideoMode(ADV7511 *Instance, enum VideoFormatId Format)
 	// write ADV7511 configuration
 	if (Format == V_ARGB32)
 		Instance->IicAdapter->Funcs->Iic_WriteMsg( Instance->IicAdapter, Instance->Config.IicAddress, ADV7511_HdmiRGB444, ADV7511_HDMI_RGB444_LEN );
-	if (Format == V_YUYV)
+	if (Format == V_UYVY)
 		Instance->IicAdapter->Funcs->Iic_WriteMsg( Instance->IicAdapter, Instance->Config.IicAddress, ADV7511_HdmiYCbCr422, ADV7511_HDMI_YCBCR422_LEN );
+	if (Format == V_YUYV_emb_sync)
+		Instance->IicAdapter->Funcs->Iic_WriteMsg( Instance->IicAdapter, Instance->Config.IicAddress, ADV7511_HdmiYCbCr422EmbSync, ADV7511_HDMI_YCBCR422_EMB_SYNC_LEN );
 
 	Instance->Format = Format;
 
