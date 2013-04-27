@@ -1,1 +1,1 @@
-../sw/hw_platform/ps7_init.tcl
+../sw/workspace/hw_platform/ps7_init.tcl
