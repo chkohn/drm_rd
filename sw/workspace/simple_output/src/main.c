@@ -42,6 +42,7 @@
 #include <stdlib.h>
 
 #include "sleep.h"
+#include "xil_cache.h"
 #include "vdma.h"
 #include "xvtc.h"
 #include "cresample.h"
@@ -65,6 +66,29 @@
 #else
 #define  debug_printf(msg, args...) do {  } while (0)
 #endif
+
+
+static const u32 pix_argb32[8] = {
+		ARGB32_WHITE,
+		ARGB32_YELLOW,
+		ARGB32_CYAN,
+		ARGB32_GREEN,
+		ARGB32_MAGENTA,
+		ARGB32_RED,
+		ARGB32_BLUE,
+		ARGB32_BLACK
+};
+
+static const u32 pix_uyvy[8] = {
+		UYVY_WHITE,
+		UYVY_YELLOW,
+		UYVY_CYAN,
+		UYVY_GREEN,
+		UYVY_MAGENTA,
+		UYVY_RED,
+		UYVY_BLUE,
+		UYVY_BLACK
+};
 
 
 // TODO workaround
@@ -219,25 +243,26 @@ void RGB_Configure(const VideoTiming *Timing)
 {
 	debug_printf("Configure Color Space Converter\r\n");
 
-	RGB_RegUpdateDisable(XPAR_V_RGB2YCRCB_0_BASEADDR);
-	RGB_WriteReg(XPAR_V_RGB2YCRCB_0_BASEADDR, RGB_ACTIVE_SIZE, (Timing->Field0Height<<16 | Timing->LineWidth));
-    RGB_RegUpdateEnable(XPAR_V_RGB2YCRCB_0_BASEADDR);
+	RGB_RegUpdateDisable(XPAR_V_RGB2YCRCB_1_BASEADDR);
+	RGB_WriteReg(XPAR_V_RGB2YCRCB_1_BASEADDR, RGB_ACTIVE_SIZE, (Timing->Field0Height<<16 | Timing->LineWidth));
+    RGB_RegUpdateEnable(XPAR_V_RGB2YCRCB_1_BASEADDR);
 }
 
 void RGB_Start()
 {
 	debug_printf("Start Color Space Converter\r\n");
 
-	RGB_Enable(XPAR_V_RGB2YCRCB_0_BASEADDR);
+	RGB_Enable(XPAR_V_RGB2YCRCB_1_BASEADDR);
 }
 
 void RGB_Stop()
 {
 	debug_printf("Stop Color Space Converter\r\n");
 
-	RGB_Disable(XPAR_V_RGB2YCRCB_0_BASEADDR);
+	RGB_Disable(XPAR_V_RGB2YCRCB_1_BASEADDR);
 }
 
+#ifdef USE_SI570
 // SI570 functions
 void SI570_Configure(SI570 *Instance, const VideoTiming *Timing)
 {
@@ -247,30 +272,30 @@ void SI570_Configure(SI570 *Instance, const VideoTiming *Timing)
     usleep(100000);
     printf("Video Clock Frequency: %llu Hz\n\r", SI570_GetFrequency(Instance));
 }
+#endif
 
+#ifndef USE_TPG
 // Initialize frame buffer
-void FB_Initialize(u32 BaseAddr, const VideoTiming *Timing)
+void FB_Initialize(u32 BaseAddr, const VideoTiming *Timing, const VideoFormat *Format, int FrameCnt)
 {
-	u32 row, col;
+	u32 fcnt, row, col;
 	u32 addr = BaseAddr;
-	static const u32 pix[8] = {
-			RGB_WHITE,
-			RGB_YELLOW,
-			RGB_CYAN,
-			RGB_GREEN,
-			RGB_MAGENTA,
-			RGB_RED,
-			RGB_BLUE,
-			RGB_BLACK
-	};
 
-	for (row = 0; row < Timing->Field0Height; row++) {
-		for (col = 0; col < Timing->LineWidth; col++) {
-			Xil_Out32(addr, pix[col / (Timing->LineWidth / 8)]);
-			addr += 4;
+	for (fcnt = 0; fcnt < FrameCnt; fcnt++) {
+		for (row = 0; row < Timing->Field0Height; row++) {
+			for (col = 0; col < Timing->LineWidth; col++) {
+				if (Format->Id == V_ARGB32)
+					Xil_Out32(addr, pix_argb32[col / (Timing->LineWidth / 8)]);
+				else if (Format->Id == V_UYVY)
+					Xil_Out32(addr, pix_uyvy[col / (Timing->LineWidth / 8)]);
+				addr += 4;
+			}
 		}
 	}
+
+	Xil_DCacheFlush();
 }
+#endif
 
 // main
 int main()
@@ -279,7 +304,7 @@ int main()
 	const VideoTiming *Timing = LookupVideoTiming_ById(V_1080p);
 	const VideoFormat *Format= LookupVideoFormat_ById(V_ARGB32);
 
-	printf("Video Output Resolution: %dx%d @ 60fps\r\n", Timing->LineWidth, Timing->Field0Height);
+	printf("Video Output Resolution: %ux%u @ 60fps\r\n", Timing->LineWidth, Timing->Field0Height);
 
     // Initialize PS I2C0 Adapter
     XIicPs *XIicPs_0 = XIicPs_Initialize(XPAR_XIICPS_0_DEVICE_ID, 100000);
@@ -288,34 +313,36 @@ int main()
     // Initialize I2C Mux
     PCA954X *IicMux_0 = PCA954X_Initialize(XPAR_PCA954X_0_DEVICE_ID, IicAdapter_XIicPs_0);
 
+#ifdef USE_SI570
     // Initialize Clock Synthesizer
     SI570 *SI570_0 = SI570_Initialize(XPAR_SI570_0_DEVICE_ID, IicMux_0->VirtAdapter[0]);
+#endif
 
     // Initialize HDMI Output
 	ADV7511 *ADV7511_0 = ADV7511_Initialize(XPAR_ADV7511_0_DEVICE_ID, IicMux_0->VirtAdapter[1]);
 
 	// Initialize VDMA
-	XAxiVdma *XAxiVdma_0 = XAxiVdma_Initialize(XPAR_AXI_VDMA_0_DEVICE_ID);
+	XAxiVdma *XAxiVdma_0 = XAxiVdma_Initialize(XPAR_AXI_VDMA_1_DEVICE_ID);
 
 	// Initialize VTC
-	XVtc *XVtc_0 = XVtc_Initialize(XPAR_VTC_0_DEVICE_ID);
+	XVtc *XVtc_0 = XVtc_Initialize(XPAR_V_TC_1_DEVICE_ID);
 
+#ifndef USE_TPG
 	// Initialize FB0
-	FB_Initialize(FB0_ADDR, Timing);
+	FB_Initialize(FB0_ADDR, Timing, Format, XAxiVdma_0->MaxNumFrames);
+#endif
 
+#ifdef USE_SI570
     // Configure Clock Synthesizer
     SI570_Configure(SI570_0, Timing);
+#endif
 
 	// Configure HDMI Output
-	Status = ADV7511_SetVideoMode(ADV7511_0, V_YUYV);
+	Status = ADV7511_SetVideoMode(ADV7511_0, V_UYVY);
 	if (Status == XST_FAILURE) {
 		xil_printf("ERROR : No monitor detected on HDMI output!\r\n");
 		exit(XST_FAILURE);
 	}
-
-    // Stop and Reset VDMA Read Channel
-    XAxiVdma_DmaStop(XAxiVdma_0, XAXIVDMA_READ);
-    XAxiVdma_Reset(XAxiVdma_0, XAXIVDMA_READ);
 
     // Configure and Start VTC
 	XVtc_Configure(XVtc_0, Timing);
@@ -329,8 +356,14 @@ int main()
     RGB_Configure(Timing);
     RGB_Start();
 
-	// Configure and Start VDMA
-	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 1);
+#ifdef USE_TPG
+	// Configure and Start VDMA S2MM
+	XAxiVdma_SetupWriteChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 3, 1);
+	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_WRITE);
+#endif
+
+	// Configure and Start VDMA MM2S
+	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 3, 1);
 	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
 
 	printf("Exit simple_output!\r\n");

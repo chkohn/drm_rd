@@ -45,35 +45,26 @@
 #include "xil_types.h"
 
 
-// RGB colors [0, 255]
-#define RGB_BLACK    0x00000000
-#define RGB_WHITE    0x00FFFFFF
-#define RGB_RED      0x00FF0000
-#define RGB_GREEN    0x0000FF00
-#define RGB_BLUE     0x000000FF
-#define RGB_CYAN     0x0000FFFF
-#define RGB_MAGENTA  0x00FF00FF
-#define RGB_YELLOW   0x00FFFF00
+// ARGB32 colors [0, 255]
+#define ARGB32_BLACK    0x00000000
+#define ARGB32_WHITE    0x00FFFFFF
+#define ARGB32_RED      0x00FF0000
+#define ARGB32_GREEN    0x0000FF00
+#define ARGB32_BLUE     0x000000FF
+#define ARGB32_CYAN     0x0000FFFF
+#define ARGB32_MAGENTA  0x00FF00FF
+#define ARGB32_YELLOW   0x00FFFF00
 
-// BGR colors [0, 255]
-#define BGR_BLACK    0x00000000
-#define BGR_WHITE    0x00FFFFFF
-#define BGR_RED      0x000000FF
-#define BGR_GREEN    0x0000FF00
-#define BGR_BLUE     0x00FF0000
-#define BGR_CYAN     0x00FFFF00
-#define BGR_MAGENTA  0x00FF00FF
-#define BGR_YELLOW   0x0000FFFF
+// UYVY colors [16, 235]
+#define UYVY_WHITE    0x80EB80EB
+#define UYVY_YELLOW   0x10D292D2
+#define UYVY_CYAN     0xA6AA10AA
+#define UYVY_GREEN	  0x36912291
+#define UYVY_MAGENTA  0xCA6ADE6A
+#define UYVY_RED      0x5A51F051
+#define UYVY_BLUE     0xF0296E29
+#define UYVY_BLACK    0x80108010
 
-// CbCrY colors [16, 235]
-#define CBCRY_WHITE    0x008080EB
-#define CBCRY_YELLOW   0x001092D2
-#define CBCRY_CYAN     0x00A610AA
-#define CBCRY_GREEN	   0x00362291
-#define CBCRY_MAGENTA  0x00CADE6A
-#define CBCRY_RED      0x005AF051
-#define CBCRY_BLUE     0x00F06E29
-#define CBCRY_BLACK    0x00808010
 
 #define NAME_SIZE 32
 
@@ -115,10 +106,11 @@ typedef struct {
 
 enum VideoFormatId {
 	V_ARGB32,  // The frame is stored using a 32-bit ARGB format (0xAARRGGBB)
-	V_YUYV     // The frame is stored using an 8-bit per component packed YUV format
+	V_UYVY,    // The frame is stored using an 8-bit per component packed YUV format
 			   // with the U and V planes horizontally sub-sampled (Y-U-Y-V),
 	           // i.e. two horizontally adjacent pixels are stored as a 32-bit macropixel
 	           // which has a Y value for each pixel and common U and V values.
+	V_YUYV_emb_sync  // same as above but using embedded sync signals instead
 };
 
 typedef struct {

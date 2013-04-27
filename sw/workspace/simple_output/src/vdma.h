@@ -47,8 +47,8 @@
 
 
 XAxiVdma *XAxiVdma_Initialize(u16 DeviceId);
-int XAxiVdma_SetupWriteChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing, const VideoFormat *Format, u32 WriteAddrBase, u8 UseSOF);
-int XAxiVdma_SetupReadChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing, const VideoFormat *Format, u32 ReadAddrBase, u8 UseSOF);
+int XAxiVdma_SetupWriteChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing, const VideoFormat *Format, u32 WriteAddrBase, int FrameStore, u8 UseSOF);
+int XAxiVdma_SetupReadChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing, const VideoFormat *Format, u32 ReadAddrBase, int FrameStore, u8 UseSOF);
 
 
 #endif /* VDMA_H_ */
