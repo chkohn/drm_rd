@@ -163,9 +163,9 @@ int XAxiVdma_SetupWriteChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing,
 	WriteCfg.FrameDelay = 0;  /* This example does not test frame delay */
 
 	WriteCfg.EnableCircularBuf = 1;
-	WriteCfg.EnableSync = 0;  /* No Gen-Lock */
+	WriteCfg.EnableSync = 1;  /* No Gen-Lock */
 
-	WriteCfg.PointNum = 0;    /* No Gen-Lock */
+	WriteCfg.PointNum = 1;    /* No Gen-Lock */
 	WriteCfg.EnableFrameCounter = 0; /* Endless transfers */
 
 	WriteCfg.FixedFrameStoreAddr = 0; /* We are not doing parking */

@@ -103,6 +103,7 @@ static const u32 pix_uyvy[8] = {
 
 
 // TODO workaround
+#if 1
 static void StubCallBack(void *CallBackRef)
 {
 	Xil_AssertVoidAlways();
@@ -142,13 +143,18 @@ int my_XVtc_CfgInitialize(XVtc *InstancePtr, XVtc_Config *CfgPtr,
 
 	return XST_SUCCESS;
 }
+#endif
 
 // VTC functions
 XVtc *XVtc_Initialize(u16 DeviceId)
 {
 	XVtc *Instance = malloc(sizeof *Instance);
 	XVtc_Config *Config = XVtc_LookupConfig(DeviceId);
+#if 0
+	XVtc_CfgInitialize(Instance, Config, Config->BaseAddress);
+#else
 	my_XVtc_CfgInitialize(Instance, Config, Config->BaseAddress);
+#endif
 	return Instance;
 }
 
@@ -419,7 +425,7 @@ int main()
 
 #ifdef USE_TPG
     // Configure and Start Test Pattern Generator
-    TPG_SetPattern(V_TPG_ColorBar, 0);
+    TPG_SetPattern(V_TPG_ColorBar, 1);
     TPG_Configure(Timing);
     TPG_Start();
 
