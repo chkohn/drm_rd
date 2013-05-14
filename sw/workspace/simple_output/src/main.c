@@ -47,12 +47,17 @@
 #include "xvtc.h"
 #include "cresample.h"
 #include "rgb2ycrcb.h"
+#ifdef USE_TPG
+#include "tpg.h"
+#endif
 #include "xiicps_adapter.h"
 #include "video_common.h"
 #include "xparameters_zc702.h"
 
 #include "drivers/pca954x/pca954x.h"
+#ifdef USE_SI570
 #include "drivers/si570/si570.h"
+#endif
 #include "drivers/adv7511/adv7511.h"
 
 
@@ -66,6 +71,12 @@
 #else
 #define  debug_printf(msg, args...) do {  } while (0)
 #endif
+
+
+enum TPG_Pattern {
+	V_TPG_ColorBar,
+	V_TPG_ZonePlate
+};
 
 
 static const u32 pix_argb32[8] = {
@@ -92,6 +103,7 @@ static const u32 pix_uyvy[8] = {
 
 
 // TODO workaround
+#if 1
 static void StubCallBack(void *CallBackRef)
 {
 	Xil_AssertVoidAlways();
@@ -131,13 +143,18 @@ int my_XVtc_CfgInitialize(XVtc *InstancePtr, XVtc_Config *CfgPtr,
 
 	return XST_SUCCESS;
 }
+#endif
 
 // VTC functions
 XVtc *XVtc_Initialize(u16 DeviceId)
 {
 	XVtc *Instance = malloc(sizeof *Instance);
 	XVtc_Config *Config = XVtc_LookupConfig(DeviceId);
+#if 0
+	XVtc_CfgInitialize(Instance, Config, Config->BaseAddress);
+#else
 	my_XVtc_CfgInitialize(Instance, Config, Config->BaseAddress);
+#endif
 	return Instance;
 }
 
@@ -262,6 +279,56 @@ void RGB_Stop()
 	RGB_Disable(XPAR_V_RGB2YCRCB_1_BASEADDR);
 }
 
+#ifdef USE_TPG
+// TPG functions
+void TPG_SetPattern(const enum TPG_Pattern Pattern, int EnableBox)
+{
+	debug_printf("Set Pattern of Test Pattern Generator\r\n");
+
+	TPG_RegUpdateDisable(XPAR_V_TPG_1_BASEADDR);
+	// select Pattern
+	if (Pattern == V_TPG_ColorBar) {
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, 0x9);
+	} else if (Pattern == V_TPG_ZonePlate) {
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, 0xA);
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_ZPLATE_HOR_CONTROL, (0x0<<16 | 0x90));
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_ZPLATE_VER_CONTROL, (0x0<<16 | 0x3));
+	}
+	// enable Box
+	if (EnableBox) {
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, \
+					(TPG_ReadReg(XPAR_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL) | 0x1020));
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_BOX_COLOR, ARGB32_RED);
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_BOX_SIZE, 0x50);
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_MOTION_SPEED, 0xA);
+	}
+    TPG_RegUpdateEnable(XPAR_V_TPG_1_BASEADDR);
+}
+
+void TPG_Configure(const VideoTiming *Timing)
+{
+	debug_printf("Configure Test Pattern Generator\r\n");
+
+	TPG_RegUpdateDisable(XPAR_V_TPG_1_BASEADDR);
+	TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_ACTIVE_SIZE, (Timing->Field0Height<<16 | Timing->LineWidth));
+    TPG_RegUpdateEnable(XPAR_V_TPG_1_BASEADDR);
+}
+
+void TPG_Start()
+{
+	debug_printf("Start Test Pattern Generator\r\n");
+
+	TPG_Enable(XPAR_V_TPG_1_BASEADDR);
+}
+
+void TPG_Stop()
+{
+	debug_printf("Stop Test Pattern Generator\r\n");
+
+	TPG_Disable(XPAR_V_TPG_1_BASEADDR);
+}
+#endif
+
 #ifdef USE_SI570
 // SI570 functions
 void SI570_Configure(SI570 *Instance, const VideoTiming *Timing)
@@ -357,6 +424,11 @@ int main()
     RGB_Start();
 
 #ifdef USE_TPG
+    // Configure and Start Test Pattern Generator
+    TPG_SetPattern(V_TPG_ColorBar, 1);
+    TPG_Configure(Timing);
+    TPG_Start();
+
 	// Configure and Start VDMA S2MM
 	XAxiVdma_SetupWriteChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 3, 1);
 	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_WRITE);

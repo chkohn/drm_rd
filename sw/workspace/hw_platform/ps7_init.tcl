@@ -28,6 +28,8 @@ proc ps7_pll_init_data_3_0 {} {
 proc ps7_clock_init_data_3_0 {} {
     mask_write 0XF8000008 0x0000FFFF 0x0000DF0D
     mask_write 0XF8000128 0x03F03F01 0x00302301
+    mask_write 0XF8000138 0x00000011 0x00000001
+    mask_write 0XF8000140 0x03F03F71 0x00500801
     mask_write 0XF800014C 0x00003F31 0x00000721
     mask_write 0XF8000150 0x00003F33 0x00001801
     mask_write 0XF8000154 0x00003F33 0x00001802
@@ -740,20 +742,20 @@ proc ps7_init {} {
             ps7_clock_init_data_1_0
             ps7_ddr_init_data_1_0
             ps7_peripherals_init_data_1_0
-            #puts "PCW Silicon Version : 1.0"
+            puts "PCW Silicon Version : 1.0"
     } elseif { $sil_ver == $PCW_SILICON_VER_2_0 } {
             ps7_mio_init_data_2_0
             ps7_pll_init_data_2_0
             ps7_clock_init_data_2_0
             ps7_ddr_init_data_2_0
             ps7_peripherals_init_data_2_0
-            #puts "PCW Silicon Version : 2.0"
+            puts "PCW Silicon Version : 2.0"
     } else {
             ps7_mio_init_data_3_0
             ps7_pll_init_data_3_0
             ps7_clock_init_data_3_0
             ps7_ddr_init_data_3_0
             ps7_peripherals_init_data_3_0
-            #puts "PCW Silicon Version : 3.0"
+            puts "PCW Silicon Version : 3.0"
     }
 }
