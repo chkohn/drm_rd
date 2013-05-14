@@ -243,23 +243,23 @@ void RGB_Configure(const VideoTiming *Timing)
 {
 	debug_printf("Configure Color Space Converter\r\n");
 
-	RGB_RegUpdateDisable(XPAR_V_RGB2YCRCB_1_BASEADDR);
-	RGB_WriteReg(XPAR_V_RGB2YCRCB_1_BASEADDR, RGB_ACTIVE_SIZE, (Timing->Field0Height<<16 | Timing->LineWidth));
-    RGB_RegUpdateEnable(XPAR_V_RGB2YCRCB_1_BASEADDR);
+	RGB_RegUpdateDisable(XPAR_V_RGB2YCRCB_0_BASEADDR);
+	RGB_WriteReg(XPAR_V_RGB2YCRCB_0_BASEADDR, RGB_ACTIVE_SIZE, (Timing->Field0Height<<16 | Timing->LineWidth));
+    RGB_RegUpdateEnable(XPAR_V_RGB2YCRCB_0_BASEADDR);
 }
 
 void RGB_Start()
 {
 	debug_printf("Start Color Space Converter\r\n");
 
-	RGB_Enable(XPAR_V_RGB2YCRCB_1_BASEADDR);
+	RGB_Enable(XPAR_V_RGB2YCRCB_0_BASEADDR);
 }
 
 void RGB_Stop()
 {
 	debug_printf("Stop Color Space Converter\r\n");
 
-	RGB_Disable(XPAR_V_RGB2YCRCB_1_BASEADDR);
+	RGB_Disable(XPAR_V_RGB2YCRCB_0_BASEADDR);
 }
 
 #ifdef USE_SI570
@@ -322,10 +322,10 @@ int main()
 	ADV7511 *ADV7511_0 = ADV7511_Initialize(XPAR_ADV7511_0_DEVICE_ID, IicMux_0->VirtAdapter[1]);
 
 	// Initialize VDMA
-	XAxiVdma *XAxiVdma_0 = XAxiVdma_Initialize(XPAR_AXI_VDMA_1_DEVICE_ID);
+	XAxiVdma *XAxiVdma_0 = XAxiVdma_Initialize(XPAR_AXI_VDMA_0_DEVICE_ID);
 
 	// Initialize VTC
-	XVtc *XVtc_0 = XVtc_Initialize(XPAR_V_TC_1_DEVICE_ID);
+	XVtc *XVtc_0 = XVtc_Initialize(XPAR_V_TC_0_DEVICE_ID);
 
 #ifndef USE_TPG
 	// Initialize FB0
@@ -358,12 +358,12 @@ int main()
 
 #ifdef USE_TPG
 	// Configure and Start VDMA S2MM
-	XAxiVdma_SetupWriteChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 3, 1);
+	XAxiVdma_SetupWriteChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_WRITE);
 #endif
 
 	// Configure and Start VDMA MM2S
-	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 3, 1);
+	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
 
 	printf("Exit simple_output!\r\n");
