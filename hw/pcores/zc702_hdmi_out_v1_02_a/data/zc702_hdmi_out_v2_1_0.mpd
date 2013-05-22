@@ -1,0 +1,86 @@
+##----------------------------------------------------------------
+##      _____
+##     /     \
+##    /____   \____
+##   / \===\   \==/
+##  /___\===\___\/  AVNET
+##       \======/
+##        \====/    
+##---------------------------------------------------------------
+##
+## This design is the property of Avnet.  Publication of this
+## design is not authorized without written consent from Avnet.
+## 
+## Please direct any questions to:  technical.support@avnet.com
+##
+## Disclaimer:
+##    Avnet, Inc. makes no warranty for the use of this code or design.
+##    This code is provided  "As Is". Avnet, Inc assumes no responsibility for
+##    any errors, which may appear in this code, nor does it make a commitment
+##    to update the information contained herein. Avnet, Inc specifically
+##    disclaims any implied warranties of fitness for a particular purpose.
+##                     Copyright(c) 2011 Avnet, Inc.
+##                             All rights reserved.
+##
+##----------------------------------------------------------------
+##
+## Create Date:         Nov 16, 2011
+## Design Name:         ZC702 HDMI Output
+## Module Name:         zc702_hdmi_out_v2_1_0.mpd
+## Project Name:        ZC702 HDMI Output
+## Target Devices:      Zynq-7000
+##
+## Tool versions:       ISE 14.1
+##
+## Description:         ZC702 HDMI output interface.
+##                      Microprocessor Peripheral Description
+##
+## Dependencies:        
+##
+## Revision:            May 19, 2012: 1.02 Initial version
+##
+##----------------------------------------------------------------
+
+BEGIN zc702_hdmi_out
+
+## Peripheral Options
+OPTION IPTYPE = PERIPHERAL
+OPTION IMP_NETLIST = TRUE
+OPTION HDL = VHDL
+OPTION IP_GROUP = USER
+
+## IO Interfaces
+IO_INTERFACE IO_IF = HDMIO_IO, IO_TYPE = XLX_ZC702_HDMIO_V1
+
+## Bus Interfaces
+#BUS_INTERFACE BUS = XSVI_VIDEO_IN, BUS_STD = XSVI,       BUS_TYPE = TARGET
+
+## Generics for VHDL or Parameters for Verilog
+PARAMETER C_FAMILY = kintex7, DT = STRING
+
+PARAMETER C_DATA_WIDTH = 16, DT = INTEGER, DESC = DATA_WIDTH,      RANGE = (16)
+
+## Ports
+PORT clk   = "", DIR = I
+PORT reset = "", DIR = I
+
+## Audio Port
+PORT audio_spdif = "", DIR = I
+
+## XSVI Input Port
+PORT xsvi_vblank_i       = "vblank",       DIR = I#,                             BUS = XSVI_VIDEO_IN
+PORT xsvi_hblank_i       = "hblank",       DIR = I#,                             BUS = XSVI_VIDEO_IN
+PORT xsvi_vsync_i        = "vsync",        DIR = I#,                             BUS = XSVI_VIDEO_IN
+PORT xsvi_hsync_i        = "hsync",        DIR = I#,                             BUS = XSVI_VIDEO_IN
+PORT xsvi_active_video_i = "active_video", DIR = I#,                             BUS = XSVI_VIDEO_IN
+PORT xsvi_video_data_i   = "video_data",   DIR = I, VEC = [(C_DATA_WIDTH-1):0]#, BUS = XSVI_VIDEO_IN
+
+## I/O pins
+PORT io_hdmio_spdif  = "", DIR = O              , IO_IF = HDMIO_IO, IO_IS = spdif
+PORT io_hdmio_video  = "", DIR = O, VEC = [15:0], IO_IF = HDMIO_IO, IO_IS = video
+PORT io_hdmio_vsync  = "", DIR = O              , IO_IF = HDMIO_IO, IO_IS = vsync
+PORT io_hdmio_hsync  = "", DIR = O              , IO_IF = HDMIO_IO, IO_IS = hsync
+PORT io_hdmio_de     = "", DIR = O              , IO_IF = HDMIO_IO, IO_IS = de
+PORT io_hdmio_clk    = "", DIR = O              , IO_IF = HDMIO_IO, IO_IS = clk
+
+END

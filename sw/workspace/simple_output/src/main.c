@@ -47,12 +47,18 @@
 #include "xvtc.h"
 #include "cresample.h"
 #include "rgb2ycrcb.h"
+#ifdef USE_TPG
+#include "tpg.h"
+#endif
+#include "xosd.h"
 #include "xiicps_adapter.h"
 #include "video_common.h"
 #include "xparameters_zc702.h"
 
 #include "drivers/pca954x/pca954x.h"
+#ifdef USE_SI570
 #include "drivers/si570/si570.h"
+#endif
 #include "drivers/adv7511/adv7511.h"
 
 
@@ -66,6 +72,12 @@
 #else
 #define  debug_printf(msg, args...) do {  } while (0)
 #endif
+
+
+enum TPG_Pattern {
+	V_TPG_ColorBar,
+	V_TPG_ZonePlate
+};
 
 
 static const u32 pix_argb32[8] = {
@@ -91,7 +103,44 @@ static const u32 pix_uyvy[8] = {
 };
 
 
+// OSD functions
+XOSD *XOSD_Initialize(u16 DeviceId)
+{
+	XOSD *Instance = malloc(sizeof *Instance);
+	XOSD_Config *Config = XOSD_LookupConfig(DeviceId);
+	XOSD_CfgInitialize(Instance, Config, Config->BaseAddress);
+
+	return Instance;
+}
+
+void XOSD_Configure(XOSD *Instance, int LayerIndex, const VideoTiming *Timing)
+{
+	debug_printf("Configure On Screen Display\r\n");
+
+	XOSD_RegUpdateDisable(Instance);
+
+	// Set screen size
+	XOSD_SetScreenSize(Instance, Timing->LineWidth, Timing->Field0Height);
+
+	// Set up Layer Alpha, Priority, Dimension and enable it
+	XOSD_SetLayerAlpha(Instance, LayerIndex, 1, 0xFF);
+	XOSD_SetLayerPriority(Instance, LayerIndex, XOSD_LAYER_PRIORITY_0);
+	XOSD_SetLayerDimension(Instance, LayerIndex, 0, 0,  Timing->LineWidth, Timing->Field0Height);
+	XOSD_EnableLayer(Instance, LayerIndex);
+
+    XOSD_RegUpdateEnable(Instance);
+}
+
+void XOSD_Start(XOSD *Instance)
+{
+	debug_printf("Start On Screen Display\r\n");
+
+	XOSD_Enable(Instance);
+}
+
+// VTC functions
 // TODO workaround
+#if 1
 static void StubCallBack(void *CallBackRef)
 {
 	Xil_AssertVoidAlways();
@@ -131,13 +180,17 @@ int my_XVtc_CfgInitialize(XVtc *InstancePtr, XVtc_Config *CfgPtr,
 
 	return XST_SUCCESS;
 }
+#endif
 
-// VTC functions
 XVtc *XVtc_Initialize(u16 DeviceId)
 {
 	XVtc *Instance = malloc(sizeof *Instance);
 	XVtc_Config *Config = XVtc_LookupConfig(DeviceId);
+#if 0
+	XVtc_CfgInitialize(Instance, Config, Config->BaseAddress);
+#else
 	my_XVtc_CfgInitialize(Instance, Config, Config->BaseAddress);
+#endif
 	return Instance;
 }
 
@@ -262,6 +315,56 @@ void RGB_Stop()
 	RGB_Disable(XPAR_V_RGB2YCRCB_0_BASEADDR);
 }
 
+#ifdef USE_TPG
+// TPG functions
+void TPG_SetPattern(const enum TPG_Pattern Pattern, int EnableBox)
+{
+	debug_printf("Set Pattern of Test Pattern Generator\r\n");
+
+	TPG_RegUpdateDisable(XPAR_V_TPG_1_BASEADDR);
+	// select Pattern
+	if (Pattern == V_TPG_ColorBar) {
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, 0x9);
+	} else if (Pattern == V_TPG_ZonePlate) {
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, 0xA);
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_ZPLATE_HOR_CONTROL, (0x0<<16 | 0x90));
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_ZPLATE_VER_CONTROL, (0x0<<16 | 0x3));
+	}
+	// enable Box
+	if (EnableBox) {
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, \
+					(TPG_ReadReg(XPAR_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL) | 0x1020));
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_BOX_COLOR, ARGB32_RED);
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_BOX_SIZE, 0x50);
+		TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_MOTION_SPEED, 0xA);
+	}
+    TPG_RegUpdateEnable(XPAR_V_TPG_1_BASEADDR);
+}
+
+void TPG_Configure(const VideoTiming *Timing)
+{
+	debug_printf("Configure Test Pattern Generator\r\n");
+
+	TPG_RegUpdateDisable(XPAR_V_TPG_1_BASEADDR);
+	TPG_WriteReg(XPAR_V_TPG_1_BASEADDR, TPG_ACTIVE_SIZE, (Timing->Field0Height<<16 | Timing->LineWidth));
+    TPG_RegUpdateEnable(XPAR_V_TPG_1_BASEADDR);
+}
+
+void TPG_Start()
+{
+	debug_printf("Start Test Pattern Generator\r\n");
+
+	TPG_Enable(XPAR_V_TPG_1_BASEADDR);
+}
+
+void TPG_Stop()
+{
+	debug_printf("Stop Test Pattern Generator\r\n");
+
+	TPG_Disable(XPAR_V_TPG_1_BASEADDR);
+}
+#endif
+
 #ifdef USE_SI570
 // SI570 functions
 void SI570_Configure(SI570 *Instance, const VideoTiming *Timing)
@@ -327,6 +430,9 @@ int main()
 	// Initialize VTC
 	XVtc *XVtc_0 = XVtc_Initialize(XPAR_V_TC_0_DEVICE_ID);
 
+	// Initialize OSD
+	XOSD *XOSD_0 = XOSD_Initialize(XPAR_V_OSD_0_DEVICE_ID);
+
 #ifndef USE_TPG
 	// Initialize FB0
 	FB_Initialize(FB0_ADDR, Timing, Format, XAxiVdma_0->MaxNumFrames);
@@ -356,15 +462,24 @@ int main()
     RGB_Configure(Timing);
     RGB_Start();
 
-#ifdef USE_TPG
-	// Configure and Start VDMA S2MM
-	XAxiVdma_SetupWriteChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 1, 1);
-	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_WRITE);
-#endif
+	// Configure and Start On Screen Display
+	XOSD_Configure(XOSD_0, 0, Timing);
+	XOSD_Start(XOSD_0);
 
 	// Configure and Start VDMA MM2S
 	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
+
+#ifdef USE_TPG
+    // Configure and Start Test Pattern Generator
+    TPG_SetPattern(V_TPG_ColorBar, 1);
+    TPG_Configure(Timing);
+    TPG_Start();
+
+	// Configure and Start VDMA S2MM
+	XAxiVdma_SetupWriteChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 3, 1);
+	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_WRITE);
+#endif
 
 	printf("Exit simple_output!\r\n");
 

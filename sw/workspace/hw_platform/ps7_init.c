@@ -3746,16 +3746,6 @@ unsigned long ps7_mio_init_data_1_0[] = {
     // ..     ==> MASK : 0x00002000U    VAL : 0x00000000U
     // .. 
     EMIT_MASKWRITE(0XF80007D4, 0x00003FFFU ,0x00001280U),
-    // .. .. START: ENABLING LEVEL SHIFTER
-    // .. .. USER_INP_ICT_EN_0 = 3
-    // .. .. ==> 0XF8000900[1:0] = 0x00000003U
-    // .. ..     ==> MASK : 0x00000003U    VAL : 0x00000003U
-    // .. .. USER_INP_ICT_EN_1 = 3
-    // .. .. ==> 0XF8000900[3:2] = 0x00000003U
-    // .. ..     ==> MASK : 0x0000000CU    VAL : 0x0000000CU
-    // .. .. 
-    EMIT_MASKWRITE(0XF8000900, 0x0000000FU ,0x0000000FU),
-    // .. .. FINISH: ENABLING LEVEL SHIFTER
     // .. FINISH: MIO PROGRAMMING
     // .. START: LOCK IT BACK
     // .. LOCK_KEY = 0X767B
@@ -3887,16 +3877,6 @@ unsigned long ps7_peripherals_init_data_1_0[] = {
     // .. 
     EMIT_MASKWRITE(0XE0001004, 0x00000FFFU ,0x00000020U),
     // .. FINISH: UART REGISTERS
-    // .. START: AFI REGISTERS
-    // .. .. START: AFI0 REGISTERS
-    // .. .. FINISH: AFI0 REGISTERS
-    // .. .. START: AFI1 REGISTERS
-    // .. .. FINISH: AFI1 REGISTERS
-    // .. .. START: AFI2 REGISTERS
-    // .. .. FINISH: AFI2 REGISTERS
-    // .. .. START: AFI3 REGISTERS
-    // .. .. FINISH: AFI3 REGISTERS
-    // .. FINISH: AFI REGISTERS
     // .. START: PL POWER ON RESET REGISTERS
     // .. PCFG_POR_CNT_4K = 0
     // .. ==> 0XF8007000[29:29] = 0x00000000U
@@ -4026,6 +4006,183 @@ unsigned long ps7_peripherals_init_data_1_0[] = {
     // .. .. .. FINISH: MASK_DATA_1_MSW HIGH BANK [53:48]
     // .. .. FINISH: I2C RESET
     // .. FINISH: SMC TIMING CALCULATION REGISTER UPDATE
+    // FINISH: top
+    //
+    EMIT_EXIT(),
+
+    //
+};
+
+unsigned long ps7_post_config_1_0[] = {
+    // START: top
+    // .. START: SLCR SETTINGS
+    // .. UNLOCK_KEY = 0XDF0D
+    // .. ==> 0XF8000008[15:0] = 0x0000DF0DU
+    // ..     ==> MASK : 0x0000FFFFU    VAL : 0x0000DF0DU
+    // .. 
+    EMIT_MASKWRITE(0XF8000008, 0x0000FFFFU ,0x0000DF0DU),
+    // .. FINISH: SLCR SETTINGS
+    // .. START: ENABLING LEVEL SHIFTER
+    // .. USER_INP_ICT_EN_0 = 3
+    // .. ==> 0XF8000900[1:0] = 0x00000003U
+    // ..     ==> MASK : 0x00000003U    VAL : 0x00000003U
+    // .. USER_INP_ICT_EN_1 = 3
+    // .. ==> 0XF8000900[3:2] = 0x00000003U
+    // ..     ==> MASK : 0x0000000CU    VAL : 0x0000000CU
+    // .. 
+    EMIT_MASKWRITE(0XF8000900, 0x0000000FU ,0x0000000FU),
+    // .. FINISH: ENABLING LEVEL SHIFTER
+    // .. START: FPGA RESETS TO 1
+    // .. reserved_3 = 127
+    // .. ==> 0XF8000240[31:25] = 0x0000007FU
+    // ..     ==> MASK : 0xFE000000U    VAL : 0xFE000000U
+    // .. FPGA_ACP_RST = 1
+    // .. ==> 0XF8000240[24:24] = 0x00000001U
+    // ..     ==> MASK : 0x01000000U    VAL : 0x01000000U
+    // .. FPGA_AXDS3_RST = 1
+    // .. ==> 0XF8000240[23:23] = 0x00000001U
+    // ..     ==> MASK : 0x00800000U    VAL : 0x00800000U
+    // .. FPGA_AXDS2_RST = 1
+    // .. ==> 0XF8000240[22:22] = 0x00000001U
+    // ..     ==> MASK : 0x00400000U    VAL : 0x00400000U
+    // .. FPGA_AXDS1_RST = 1
+    // .. ==> 0XF8000240[21:21] = 0x00000001U
+    // ..     ==> MASK : 0x00200000U    VAL : 0x00200000U
+    // .. FPGA_AXDS0_RST = 1
+    // .. ==> 0XF8000240[20:20] = 0x00000001U
+    // ..     ==> MASK : 0x00100000U    VAL : 0x00100000U
+    // .. reserved_2 = 3
+    // .. ==> 0XF8000240[19:18] = 0x00000003U
+    // ..     ==> MASK : 0x000C0000U    VAL : 0x000C0000U
+    // .. FSSW1_FPGA_RST = 1
+    // .. ==> 0XF8000240[17:17] = 0x00000001U
+    // ..     ==> MASK : 0x00020000U    VAL : 0x00020000U
+    // .. FSSW0_FPGA_RST = 1
+    // .. ==> 0XF8000240[16:16] = 0x00000001U
+    // ..     ==> MASK : 0x00010000U    VAL : 0x00010000U
+    // .. reserved_1 = 15
+    // .. ==> 0XF8000240[15:14] = 0x0000000FU
+    // ..     ==> MASK : 0x0000C000U    VAL : 0x0000C000U
+    // .. FPGA_FMSW1_RST = 1
+    // .. ==> 0XF8000240[13:13] = 0x00000001U
+    // ..     ==> MASK : 0x00002000U    VAL : 0x00002000U
+    // .. FPGA_FMSW0_RST = 1
+    // .. ==> 0XF8000240[12:12] = 0x00000001U
+    // ..     ==> MASK : 0x00001000U    VAL : 0x00001000U
+    // .. FPGA_DMA3_RST = 1
+    // .. ==> 0XF8000240[11:11] = 0x00000001U
+    // ..     ==> MASK : 0x00000800U    VAL : 0x00000800U
+    // .. FPGA_DMA2_RST = 1
+    // .. ==> 0XF8000240[10:10] = 0x00000001U
+    // ..     ==> MASK : 0x00000400U    VAL : 0x00000400U
+    // .. FPGA_DMA1_RST = 1
+    // .. ==> 0XF8000240[9:9] = 0x00000001U
+    // ..     ==> MASK : 0x00000200U    VAL : 0x00000200U
+    // .. FPGA_DMA0_RST = 1
+    // .. ==> 0XF8000240[8:8] = 0x00000001U
+    // ..     ==> MASK : 0x00000100U    VAL : 0x00000100U
+    // .. reserved = 15
+    // .. ==> 0XF8000240[7:4] = 0x0000000FU
+    // ..     ==> MASK : 0x000000F0U    VAL : 0x000000F0U
+    // .. FPGA3_OUT_RST = 1
+    // .. ==> 0XF8000240[3:3] = 0x00000001U
+    // ..     ==> MASK : 0x00000008U    VAL : 0x00000008U
+    // .. FPGA2_OUT_RST = 1
+    // .. ==> 0XF8000240[2:2] = 0x00000001U
+    // ..     ==> MASK : 0x00000004U    VAL : 0x00000004U
+    // .. FPGA1_OUT_RST = 1
+    // .. ==> 0XF8000240[1:1] = 0x00000001U
+    // ..     ==> MASK : 0x00000002U    VAL : 0x00000002U
+    // .. FPGA0_OUT_RST = 1
+    // .. ==> 0XF8000240[0:0] = 0x00000001U
+    // ..     ==> MASK : 0x00000001U    VAL : 0x00000001U
+    // .. 
+    EMIT_MASKWRITE(0XF8000240, 0xFFFFFFFFU ,0xFFFFFFFFU),
+    // .. FINISH: FPGA RESETS TO 1
+    // .. START: FPGA RESETS TO 0
+    // .. reserved_3 = 0
+    // .. ==> 0XF8000240[31:25] = 0x00000000U
+    // ..     ==> MASK : 0xFE000000U    VAL : 0x00000000U
+    // .. FPGA_ACP_RST = 0
+    // .. ==> 0XF8000240[24:24] = 0x00000000U
+    // ..     ==> MASK : 0x01000000U    VAL : 0x00000000U
+    // .. FPGA_AXDS3_RST = 0
+    // .. ==> 0XF8000240[23:23] = 0x00000000U
+    // ..     ==> MASK : 0x00800000U    VAL : 0x00000000U
+    // .. FPGA_AXDS2_RST = 0
+    // .. ==> 0XF8000240[22:22] = 0x00000000U
+    // ..     ==> MASK : 0x00400000U    VAL : 0x00000000U
+    // .. FPGA_AXDS1_RST = 0
+    // .. ==> 0XF8000240[21:21] = 0x00000000U
+    // ..     ==> MASK : 0x00200000U    VAL : 0x00000000U
+    // .. FPGA_AXDS0_RST = 0
+    // .. ==> 0XF8000240[20:20] = 0x00000000U
+    // ..     ==> MASK : 0x00100000U    VAL : 0x00000000U
+    // .. reserved_2 = 0
+    // .. ==> 0XF8000240[19:18] = 0x00000000U
+    // ..     ==> MASK : 0x000C0000U    VAL : 0x00000000U
+    // .. FSSW1_FPGA_RST = 0
+    // .. ==> 0XF8000240[17:17] = 0x00000000U
+    // ..     ==> MASK : 0x00020000U    VAL : 0x00000000U
+    // .. FSSW0_FPGA_RST = 0
+    // .. ==> 0XF8000240[16:16] = 0x00000000U
+    // ..     ==> MASK : 0x00010000U    VAL : 0x00000000U
+    // .. reserved_1 = 0
+    // .. ==> 0XF8000240[15:14] = 0x00000000U
+    // ..     ==> MASK : 0x0000C000U    VAL : 0x00000000U
+    // .. FPGA_FMSW1_RST = 0
+    // .. ==> 0XF8000240[13:13] = 0x00000000U
+    // ..     ==> MASK : 0x00002000U    VAL : 0x00000000U
+    // .. FPGA_FMSW0_RST = 0
+    // .. ==> 0XF8000240[12:12] = 0x00000000U
+    // ..     ==> MASK : 0x00001000U    VAL : 0x00000000U
+    // .. FPGA_DMA3_RST = 0
+    // .. ==> 0XF8000240[11:11] = 0x00000000U
+    // ..     ==> MASK : 0x00000800U    VAL : 0x00000000U
+    // .. FPGA_DMA2_RST = 0
+    // .. ==> 0XF8000240[10:10] = 0x00000000U
+    // ..     ==> MASK : 0x00000400U    VAL : 0x00000000U
+    // .. FPGA_DMA1_RST = 0
+    // .. ==> 0XF8000240[9:9] = 0x00000000U
+    // ..     ==> MASK : 0x00000200U    VAL : 0x00000000U
+    // .. FPGA_DMA0_RST = 0
+    // .. ==> 0XF8000240[8:8] = 0x00000000U
+    // ..     ==> MASK : 0x00000100U    VAL : 0x00000000U
+    // .. reserved = 0
+    // .. ==> 0XF8000240[7:4] = 0x00000000U
+    // ..     ==> MASK : 0x000000F0U    VAL : 0x00000000U
+    // .. FPGA3_OUT_RST = 0
+    // .. ==> 0XF8000240[3:3] = 0x00000000U
+    // ..     ==> MASK : 0x00000008U    VAL : 0x00000000U
+    // .. FPGA2_OUT_RST = 0
+    // .. ==> 0XF8000240[2:2] = 0x00000000U
+    // ..     ==> MASK : 0x00000004U    VAL : 0x00000000U
+    // .. FPGA1_OUT_RST = 0
+    // .. ==> 0XF8000240[1:1] = 0x00000000U
+    // ..     ==> MASK : 0x00000002U    VAL : 0x00000000U
+    // .. FPGA0_OUT_RST = 0
+    // .. ==> 0XF8000240[0:0] = 0x00000000U
+    // ..     ==> MASK : 0x00000001U    VAL : 0x00000000U
+    // .. 
+    EMIT_MASKWRITE(0XF8000240, 0xFFFFFFFFU ,0x00000000U),
+    // .. FINISH: FPGA RESETS TO 0
+    // .. START: AFI REGISTERS
+    // .. .. START: AFI0 REGISTERS
+    // .. .. FINISH: AFI0 REGISTERS
+    // .. .. START: AFI1 REGISTERS
+    // .. .. FINISH: AFI1 REGISTERS
+    // .. .. START: AFI2 REGISTERS
+    // .. .. FINISH: AFI2 REGISTERS
+    // .. .. START: AFI3 REGISTERS
+    // .. .. FINISH: AFI3 REGISTERS
+    // .. FINISH: AFI REGISTERS
+    // .. START: LOCK IT BACK
+    // .. LOCK_KEY = 0X767B
+    // .. ==> 0XF8000004[15:0] = 0x0000767BU
+    // ..     ==> MASK : 0x0000FFFFU    VAL : 0x0000767BU
+    // .. 
+    EMIT_MASKWRITE(0XF8000004, 0x0000FFFFU ,0x0000767BU),
+    // .. FINISH: LOCK IT BACK
     // FINISH: top
     //
     EMIT_EXIT(),
@@ -7928,16 +8085,6 @@ unsigned long ps7_peripherals_init_data_2_0[] = {
     // .. 
     EMIT_MASKWRITE(0XE0001004, 0x00000FFFU ,0x00000020U),
     // .. FINISH: UART REGISTERS
-    // .. START: AFI REGISTERS
-    // .. .. START: AFI0 REGISTERS
-    // .. .. FINISH: AFI0 REGISTERS
-    // .. .. START: AFI1 REGISTERS
-    // .. .. FINISH: AFI1 REGISTERS
-    // .. .. START: AFI2 REGISTERS
-    // .. .. FINISH: AFI2 REGISTERS
-    // .. .. START: AFI3 REGISTERS
-    // .. .. FINISH: AFI3 REGISTERS
-    // .. FINISH: AFI REGISTERS
     // .. START: QSPI REGISTERS
     // .. Holdb_dr = 1
     // .. ==> 0XE000D000[19:19] = 0x00000001U
@@ -8074,6 +8221,183 @@ unsigned long ps7_peripherals_init_data_2_0[] = {
     // .. .. .. FINISH: MASK_DATA_1_MSW HIGH BANK [53:48]
     // .. .. FINISH: I2C RESET
     // .. FINISH: SMC TIMING CALCULATION REGISTER UPDATE
+    // FINISH: top
+    //
+    EMIT_EXIT(),
+
+    //
+};
+
+unsigned long ps7_post_config_2_0[] = {
+    // START: top
+    // .. START: SLCR SETTINGS
+    // .. UNLOCK_KEY = 0XDF0D
+    // .. ==> 0XF8000008[15:0] = 0x0000DF0DU
+    // ..     ==> MASK : 0x0000FFFFU    VAL : 0x0000DF0DU
+    // .. 
+    EMIT_MASKWRITE(0XF8000008, 0x0000FFFFU ,0x0000DF0DU),
+    // .. FINISH: SLCR SETTINGS
+    // .. START: ENABLING LEVEL SHIFTER
+    // .. USER_INP_ICT_EN_0 = 3
+    // .. ==> 0XF8000900[1:0] = 0x00000003U
+    // ..     ==> MASK : 0x00000003U    VAL : 0x00000003U
+    // .. USER_INP_ICT_EN_1 = 3
+    // .. ==> 0XF8000900[3:2] = 0x00000003U
+    // ..     ==> MASK : 0x0000000CU    VAL : 0x0000000CU
+    // .. 
+    EMIT_MASKWRITE(0XF8000900, 0x0000000FU ,0x0000000FU),
+    // .. FINISH: ENABLING LEVEL SHIFTER
+    // .. START: FPGA RESETS TO 1
+    // .. reserved_3 = 127
+    // .. ==> 0XF8000240[31:25] = 0x0000007FU
+    // ..     ==> MASK : 0xFE000000U    VAL : 0xFE000000U
+    // .. FPGA_ACP_RST = 1
+    // .. ==> 0XF8000240[24:24] = 0x00000001U
+    // ..     ==> MASK : 0x01000000U    VAL : 0x01000000U
+    // .. FPGA_AXDS3_RST = 1
+    // .. ==> 0XF8000240[23:23] = 0x00000001U
+    // ..     ==> MASK : 0x00800000U    VAL : 0x00800000U
+    // .. FPGA_AXDS2_RST = 1
+    // .. ==> 0XF8000240[22:22] = 0x00000001U
+    // ..     ==> MASK : 0x00400000U    VAL : 0x00400000U
+    // .. FPGA_AXDS1_RST = 1
+    // .. ==> 0XF8000240[21:21] = 0x00000001U
+    // ..     ==> MASK : 0x00200000U    VAL : 0x00200000U
+    // .. FPGA_AXDS0_RST = 1
+    // .. ==> 0XF8000240[20:20] = 0x00000001U
+    // ..     ==> MASK : 0x00100000U    VAL : 0x00100000U
+    // .. reserved_2 = 3
+    // .. ==> 0XF8000240[19:18] = 0x00000003U
+    // ..     ==> MASK : 0x000C0000U    VAL : 0x000C0000U
+    // .. FSSW1_FPGA_RST = 1
+    // .. ==> 0XF8000240[17:17] = 0x00000001U
+    // ..     ==> MASK : 0x00020000U    VAL : 0x00020000U
+    // .. FSSW0_FPGA_RST = 1
+    // .. ==> 0XF8000240[16:16] = 0x00000001U
+    // ..     ==> MASK : 0x00010000U    VAL : 0x00010000U
+    // .. reserved_1 = 15
+    // .. ==> 0XF8000240[15:14] = 0x0000000FU
+    // ..     ==> MASK : 0x0000C000U    VAL : 0x0000C000U
+    // .. FPGA_FMSW1_RST = 1
+    // .. ==> 0XF8000240[13:13] = 0x00000001U
+    // ..     ==> MASK : 0x00002000U    VAL : 0x00002000U
+    // .. FPGA_FMSW0_RST = 1
+    // .. ==> 0XF8000240[12:12] = 0x00000001U
+    // ..     ==> MASK : 0x00001000U    VAL : 0x00001000U
+    // .. FPGA_DMA3_RST = 1
+    // .. ==> 0XF8000240[11:11] = 0x00000001U
+    // ..     ==> MASK : 0x00000800U    VAL : 0x00000800U
+    // .. FPGA_DMA2_RST = 1
+    // .. ==> 0XF8000240[10:10] = 0x00000001U
+    // ..     ==> MASK : 0x00000400U    VAL : 0x00000400U
+    // .. FPGA_DMA1_RST = 1
+    // .. ==> 0XF8000240[9:9] = 0x00000001U
+    // ..     ==> MASK : 0x00000200U    VAL : 0x00000200U
+    // .. FPGA_DMA0_RST = 1
+    // .. ==> 0XF8000240[8:8] = 0x00000001U
+    // ..     ==> MASK : 0x00000100U    VAL : 0x00000100U
+    // .. reserved = 15
+    // .. ==> 0XF8000240[7:4] = 0x0000000FU
+    // ..     ==> MASK : 0x000000F0U    VAL : 0x000000F0U
+    // .. FPGA3_OUT_RST = 1
+    // .. ==> 0XF8000240[3:3] = 0x00000001U
+    // ..     ==> MASK : 0x00000008U    VAL : 0x00000008U
+    // .. FPGA2_OUT_RST = 1
+    // .. ==> 0XF8000240[2:2] = 0x00000001U
+    // ..     ==> MASK : 0x00000004U    VAL : 0x00000004U
+    // .. FPGA1_OUT_RST = 1
+    // .. ==> 0XF8000240[1:1] = 0x00000001U
+    // ..     ==> MASK : 0x00000002U    VAL : 0x00000002U
+    // .. FPGA0_OUT_RST = 1
+    // .. ==> 0XF8000240[0:0] = 0x00000001U
+    // ..     ==> MASK : 0x00000001U    VAL : 0x00000001U
+    // .. 
+    EMIT_MASKWRITE(0XF8000240, 0xFFFFFFFFU ,0xFFFFFFFFU),
+    // .. FINISH: FPGA RESETS TO 1
+    // .. START: FPGA RESETS TO 0
+    // .. reserved_3 = 0
+    // .. ==> 0XF8000240[31:25] = 0x00000000U
+    // ..     ==> MASK : 0xFE000000U    VAL : 0x00000000U
+    // .. FPGA_ACP_RST = 0
+    // .. ==> 0XF8000240[24:24] = 0x00000000U
+    // ..     ==> MASK : 0x01000000U    VAL : 0x00000000U
+    // .. FPGA_AXDS3_RST = 0
+    // .. ==> 0XF8000240[23:23] = 0x00000000U
+    // ..     ==> MASK : 0x00800000U    VAL : 0x00000000U
+    // .. FPGA_AXDS2_RST = 0
+    // .. ==> 0XF8000240[22:22] = 0x00000000U
+    // ..     ==> MASK : 0x00400000U    VAL : 0x00000000U
+    // .. FPGA_AXDS1_RST = 0
+    // .. ==> 0XF8000240[21:21] = 0x00000000U
+    // ..     ==> MASK : 0x00200000U    VAL : 0x00000000U
+    // .. FPGA_AXDS0_RST = 0
+    // .. ==> 0XF8000240[20:20] = 0x00000000U
+    // ..     ==> MASK : 0x00100000U    VAL : 0x00000000U
+    // .. reserved_2 = 0
+    // .. ==> 0XF8000240[19:18] = 0x00000000U
+    // ..     ==> MASK : 0x000C0000U    VAL : 0x00000000U
+    // .. FSSW1_FPGA_RST = 0
+    // .. ==> 0XF8000240[17:17] = 0x00000000U
+    // ..     ==> MASK : 0x00020000U    VAL : 0x00000000U
+    // .. FSSW0_FPGA_RST = 0
+    // .. ==> 0XF8000240[16:16] = 0x00000000U
+    // ..     ==> MASK : 0x00010000U    VAL : 0x00000000U
+    // .. reserved_1 = 0
+    // .. ==> 0XF8000240[15:14] = 0x00000000U
+    // ..     ==> MASK : 0x0000C000U    VAL : 0x00000000U
+    // .. FPGA_FMSW1_RST = 0
+    // .. ==> 0XF8000240[13:13] = 0x00000000U
+    // ..     ==> MASK : 0x00002000U    VAL : 0x00000000U
+    // .. FPGA_FMSW0_RST = 0
+    // .. ==> 0XF8000240[12:12] = 0x00000000U
+    // ..     ==> MASK : 0x00001000U    VAL : 0x00000000U
+    // .. FPGA_DMA3_RST = 0
+    // .. ==> 0XF8000240[11:11] = 0x00000000U
+    // ..     ==> MASK : 0x00000800U    VAL : 0x00000000U
+    // .. FPGA_DMA2_RST = 0
+    // .. ==> 0XF8000240[10:10] = 0x00000000U
+    // ..     ==> MASK : 0x00000400U    VAL : 0x00000000U
+    // .. FPGA_DMA1_RST = 0
+    // .. ==> 0XF8000240[9:9] = 0x00000000U
+    // ..     ==> MASK : 0x00000200U    VAL : 0x00000000U
+    // .. FPGA_DMA0_RST = 0
+    // .. ==> 0XF8000240[8:8] = 0x00000000U
+    // ..     ==> MASK : 0x00000100U    VAL : 0x00000000U
+    // .. reserved = 0
+    // .. ==> 0XF8000240[7:4] = 0x00000000U
+    // ..     ==> MASK : 0x000000F0U    VAL : 0x00000000U
+    // .. FPGA3_OUT_RST = 0
+    // .. ==> 0XF8000240[3:3] = 0x00000000U
+    // ..     ==> MASK : 0x00000008U    VAL : 0x00000000U
+    // .. FPGA2_OUT_RST = 0
+    // .. ==> 0XF8000240[2:2] = 0x00000000U
+    // ..     ==> MASK : 0x00000004U    VAL : 0x00000000U
+    // .. FPGA1_OUT_RST = 0
+    // .. ==> 0XF8000240[1:1] = 0x00000000U
+    // ..     ==> MASK : 0x00000002U    VAL : 0x00000000U
+    // .. FPGA0_OUT_RST = 0
+    // .. ==> 0XF8000240[0:0] = 0x00000000U
+    // ..     ==> MASK : 0x00000001U    VAL : 0x00000000U
+    // .. 
+    EMIT_MASKWRITE(0XF8000240, 0xFFFFFFFFU ,0x00000000U),
+    // .. FINISH: FPGA RESETS TO 0
+    // .. START: AFI REGISTERS
+    // .. .. START: AFI0 REGISTERS
+    // .. .. FINISH: AFI0 REGISTERS
+    // .. .. START: AFI1 REGISTERS
+    // .. .. FINISH: AFI1 REGISTERS
+    // .. .. START: AFI2 REGISTERS
+    // .. .. FINISH: AFI2 REGISTERS
+    // .. .. START: AFI3 REGISTERS
+    // .. .. FINISH: AFI3 REGISTERS
+    // .. FINISH: AFI REGISTERS
+    // .. START: LOCK IT BACK
+    // .. LOCK_KEY = 0X767B
+    // .. ==> 0XF8000004[15:0] = 0x0000767BU
+    // ..     ==> MASK : 0x0000FFFFU    VAL : 0x0000767BU
+    // .. 
+    EMIT_MASKWRITE(0XF8000004, 0x0000FFFFU ,0x0000767BU),
+    // .. FINISH: LOCK IT BACK
     // FINISH: top
     //
     EMIT_EXIT(),
@@ -11526,22 +11850,6 @@ unsigned long ps7_mio_init_data_3_0[] = {
     // ..     ==> MASK : 0x00002000U    VAL : 0x00000000U
     // .. 
     EMIT_MASKWRITE(0XF80007D4, 0x00003FFFU ,0x00001280U),
-    // .. .. START: ENABLING LEVEL SHIFTER
-    // .. .. USER_LVL_INP_EN_0 = 1
-    // .. .. ==> 0XF8000900[3:3] = 0x00000001U
-    // .. ..     ==> MASK : 0x00000008U    VAL : 0x00000008U
-    // .. .. USER_LVL_OUT_EN_0 = 1
-    // .. .. ==> 0XF8000900[2:2] = 0x00000001U
-    // .. ..     ==> MASK : 0x00000004U    VAL : 0x00000004U
-    // .. .. USER_LVL_INP_EN_1 = 1
-    // .. .. ==> 0XF8000900[1:1] = 0x00000001U
-    // .. ..     ==> MASK : 0x00000002U    VAL : 0x00000002U
-    // .. .. USER_LVL_OUT_EN_1 = 1
-    // .. .. ==> 0XF8000900[0:0] = 0x00000001U
-    // .. ..     ==> MASK : 0x00000001U    VAL : 0x00000001U
-    // .. .. 
-    EMIT_MASKWRITE(0XF8000900, 0x0000000FU ,0x0000000FU),
-    // .. .. FINISH: ENABLING LEVEL SHIFTER
     // .. FINISH: MIO PROGRAMMING
     // .. START: LOCK IT BACK
     // .. LOCK_KEY = 0X767B
@@ -11667,16 +11975,6 @@ unsigned long ps7_peripherals_init_data_3_0[] = {
     // .. 
     EMIT_MASKWRITE(0XE0001004, 0x000003FFU ,0x00000020U),
     // .. FINISH: UART REGISTERS
-    // .. START: AFI REGISTERS
-    // .. .. START: AFI0 REGISTERS
-    // .. .. FINISH: AFI0 REGISTERS
-    // .. .. START: AFI1 REGISTERS
-    // .. .. FINISH: AFI1 REGISTERS
-    // .. .. START: AFI2 REGISTERS
-    // .. .. FINISH: AFI2 REGISTERS
-    // .. .. START: AFI3 REGISTERS
-    // .. .. FINISH: AFI3 REGISTERS
-    // .. FINISH: AFI REGISTERS
     // .. START: QSPI REGISTERS
     // .. Holdb_dr = 1
     // .. ==> 0XE000D000[19:19] = 0x00000001U
@@ -11820,8 +12118,209 @@ unsigned long ps7_peripherals_init_data_3_0[] = {
     //
 };
 
+unsigned long ps7_post_config_3_0[] = {
+    // START: top
+    // .. START: SLCR SETTINGS
+    // .. UNLOCK_KEY = 0XDF0D
+    // .. ==> 0XF8000008[15:0] = 0x0000DF0DU
+    // ..     ==> MASK : 0x0000FFFFU    VAL : 0x0000DF0DU
+    // .. 
+    EMIT_MASKWRITE(0XF8000008, 0x0000FFFFU ,0x0000DF0DU),
+    // .. FINISH: SLCR SETTINGS
+    // .. START: ENABLING LEVEL SHIFTER
+    // .. USER_LVL_INP_EN_0 = 1
+    // .. ==> 0XF8000900[3:3] = 0x00000001U
+    // ..     ==> MASK : 0x00000008U    VAL : 0x00000008U
+    // .. USER_LVL_OUT_EN_0 = 1
+    // .. ==> 0XF8000900[2:2] = 0x00000001U
+    // ..     ==> MASK : 0x00000004U    VAL : 0x00000004U
+    // .. USER_LVL_INP_EN_1 = 1
+    // .. ==> 0XF8000900[1:1] = 0x00000001U
+    // ..     ==> MASK : 0x00000002U    VAL : 0x00000002U
+    // .. USER_LVL_OUT_EN_1 = 1
+    // .. ==> 0XF8000900[0:0] = 0x00000001U
+    // ..     ==> MASK : 0x00000001U    VAL : 0x00000001U
+    // .. 
+    EMIT_MASKWRITE(0XF8000900, 0x0000000FU ,0x0000000FU),
+    // .. FINISH: ENABLING LEVEL SHIFTER
+    // .. START: FPGA RESETS TO 1
+    // .. reserved_3 = 127
+    // .. ==> 0XF8000240[31:25] = 0x0000007FU
+    // ..     ==> MASK : 0xFE000000U    VAL : 0xFE000000U
+    // .. reserved_FPGA_ACP_RST = 1
+    // .. ==> 0XF8000240[24:24] = 0x00000001U
+    // ..     ==> MASK : 0x01000000U    VAL : 0x01000000U
+    // .. reserved_FPGA_AXDS3_RST = 1
+    // .. ==> 0XF8000240[23:23] = 0x00000001U
+    // ..     ==> MASK : 0x00800000U    VAL : 0x00800000U
+    // .. reserved_FPGA_AXDS2_RST = 1
+    // .. ==> 0XF8000240[22:22] = 0x00000001U
+    // ..     ==> MASK : 0x00400000U    VAL : 0x00400000U
+    // .. reserved_FPGA_AXDS1_RST = 1
+    // .. ==> 0XF8000240[21:21] = 0x00000001U
+    // ..     ==> MASK : 0x00200000U    VAL : 0x00200000U
+    // .. reserved_FPGA_AXDS0_RST = 1
+    // .. ==> 0XF8000240[20:20] = 0x00000001U
+    // ..     ==> MASK : 0x00100000U    VAL : 0x00100000U
+    // .. reserved_2 = 3
+    // .. ==> 0XF8000240[19:18] = 0x00000003U
+    // ..     ==> MASK : 0x000C0000U    VAL : 0x000C0000U
+    // .. reserved_FSSW1_FPGA_RST = 1
+    // .. ==> 0XF8000240[17:17] = 0x00000001U
+    // ..     ==> MASK : 0x00020000U    VAL : 0x00020000U
+    // .. reserved_FSSW0_FPGA_RST = 1
+    // .. ==> 0XF8000240[16:16] = 0x00000001U
+    // ..     ==> MASK : 0x00010000U    VAL : 0x00010000U
+    // .. reserved_1 = 15
+    // .. ==> 0XF8000240[15:14] = 0x0000000FU
+    // ..     ==> MASK : 0x0000C000U    VAL : 0x0000C000U
+    // .. reserved_FPGA_FMSW1_RST = 1
+    // .. ==> 0XF8000240[13:13] = 0x00000001U
+    // ..     ==> MASK : 0x00002000U    VAL : 0x00002000U
+    // .. reserved_FPGA_FMSW0_RST = 1
+    // .. ==> 0XF8000240[12:12] = 0x00000001U
+    // ..     ==> MASK : 0x00001000U    VAL : 0x00001000U
+    // .. reserved_FPGA_DMA3_RST = 1
+    // .. ==> 0XF8000240[11:11] = 0x00000001U
+    // ..     ==> MASK : 0x00000800U    VAL : 0x00000800U
+    // .. reserved_FPGA_DMA2_RST = 1
+    // .. ==> 0XF8000240[10:10] = 0x00000001U
+    // ..     ==> MASK : 0x00000400U    VAL : 0x00000400U
+    // .. reserved_FPGA_DMA1_RST = 1
+    // .. ==> 0XF8000240[9:9] = 0x00000001U
+    // ..     ==> MASK : 0x00000200U    VAL : 0x00000200U
+    // .. reserved_FPGA_DMA0_RST = 1
+    // .. ==> 0XF8000240[8:8] = 0x00000001U
+    // ..     ==> MASK : 0x00000100U    VAL : 0x00000100U
+    // .. reserved = 15
+    // .. ==> 0XF8000240[7:4] = 0x0000000FU
+    // ..     ==> MASK : 0x000000F0U    VAL : 0x000000F0U
+    // .. FPGA3_OUT_RST = 1
+    // .. ==> 0XF8000240[3:3] = 0x00000001U
+    // ..     ==> MASK : 0x00000008U    VAL : 0x00000008U
+    // .. FPGA2_OUT_RST = 1
+    // .. ==> 0XF8000240[2:2] = 0x00000001U
+    // ..     ==> MASK : 0x00000004U    VAL : 0x00000004U
+    // .. FPGA1_OUT_RST = 1
+    // .. ==> 0XF8000240[1:1] = 0x00000001U
+    // ..     ==> MASK : 0x00000002U    VAL : 0x00000002U
+    // .. FPGA0_OUT_RST = 1
+    // .. ==> 0XF8000240[0:0] = 0x00000001U
+    // ..     ==> MASK : 0x00000001U    VAL : 0x00000001U
+    // .. 
+    EMIT_MASKWRITE(0XF8000240, 0xFFFFFFFFU ,0xFFFFFFFFU),
+    // .. FINISH: FPGA RESETS TO 1
+    // .. START: FPGA RESETS TO 0
+    // .. reserved_3 = 0
+    // .. ==> 0XF8000240[31:25] = 0x00000000U
+    // ..     ==> MASK : 0xFE000000U    VAL : 0x00000000U
+    // .. reserved_FPGA_ACP_RST = 0
+    // .. ==> 0XF8000240[24:24] = 0x00000000U
+    // ..     ==> MASK : 0x01000000U    VAL : 0x00000000U
+    // .. reserved_FPGA_AXDS3_RST = 0
+    // .. ==> 0XF8000240[23:23] = 0x00000000U
+    // ..     ==> MASK : 0x00800000U    VAL : 0x00000000U
+    // .. reserved_FPGA_AXDS2_RST = 0
+    // .. ==> 0XF8000240[22:22] = 0x00000000U
+    // ..     ==> MASK : 0x00400000U    VAL : 0x00000000U
+    // .. reserved_FPGA_AXDS1_RST = 0
+    // .. ==> 0XF8000240[21:21] = 0x00000000U
+    // ..     ==> MASK : 0x00200000U    VAL : 0x00000000U
+    // .. reserved_FPGA_AXDS0_RST = 0
+    // .. ==> 0XF8000240[20:20] = 0x00000000U
+    // ..     ==> MASK : 0x00100000U    VAL : 0x00000000U
+    // .. reserved_2 = 0
+    // .. ==> 0XF8000240[19:18] = 0x00000000U
+    // ..     ==> MASK : 0x000C0000U    VAL : 0x00000000U
+    // .. reserved_FSSW1_FPGA_RST = 0
+    // .. ==> 0XF8000240[17:17] = 0x00000000U
+    // ..     ==> MASK : 0x00020000U    VAL : 0x00000000U
+    // .. reserved_FSSW0_FPGA_RST = 0
+    // .. ==> 0XF8000240[16:16] = 0x00000000U
+    // ..     ==> MASK : 0x00010000U    VAL : 0x00000000U
+    // .. reserved_1 = 0
+    // .. ==> 0XF8000240[15:14] = 0x00000000U
+    // ..     ==> MASK : 0x0000C000U    VAL : 0x00000000U
+    // .. reserved_FPGA_FMSW1_RST = 0
+    // .. ==> 0XF8000240[13:13] = 0x00000000U
+    // ..     ==> MASK : 0x00002000U    VAL : 0x00000000U
+    // .. reserved_FPGA_FMSW0_RST = 0
+    // .. ==> 0XF8000240[12:12] = 0x00000000U
+    // ..     ==> MASK : 0x00001000U    VAL : 0x00000000U
+    // .. reserved_FPGA_DMA3_RST = 0
+    // .. ==> 0XF8000240[11:11] = 0x00000000U
+    // ..     ==> MASK : 0x00000800U    VAL : 0x00000000U
+    // .. reserved_FPGA_DMA2_RST = 0
+    // .. ==> 0XF8000240[10:10] = 0x00000000U
+    // ..     ==> MASK : 0x00000400U    VAL : 0x00000000U
+    // .. reserved_FPGA_DMA1_RST = 0
+    // .. ==> 0XF8000240[9:9] = 0x00000000U
+    // ..     ==> MASK : 0x00000200U    VAL : 0x00000000U
+    // .. reserved_FPGA_DMA0_RST = 0
+    // .. ==> 0XF8000240[8:8] = 0x00000000U
+    // ..     ==> MASK : 0x00000100U    VAL : 0x00000000U
+    // .. reserved = 0
+    // .. ==> 0XF8000240[7:4] = 0x00000000U
+    // ..     ==> MASK : 0x000000F0U    VAL : 0x00000000U
+    // .. FPGA3_OUT_RST = 0
+    // .. ==> 0XF8000240[3:3] = 0x00000000U
+    // ..     ==> MASK : 0x00000008U    VAL : 0x00000000U
+    // .. FPGA2_OUT_RST = 0
+    // .. ==> 0XF8000240[2:2] = 0x00000000U
+    // ..     ==> MASK : 0x00000004U    VAL : 0x00000000U
+    // .. FPGA1_OUT_RST = 0
+    // .. ==> 0XF8000240[1:1] = 0x00000000U
+    // ..     ==> MASK : 0x00000002U    VAL : 0x00000000U
+    // .. FPGA0_OUT_RST = 0
+    // .. ==> 0XF8000240[0:0] = 0x00000000U
+    // ..     ==> MASK : 0x00000001U    VAL : 0x00000000U
+    // .. 
+    EMIT_MASKWRITE(0XF8000240, 0xFFFFFFFFU ,0x00000000U),
+    // .. FINISH: FPGA RESETS TO 0
+    // .. START: AFI REGISTERS
+    // .. .. START: AFI0 REGISTERS
+    // .. .. FINISH: AFI0 REGISTERS
+    // .. .. START: AFI1 REGISTERS
+    // .. .. FINISH: AFI1 REGISTERS
+    // .. .. START: AFI2 REGISTERS
+    // .. .. FINISH: AFI2 REGISTERS
+    // .. .. START: AFI3 REGISTERS
+    // .. .. FINISH: AFI3 REGISTERS
+    // .. FINISH: AFI REGISTERS
+    // .. START: LOCK IT BACK
+    // .. LOCK_KEY = 0X767B
+    // .. ==> 0XF8000004[15:0] = 0x0000767BU
+    // ..     ==> MASK : 0x0000FFFFU    VAL : 0x0000767BU
+    // .. 
+    EMIT_MASKWRITE(0XF8000004, 0x0000FFFFU ,0x0000767BU),
+    // .. FINISH: LOCK IT BACK
+    // FINISH: top
+    //
+    EMIT_EXIT(),
+
+    //
+};
+
 
 #include "xil_io.h"
+#define PS7_MASK_POLL_TIME 100000
+
+char*
+getPS7MessageInfo(unsigned key) {
+
+  char* err_msg = "";
+  switch (key) {
+    case PS7_INIT_SUCCESS:                  err_msg = "PS7 initialization successful"; break;
+    case PS7_INIT_CORRUPT:                  err_msg = "PS7 init Data Corrupted"; break;
+    case PS7_INIT_TIMEOUT:                  err_msg = "PS7 init mask poll timeout"; break;
+    case PS7_POLL_FAILED_DDR_INIT:          err_msg = "Mask Poll failed for DDR Init"; break;
+    case PS7_POLL_FAILED_DMA:               err_msg = "Mask Poll failed for PLL Init"; break;
+    case PS7_POLL_FAILED_PLL:               err_msg = "Mask Poll failed for DMA done bit"; break;
+    default:                                err_msg = "Undefined error status"; break;
+  }
+  
+  return err_msg;  
+}
 
 unsigned long
 ps7GetSiliconVersion () {
@@ -11839,9 +12338,16 @@ void mask_write (unsigned long add , unsigned long  mask, unsigned long val ) {
 }
 
 
-void mask_poll(unsigned long add , unsigned long mask ) {
+int mask_poll(unsigned long add , unsigned long mask ) {
         unsigned long *addr = (unsigned long*) add;
-        while (!(*addr & mask));
+        int i = 0;
+        while (!(*addr & mask)) {
+          if (i == PS7_MASK_POLL_TIME) {
+            return -1;
+          }
+          i++;
+        }
+     return 1;   
         //xil_printf("MaskPoll : 0x%x --> 0x%x \n \r" , add, *addr);
 }
 
@@ -11868,6 +12374,7 @@ ps7_config(unsigned long * ps7_config_init)
     unsigned long  val,mask;              // some variable to make code readable
 
     int finish = -1 ;           // loop while this is negative !
+    int i = 0;                  // Timeout variable
     
     while( finish < 0 ) {
         numargs = ptr[0] & 0xF;
@@ -11905,7 +12412,14 @@ ps7_config(unsigned long * ps7_config_init)
         case OPCODE_MASKPOLL:
             addr = (unsigned long*) args[0];
             mask = args[1];
-            while (!(*addr & mask));    
+            i = 0;
+            while (!(*addr & mask)) {
+                if (i == PS7_MASK_POLL_TIME) {
+                    finish = PS7_INIT_TIMEOUT;
+                    break;
+                }
+                i++;
+            }
             break;
         default:
             finish = PS7_INIT_CORRUPT;
@@ -11920,6 +12434,25 @@ unsigned long *ps7_pll_init_data = ps7_pll_init_data_3_0;
 unsigned long *ps7_clock_init_data = ps7_clock_init_data_3_0;
 unsigned long *ps7_ddr_init_data = ps7_ddr_init_data_3_0;
 unsigned long *ps7_peripherals_init_data = ps7_peripherals_init_data_3_0;
+
+int
+ps7_post_config() 
+{
+  // Get the PS_VERSION on run time
+  unsigned long si_ver = ps7GetSiliconVersion ();
+  int ret = -1;
+  if (si_ver == PCW_SILICON_VERSION_1) {
+      ret = ps7_config (ps7_post_config_1_0);   
+      if (ret != PS7_INIT_SUCCESS) return ret;
+  } else if (si_ver == PCW_SILICON_VERSION_2) {
+      ret = ps7_config (ps7_post_config_2_0);   
+      if (ret != PS7_INIT_SUCCESS) return ret;
+  } else {
+      ret = ps7_config (ps7_post_config_3_0);
+      if (ret != PS7_INIT_SUCCESS) return ret;
+  }
+  return PS7_INIT_SUCCESS;
+}
 
 int
 ps7_init() 
@@ -11953,12 +12486,27 @@ ps7_init()
     //pcw_ver = 3;
   }
 
-  if (ps7_config (ps7_mio_init_data) == -1) return -1;   
-  if (ps7_config (ps7_pll_init_data) == -1) return -1;   
-  if (ps7_config (ps7_clock_init_data) == -1) return -1;   
-  if (ps7_config (ps7_ddr_init_data) == -1) return -1;   
-  if (ps7_config (ps7_peripherals_init_data) == -1) return -1;   
+  // MIO init
+  int ret = ps7_config (ps7_mio_init_data);  
+  if (ret != PS7_INIT_SUCCESS) return ret;
+
+  // PLL init
+  ret = ps7_config (ps7_pll_init_data); 
+  if (ret != PS7_INIT_SUCCESS) return ret;
+
+  // Clock init
+  ret = ps7_config (ps7_clock_init_data);
+  if (ret != PS7_INIT_SUCCESS) return ret;
+
+  // DDR init
+  ret = ps7_config (ps7_ddr_init_data);
+  if (ret != PS7_INIT_SUCCESS) return ret;
+
+
+  // Peripherals init
+  ret = ps7_config (ps7_peripherals_init_data);
+  if (ret != PS7_INIT_SUCCESS) return ret;
   //xil_printf ("\n PCW Silicon Version : %d.0", pcw_ver);
-  return 1;
+  return PS7_INIT_SUCCESS;
 }
 

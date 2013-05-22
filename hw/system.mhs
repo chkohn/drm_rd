@@ -28,12 +28,12 @@
  PORT video_clk_p = video_clk, DIR = I, DIFFERENTIAL_POLARITY = P, SIGIS = CLK, CLK_FREQ = 148500000
  PORT video_clk_n = video_clk, DIR = I, DIFFERENTIAL_POLARITY = N, SIGIS = CLK, CLK_FREQ = 148500000
 # ADV7511 HDMI transmitter
- PORT hdmi_clk = v_axi4s_vid_out_0_video_clk, DIR = O
- PORT hdmi_data = v_axi4s_vid_out_0_video_data, DIR = O, VEC = [15:0]
- PORT hdmi_hsync = v_axi4s_vid_out_0_video_hsync, DIR = O
- PORT hdmi_vsync = v_axi4s_vid_out_0_video_vsync, DIR = O
- PORT hdmi_de = v_axi4s_vid_out_0_video_de, DIR = O
+ PORT hdmi_clk = zc702_hdmi_out_0_io_hdmio_clk, DIR = O
  PORT hdmi_int = hdmi_int, DIR = I, SIGIS = INTERRUPT
+ PORT hdmi_data = zc702_hdmi_out_0_io_hdmio_video, DIR = O, VEC = [15:0]
+ PORT hdmi_de = zc702_hdmi_out_0_io_hdmio_de, DIR = O
+ PORT hdmi_vsync = zc702_hdmi_out_0_io_hdmio_vsync, DIR = O
+ PORT hdmi_hsync = zc702_hdmi_out_0_io_hdmio_hsync, DIR = O
 
 
 BEGIN processing_system7
@@ -156,8 +156,6 @@ BEGIN axi_vdma
  PARAMETER C_INTERCONNECT_S_AXI_LITE_MASTERS = processing_system7_0.M_AXI_GP0
  PARAMETER C_MM2S_GENLOCK_MODE = 1
  PARAMETER C_NUM_FSTORES = 1
- PARAMETER C_BASEADDR = 0x40000000
- PARAMETER C_HIGHADDR = 0x4000FFFF
  PARAMETER C_INTERCONNECT_M_AXI_MM2S_AW_REGISTER = 0
  PARAMETER C_INTERCONNECT_M_AXI_MM2S_AR_REGISTER = 0
  PARAMETER C_INTERCONNECT_M_AXI_MM2S_W_REGISTER = 0
@@ -165,6 +163,8 @@ BEGIN axi_vdma
  PARAMETER C_INTERCONNECT_M_AXI_MM2S_B_REGISTER = 0
  PARAMETER C_INTERCONNECT_M_AXI_MM2S_WRITE_FIFO_DEPTH = 0
  PARAMETER C_MM2S_LINEBUFFER_DEPTH = 4096
+ PARAMETER C_BASEADDR = 0x40000000
+ PARAMETER C_HIGHADDR = 0x4000ffff
  BUS_INTERFACE S_AXI_LITE = axi_interconnect_gp0
  BUS_INTERFACE M_AXI_MM2S = axi_interconnect_hp0
  BUS_INTERFACE M_AXIS_MM2S = axi_vdma_0_M_AXIS_MM2S
@@ -174,18 +174,6 @@ BEGIN axi_vdma
  PORT mm2s_introut = axi_vdma_0_mm2s_introut
 END
 
-# BEGIN v_osd
-# PARAMETER INSTANCE = v_osd_0
-# PARAMETER HW_VER = 5.01.a
-# PARAMETER C_S_AXIS_VIDEO_FORMAT = 6
-# PARAMETER C_NUM_LAYERS = 1
-# PARAMETER C_SCREEN_WIDTH = 1920
-# PARAMETER C_BASEADDR = 0xb4200000
-# PARAMETER C_HIGHADDR = 0xb420ffff
-# PARAMETER C_INTERCONNECT_S_AXI_MASTERS = processing_system7_0.M_AXI_GP0
-# BUS_INTERFACE S_AXI = axi_interconnect_gp0
-# PORT s_axi_aclk = clk_75mhz
-# END
 BEGIN axis_vremapper
  PARAMETER INSTANCE = axis_vremapper_0
  PARAMETER HW_VER = 1.00.a
@@ -199,17 +187,34 @@ BEGIN axis_vremapper
  PORT aclk = clk_150mhz
 END
 
+BEGIN v_osd
+ PARAMETER INSTANCE = v_osd_0
+ PARAMETER HW_VER = 5.01.a
+ PARAMETER C_HAS_IRQ = 0
+ PARAMETER C_S_AXIS_VIDEO_FORMAT = 2
+ PARAMETER C_NUM_LAYERS = 1
+ PARAMETER C_SCREEN_WIDTH = 1920
+ PARAMETER C_BASEADDR = 0x40040000
+ PARAMETER C_HIGHADDR = 0x4004FFFF
+ PARAMETER C_INTERCONNECT_S_AXI_MASTERS = processing_system7_0.M_AXI_GP0
+ BUS_INTERFACE S_AXIS_VIDEO0 = axis_vremapper_0_M_AXIS
+ BUS_INTERFACE M_AXIS_VIDEO = v_osd_0_M_AXIS_VIDEO
+ BUS_INTERFACE S_AXI = axi_interconnect_gp0
+ PORT s_axi_aclk = clk_75mhz
+ PORT aclk = clk_150mhz
+END
+
 BEGIN v_rgb2ycrcb
  PARAMETER INSTANCE = v_rgb2ycrcb_0
  PARAMETER HW_VER = 6.01.a
- PARAMETER C_BASEADDR = 0x40030000
- PARAMETER C_HIGHADDR = 0x4003FFFF
  PARAMETER C_INTERCONNECT_S_AXI_MASTERS = processing_system7_0.M_AXI_GP0
  PARAMETER Input_Range = 2
  PARAMETER Standard_Sel = 6
+ PARAMETER C_BASEADDR = 0x40030000
+ PARAMETER C_HIGHADDR = 0x4003ffff
  BUS_INTERFACE S_AXI = axi_interconnect_gp0
  BUS_INTERFACE M_AXIS_VIDEO = v_rgb2ycrcb_0_M_AXIS_VIDEO
- BUS_INTERFACE S_AXIS_VIDEO = axis_vremapper_0_M_AXIS
+ BUS_INTERFACE S_AXIS_VIDEO = v_osd_0_M_AXIS_VIDEO
  PORT s_axi_aclk = clk_75mhz
  PORT s_axi_aclken = net_vcc
  PORT aclk = clk_150mhz
@@ -220,12 +225,12 @@ END
 BEGIN v_cresample
  PARAMETER INSTANCE = v_cresample_0
  PARAMETER HW_VER = 3.01.a
- PARAMETER C_BASEADDR = 0x40020000
- PARAMETER C_HIGHADDR = 0x4002FFFF
  PARAMETER C_S_AXIS_VIDEO_FORMAT = 1
  PARAMETER C_M_AXIS_VIDEO_FORMAT = 0
  PARAMETER C_CONVERT_TYPE = 2
  PARAMETER C_INTERCONNECT_S_AXI_MASTERS = processing_system7_0.M_AXI_GP0
+ PARAMETER C_BASEADDR = 0x40020000
+ PARAMETER C_HIGHADDR = 0x4002ffff
  BUS_INTERFACE S_AXI = axi_interconnect_gp0
  BUS_INTERFACE M_AXIS_VIDEO = v_cresample_0_M_AXIS_VIDEO
  BUS_INTERFACE S_AXIS_VIDEO = v_rgb2ycrcb_0_M_AXIS_VIDEO
@@ -248,16 +253,32 @@ BEGIN v_axi4s_vid_out
  PORT aclken = net_vcc
  PORT aresetn = fclk_rst_0_n
  PORT rst = net_gnd
- PORT video_vsync = v_axi4s_vid_out_0_video_vsync
- PORT video_hsync = v_axi4s_vid_out_0_video_hsync
- PORT video_de = v_axi4s_vid_out_0_video_de
- PORT video_data = v_axi4s_vid_out_0_video_data
- PORT video_clk = v_axi4s_vid_out_0_video_clk
  PORT video_out_clk = video_clk
  PORT vtg_ce = v_axi4s_vid_out_0_vtg_ce
- PORT locked = v_axi4s_vid_out_0_locked
- PORT wr_error = v_axi4s_vid_out_0_wr_error
- PORT empty = v_axi4s_vid_out_0_empty
+ PORT video_hsync = v_axi4s_vid_out_0_video_hsync
+ PORT video_hblank = v_axi4s_vid_out_0_video_hblank
+ PORT video_data = v_axi4s_vid_out_0_video_data
+ PORT video_de = v_axi4s_vid_out_0_video_de
+ PORT video_vblank = v_axi4s_vid_out_0_video_vblank
+ PORT video_vsync = v_axi4s_vid_out_0_video_vsync
+END
+
+BEGIN zc702_hdmi_out
+ PARAMETER INSTANCE = zc702_hdmi_out_0
+ PARAMETER HW_VER = 1.02.a
+ PORT xsvi_vblank_i = v_axi4s_vid_out_0_video_vblank
+ PORT xsvi_hblank_i = v_axi4s_vid_out_0_video_hblank
+ PORT xsvi_vsync_i = v_axi4s_vid_out_0_video_vsync
+ PORT xsvi_hsync_i = v_axi4s_vid_out_0_video_hsync
+ PORT xsvi_active_video_i = v_axi4s_vid_out_0_video_de
+ PORT xsvi_video_data_i = v_axi4s_vid_out_0_video_data
+ PORT io_hdmio_video = zc702_hdmi_out_0_io_hdmio_video
+ PORT io_hdmio_clk = zc702_hdmi_out_0_io_hdmio_clk
+ PORT io_hdmio_vsync = zc702_hdmi_out_0_io_hdmio_vsync
+ PORT io_hdmio_de = zc702_hdmi_out_0_io_hdmio_de
+ PORT io_hdmio_hsync = zc702_hdmi_out_0_io_hdmio_hsync
+ PORT clk = video_clk
+ PORT reset = net_gnd
 END
 
 BEGIN v_tc
@@ -265,9 +286,9 @@ BEGIN v_tc
  PARAMETER HW_VER = 5.01.a
  PARAMETER C_GEN_VBLANK_EN = 1
  PARAMETER C_GEN_HBLANK_EN = 1
- PARAMETER C_BASEADDR = 0x40010000
- PARAMETER C_HIGHADDR = 0x4001FFFF
  PARAMETER C_INTERCONNECT_S_AXI_MASTERS = processing_system7_0.M_AXI_GP0
+ PARAMETER C_BASEADDR = 0x40010000
+ PARAMETER C_HIGHADDR = 0x4001ffff
  BUS_INTERFACE S_AXI = axi_interconnect_gp0
  BUS_INTERFACE VTIMING_OUT = v_tc_0_VTIMING_OUT
  PORT s_axi_aclk = clk_75mhz
@@ -276,48 +297,5 @@ BEGIN v_tc
  PORT clken = net_vcc
  PORT gen_clken = v_axi4s_vid_out_0_vtg_ce
  PORT resetn = net_vcc
-END
-
-BEGIN chipscope_icon
- PARAMETER INSTANCE = chipscope_icon_0
- PARAMETER HW_VER = 1.06.a
- PARAMETER C_NUM_CONTROL_PORTS = 3
- PORT control0 = chipscope_icon_0_control0
- PORT control1 = chipscope_icon_0_control1
- PORT control2 = chipscope_icon_0_control2
-END
-
-BEGIN chipscope_axi_monitor
- PARAMETER INSTANCE = chipscope_axi_monitor_0
- PARAMETER HW_VER = 3.05.a
- PARAMETER C_USE_INTERFACE = 1
- PARAMETER C_NUM_DATA_SAMPLES = 8192
- BUS_INTERFACE MON_AXI_S = v_rgb2ycrcb_0_M_AXIS_VIDEO
- PORT CHIPSCOPE_ICON_CONTROL = chipscope_icon_0_control0
- PORT mon_axi_aclk = clk_150mhz
- PORT mon_axi_aresetn = fclk_rst_0_n
-END
-
-BEGIN chipscope_ila
- PARAMETER INSTANCE = chipscope_ila_0
- PARAMETER HW_VER = 1.05.a
- PARAMETER C_NUM_DATA_SAMPLES = 131072
- PARAMETER C_ENABLE_TRIGGER_OUT = 0
- PARAMETER C_TRIG0_TRIGGER_IN_WIDTH = 22
- PARAMETER C_TRIG0_UNIT_MATCH_TYPE = basic with edges
- PORT CHIPSCOPE_ILA_CONTROL = chipscope_icon_0_control1
- PORT clk = video_clk
- PORT trig0 = v_axi4s_vid_out_0_video_data & v_axi4s_vid_out_0_video_de & v_axi4s_vid_out_0_video_vsync & v_axi4s_vid_out_0_video_hsync & v_axi4s_vid_out_0_locked & v_axi4s_vid_out_0_wr_error & v_axi4s_vid_out_0_empty
-END
-
-BEGIN chipscope_axi_monitor
- PARAMETER INSTANCE = chipscope_axi_monitor_1
- PARAMETER HW_VER = 3.05.a
- PARAMETER C_USE_INTERFACE = 1
- PARAMETER C_NUM_DATA_SAMPLES = 8192
- BUS_INTERFACE MON_AXI_S = v_cresample_0_M_AXIS_VIDEO
- PORT CHIPSCOPE_ICON_CONTROL = chipscope_icon_0_control2
- PORT mon_axi_aclk = clk_150mhz
- PORT mon_axi_aresetn = fclk_rst_0_n
 END
 

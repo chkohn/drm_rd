@@ -200,7 +200,6 @@ proc ps7_mio_init_data_1_0 {} {
     mask_write 0XF80007CC 0x00003FFF 0x00001240
     mask_write 0XF80007D0 0x00003FFF 0x00001280
     mask_write 0XF80007D4 0x00003FFF 0x00001280
-    mask_write 0XF8000900 0x0000000F 0x0000000F
     mask_write 0XF8000004 0x0000FFFF 0x0000767B
 }
 proc ps7_peripherals_init_data_1_0 {} {
@@ -215,6 +214,13 @@ proc ps7_peripherals_init_data_1_0 {} {
     mask_write 0XE0001000 0x000001FF 0x00000017
     mask_write 0XE0001004 0x00000FFF 0x00000020
     mask_write 0XF8007000 0x20000000 0x00000000
+}
+proc ps7_post_config_1_0 {} {
+    mask_write 0XF8000008 0x0000FFFF 0x0000DF0D
+    mask_write 0XF8000900 0x0000000F 0x0000000F
+    mask_write 0XF8000240 0xFFFFFFFF 0xFFFFFFFF
+    mask_write 0XF8000240 0xFFFFFFFF 0x00000000
+    mask_write 0XF8000004 0x0000FFFF 0x0000767B
 }
 proc ps7_pll_init_data_2_0 {} {
     mask_write 0XF8000008 0x0000FFFF 0x0000DF0D
@@ -436,6 +442,13 @@ proc ps7_peripherals_init_data_2_0 {} {
     mask_write 0XE000D000 0x00080000 0x00080000
     mask_write 0XF8007000 0x20000000 0x00000000
 }
+proc ps7_post_config_2_0 {} {
+    mask_write 0XF8000008 0x0000FFFF 0x0000DF0D
+    mask_write 0XF8000900 0x0000000F 0x0000000F
+    mask_write 0XF8000240 0xFFFFFFFF 0xFFFFFFFF
+    mask_write 0XF8000240 0xFFFFFFFF 0x00000000
+    mask_write 0XF8000004 0x0000FFFF 0x0000767B
+}
 proc ps7_pll_init_data_3_0 {} {
     mask_write 0XF8000008 0x0000FFFF 0x0000DF0D
     mask_write 0XF8000110 0x003FFFF0 0x000FA220
@@ -635,7 +648,6 @@ proc ps7_mio_init_data_3_0 {} {
     mask_write 0XF80007CC 0x00003FFF 0x00001240
     mask_write 0XF80007D0 0x00003FFF 0x00001280
     mask_write 0XF80007D4 0x00003FFF 0x00001280
-    mask_write 0XF8000900 0x0000000F 0x0000000F
     mask_write 0XF8000004 0x0000FFFF 0x0000767B
 }
 proc ps7_peripherals_init_data_3_0 {} {
@@ -651,6 +663,13 @@ proc ps7_peripherals_init_data_3_0 {} {
     mask_write 0XE0001004 0x000003FF 0x00000020
     mask_write 0XE000D000 0x00080000 0x00080000
     mask_write 0XF8007000 0x20000000 0x00000000
+}
+proc ps7_post_config_3_0 {} {
+    mask_write 0XF8000008 0x0000FFFF 0x0000DF0D
+    mask_write 0XF8000900 0x0000000F 0x0000000F
+    mask_write 0XF8000240 0xFFFFFFFF 0xFFFFFFFF
+    mask_write 0XF8000240 0xFFFFFFFF 0x00000000
+    mask_write 0XF8000004 0x0000FFFF 0x0000767B
 }
 set PCW_SILICON_VER_1_0 "0x0"
 set PCW_SILICON_VER_2_0 "0x1"
@@ -671,6 +690,21 @@ proc ps_version { } {
     set si_ver "0x[string range [mrd 0xF8007080] end-8 end]"
     set mask_sil_ver "0x[expr {$si_ver >> 28}]"
     return $mask_sil_ver;
+}
+
+proc ps7_post_config {} {
+    variable PCW_SILICON_VER_1_0
+    variable PCW_SILICON_VER_2_0
+    variable PCW_SILICON_VER_3_0
+    set sil_ver [ps_version]
+
+    if { $sil_ver == $PCW_SILICON_VER_1_0} {
+        ps7_post_config_1_0   
+    } elseif { $sil_ver == $PCW_SILICON_VER_2_0 } {
+        ps7_post_config_2_0   
+    } else {
+        ps7_post_config_3_0   
+    }
 }
 
 proc ps7_init {} {
