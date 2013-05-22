@@ -64,6 +64,7 @@
 
 // Frame Buffer Base Address
 #define FB0_ADDR 0x30000000
+#define FB1_ADDR 0x307E9000
 
 
 // Turn on/off Debug messages
@@ -450,8 +451,9 @@ int main()
     // Initialize HDMI Output
 	ADV7511 *ADV7511_0 = ADV7511_Initialize(XPAR_ADV7511_0_DEVICE_ID, IicMux_0->VirtAdapter[1]);
 
-	// Initialize VDMA
+	// Initialize VDMAs
 	XAxiVdma *XAxiVdma_0 = XAxiVdma_Initialize(XPAR_AXI_VDMA_0_DEVICE_ID);
+	XAxiVdma *XAxiVdma_1 = XAxiVdma_Initialize(XPAR_AXI_VDMA_1_DEVICE_ID);
 
 	// Initialize VTC
 	XVtc *XVtc_0 = XVtc_Initialize(XPAR_V_TC_0_DEVICE_ID);
@@ -518,7 +520,7 @@ int main()
 	XOSD_ConfigureLayer(XOSD_0, &Layer1);
 	XOSD_Start(XOSD_0);
 
-	// Configure and Start VDMA MM2S
+	// Configure and Start VDMA0 MM2S
 	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
 
@@ -528,9 +530,13 @@ int main()
     TPG_Configure(Timing);
     TPG_Start();
 
-	// Configure and Start VDMA S2MM
-//	XAxiVdma_SetupWriteChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 3, 1);
-//	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_WRITE);
+	// Configure and Start VDMA1 S2MM
+	XAxiVdma_SetupWriteChannel(XAxiVdma_1, Timing, Format, FB1_ADDR, 3, 1);
+	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_WRITE);
+
+	// Configure and Start VDMA1 MM2S
+	XAxiVdma_SetupReadChannel(XAxiVdma_1, Timing, Format, FB1_ADDR, 3, 1);
+	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_READ);
 #endif
 
 	printf("Exit simple_output!\r\n");
