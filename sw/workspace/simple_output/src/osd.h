@@ -38,102 +38,30 @@
 * AT ALL TIMES.
 ******************************************************************************/
 
-#ifndef COMMON_H_
-#define COMMON_H_
+#ifndef OSD_H_
+#define OSD_H_
+
+#include "xosd.h"
+#include "video_common.h"
 
 
-#include "xil_types.h"
-
-
-// Turn on/off Debug messages
-#ifdef DEBUG_PRINT
-#define  debug_printf  xil_printf
-#else
-#define  debug_printf(msg, args...) do {  } while (0)
-#endif
-
-
-// ARGB32 colors [0, 255]
-#define ARGB32_BLACK    0x00000000
-#define ARGB32_WHITE    0x00FFFFFF
-#define ARGB32_RED      0x00FF0000
-#define ARGB32_GREEN    0x0000FF00
-#define ARGB32_BLUE     0x000000FF
-#define ARGB32_CYAN     0x0000FFFF
-#define ARGB32_MAGENTA  0x00FF00FF
-#define ARGB32_YELLOW   0x00FFFF00
-
-// UYVY colors [16, 235]
-#define UYVY_WHITE    0x80EB80EB
-#define UYVY_YELLOW   0x10D292D2
-#define UYVY_CYAN     0xA6AA10AA
-#define UYVY_GREEN	  0x36912291
-#define UYVY_MAGENTA  0xCA6ADE6A
-#define UYVY_RED      0x5A51F051
-#define UYVY_BLUE     0xF0296E29
-#define UYVY_BLACK    0x80108010
-
-
-#define NAME_SIZE 32
-
-
-enum VideoTimingId {
-	V_WUXGA,
-	V_1080p,
-	V_WSXGAplus,
-	V_SXGA,
-	V_720p,
-	V_XGA,
-	V_SVGA,
-	V_576p,
-	V_VGA
+struct XOSD_LayerConfig {
+	u8  Index;
+	u8  Enable;
+	u8  Priority;
+	u8  GlobalAlphaEnble;
+	u16 GlobalAlphaValue;
+	u16 XStart;
+	u16 YStart;
+	u16 XSize;
+	u16 YSize;
 };
 
-typedef struct {
-	char Name[NAME_SIZE];
-	enum VideoTimingId Id;
-	u32 LineWidth;
-	u32 HFrontPorch;
-	u32 HSyncWidth;
-	u32 HBackPorch;
-	u32 TotalLineWidth;
-	u32 Field0Height;
-	u32 Field0FrontPorch;
-	u32 Field0SyncWidth;
-	u32 Field0BackPorch;
-	u32 Field0TotalHeight;
-	u32 Field1Height;
-	u32 Field1FrontPorch;
-	u32 Field1SyncWidth;
-	u32 Field1BackPorch;
-	u32 Field1TotalHeight;
-	u32 HSyncPolarity;
-	u32 VSyncPolarity;
-	u32 VideoClkFrequency;
-} VideoTiming;
 
-enum VideoFormatId {
-	V_ARGB32,  // The frame is stored using a 32-bit ARGB format (0xAARRGGBB)
-	V_UYVY,    // The frame is stored using an 8-bit per component packed YUV format
-			   // with the U and V planes horizontally sub-sampled (Y-U-Y-V),
-	           // i.e. two horizontally adjacent pixels are stored as a 32-bit macropixel
-	           // which has a Y value for each pixel and common U and V values.
-	V_YUYV_emb_sync  // same as above but using embedded sync signals instead
-};
-
-typedef struct {
-	char Name[NAME_SIZE];
-	enum VideoFormatId Id;
-	u8 BytesPerPixel;
-} VideoFormat;
+XOSD *XOSD_Initialize(u16 DeviceId);
+void XOSD_Configure(XOSD *Instance, const VideoTiming *Timing);
+void XOSD_ConfigureLayer(XOSD *Instance, struct XOSD_LayerConfig *Config);
+void XOSD_Start(XOSD *Instance);
 
 
-void ReportVideoTiming(const VideoTiming *Data);
-const VideoTiming *LookupVideoTiming_ById(enum VideoTimingId Id);
-const VideoTiming *LookupVideoTiming_ByDimensions(u32 Width, u32 Height);
-
-void ReportVideoFormat(const VideoFormat *Format);
-const VideoFormat *LookupVideoFormat_ById(enum VideoFormatId Id);
-
-
-#endif /* COMMON_H_ */
+#endif /* OSD_H_ */

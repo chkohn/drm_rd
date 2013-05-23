@@ -38,102 +38,28 @@
 * AT ALL TIMES.
 ******************************************************************************/
 
-#ifndef COMMON_H_
-#define COMMON_H_
+#include "ccresample.h"
 
 
-#include "xil_types.h"
+void CRESAMPLE_Configure(const VideoTiming *Timing)
+{
+	debug_printf("Configure Chroma Resampler\r\n");
 
+	CRESAMPLE_RegUpdateDisable(XPAR_CRESAMPLE_0_BASEADDR);
+	CRESAMPLE_WriteReg(XPAR_CRESAMPLE_0_BASEADDR, CRESAMPLE_ACTIVE_SIZE, (Timing->Field0Height<<16 | Timing->LineWidth));
+    CRESAMPLE_RegUpdateEnable(XPAR_CRESAMPLE_0_BASEADDR);
+}
 
-// Turn on/off Debug messages
-#ifdef DEBUG_PRINT
-#define  debug_printf  xil_printf
-#else
-#define  debug_printf(msg, args...) do {  } while (0)
-#endif
+void CRESAMPLE_Start()
+{
+	debug_printf("Start Chroma Resampler\r\n");
 
+	CRESAMPLE_Enable(XPAR_CRESAMPLE_0_BASEADDR);
+}
 
-// ARGB32 colors [0, 255]
-#define ARGB32_BLACK    0x00000000
-#define ARGB32_WHITE    0x00FFFFFF
-#define ARGB32_RED      0x00FF0000
-#define ARGB32_GREEN    0x0000FF00
-#define ARGB32_BLUE     0x000000FF
-#define ARGB32_CYAN     0x0000FFFF
-#define ARGB32_MAGENTA  0x00FF00FF
-#define ARGB32_YELLOW   0x00FFFF00
+void CRESAMPLE_Stop()
+{
+	debug_printf("Stop Chroma Resampler\r\n");
 
-// UYVY colors [16, 235]
-#define UYVY_WHITE    0x80EB80EB
-#define UYVY_YELLOW   0x10D292D2
-#define UYVY_CYAN     0xA6AA10AA
-#define UYVY_GREEN	  0x36912291
-#define UYVY_MAGENTA  0xCA6ADE6A
-#define UYVY_RED      0x5A51F051
-#define UYVY_BLUE     0xF0296E29
-#define UYVY_BLACK    0x80108010
-
-
-#define NAME_SIZE 32
-
-
-enum VideoTimingId {
-	V_WUXGA,
-	V_1080p,
-	V_WSXGAplus,
-	V_SXGA,
-	V_720p,
-	V_XGA,
-	V_SVGA,
-	V_576p,
-	V_VGA
-};
-
-typedef struct {
-	char Name[NAME_SIZE];
-	enum VideoTimingId Id;
-	u32 LineWidth;
-	u32 HFrontPorch;
-	u32 HSyncWidth;
-	u32 HBackPorch;
-	u32 TotalLineWidth;
-	u32 Field0Height;
-	u32 Field0FrontPorch;
-	u32 Field0SyncWidth;
-	u32 Field0BackPorch;
-	u32 Field0TotalHeight;
-	u32 Field1Height;
-	u32 Field1FrontPorch;
-	u32 Field1SyncWidth;
-	u32 Field1BackPorch;
-	u32 Field1TotalHeight;
-	u32 HSyncPolarity;
-	u32 VSyncPolarity;
-	u32 VideoClkFrequency;
-} VideoTiming;
-
-enum VideoFormatId {
-	V_ARGB32,  // The frame is stored using a 32-bit ARGB format (0xAARRGGBB)
-	V_UYVY,    // The frame is stored using an 8-bit per component packed YUV format
-			   // with the U and V planes horizontally sub-sampled (Y-U-Y-V),
-	           // i.e. two horizontally adjacent pixels are stored as a 32-bit macropixel
-	           // which has a Y value for each pixel and common U and V values.
-	V_YUYV_emb_sync  // same as above but using embedded sync signals instead
-};
-
-typedef struct {
-	char Name[NAME_SIZE];
-	enum VideoFormatId Id;
-	u8 BytesPerPixel;
-} VideoFormat;
-
-
-void ReportVideoTiming(const VideoTiming *Data);
-const VideoTiming *LookupVideoTiming_ById(enum VideoTimingId Id);
-const VideoTiming *LookupVideoTiming_ByDimensions(u32 Width, u32 Height);
-
-void ReportVideoFormat(const VideoFormat *Format);
-const VideoFormat *LookupVideoFormat_ById(enum VideoFormatId Id);
-
-
-#endif /* COMMON_H_ */
+	CRESAMPLE_Disable(XPAR_CRESAMPLE_0_BASEADDR);
+}
