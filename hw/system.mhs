@@ -129,7 +129,7 @@ BEGIN processing_system7
  PORT M_AXI_GP0_ACLK = clk_75mhz
  PORT S_AXI_HP0_ACLK = clk_150mhz
  PORT S_AXI_HP2_ACLK = clk_150mhz
- PORT IRQ_F2P = axi_vdma_0_mm2s_introut & axi_vdma_1_mm2s_introut & axi_vdma_1_s2mm_introut & hdmi_int
+ PORT IRQ_F2P = hdmi_int & axi_vdma_0_mm2s_introut & axi_vdma_1_mm2s_introut & axi_vdma_1_s2mm_introut & v_osd_0_irq & v_tpg_0_irq & v_tc_0_irq & v_cresample_0_irq & v_rgb2ycrcb_0_irq
 END
 
 BEGIN axi_interconnect
@@ -200,7 +200,7 @@ END
 BEGIN v_osd
  PARAMETER INSTANCE = v_osd_0
  PARAMETER HW_VER = 5.01.a
- PARAMETER C_HAS_IRQ = 0
+ PARAMETER C_HAS_IRQ = 1
  PARAMETER C_S_AXIS_VIDEO_FORMAT = 2
  PARAMETER C_NUM_LAYERS = 2
  PARAMETER C_SCREEN_WIDTH = 1920
@@ -213,6 +213,7 @@ BEGIN v_osd
  BUS_INTERFACE S_AXIS_VIDEO1 = axis_vremapper_2_M_AXIS
  PORT s_axi_aclk = clk_75mhz
  PORT aclk = clk_150mhz
+ PORT irq = v_osd_0_irq
 END
 
 BEGIN v_rgb2ycrcb
@@ -231,6 +232,7 @@ BEGIN v_rgb2ycrcb
  PORT aclk = clk_150mhz
  PORT aclken = net_vcc
  PORT aresetn = fclk_rst_0_n
+ PORT irq = v_rgb2ycrcb_0_irq
 END
 
 BEGIN v_cresample
@@ -250,6 +252,7 @@ BEGIN v_cresample
  PORT aclk = clk_150mhz
  PORT aclken = net_vcc
  PORT aresetn = fclk_rst_0_n
+ PORT irq = v_cresample_0_irq
 END
 
 BEGIN v_axi4s_vid_out
@@ -308,6 +311,7 @@ BEGIN v_tc
  PORT clken = net_vcc
  PORT gen_clken = v_axi4s_vid_out_0_vtg_ce
  PORT resetn = net_vcc
+ PORT irq = v_tc_0_irq
 END
 
 BEGIN v_tpg
@@ -326,6 +330,7 @@ BEGIN v_tpg
  PORT aclken = net_vcc
  PORT aresetn = fclk_rst_0_n
  PORT s_axi_aclken = net_vcc
+ PORT irq = v_tpg_0_irq
 END
 
 BEGIN axi_vdma
