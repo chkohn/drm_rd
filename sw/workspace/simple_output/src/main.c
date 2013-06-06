@@ -58,9 +58,21 @@
 #include "drivers/adv7511/adv7511.h"
 
 
-// Frame Buffer Base Address
+// Frame Buffer Base Addresses
 #define FB0_ADDR 0x30000000
 #define FB1_ADDR 0x307E9000
+
+
+// Global Variables
+XIicPs *XIicPs_0;
+IicAdapter *IicAdapter_XIicPs_0;
+PCA954X *IicMux_0;
+SI570 *SI570_0;
+ADV7511 *ADV7511_0;
+XAxiVdma *XAxiVdma_0;
+XAxiVdma *XAxiVdma_1;
+XVtc *XVtc_0;
+XOSD *XOSD_0;
 
 
 static const u32 pix_argb32[8] = {
@@ -119,69 +131,27 @@ void FB_Initialize(u32 BaseAddr, const VideoTiming *Timing, const VideoFormat *F
 }
 
 
-// main
-int main()
+void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 {
-	int Status;
-	const VideoTiming *Timing = LookupVideoTiming_ById(V_1080p);
-	const VideoFormat *Format= LookupVideoFormat_ById(V_ARGB32);
+	// Configure Clock Synthesizer
+//	SI570_Configure(SI570_0, Timing);
 
-	printf("Video Output Resolution: %ux%u @ 60fps\r\n", Timing->LineWidth, Timing->Field0Height);
-
-    // Initialize PS I2C0 Adapter
-    XIicPs *XIicPs_0 = XIicPs_Initialize(XPAR_XIICPS_0_DEVICE_ID, 100000);
-    IicAdapter *IicAdapter_XIicPs_0 = XIicPs_RegisterAdapter((void *) XIicPs_0);
-
-    // Initialize I2C Mux
-    PCA954X *IicMux_0 = PCA954X_Initialize(XPAR_PCA954X_0_DEVICE_ID, IicAdapter_XIicPs_0);
-
-    // Initialize Clock Synthesizer
-    SI570 *SI570_0 = SI570_Initialize(XPAR_SI570_0_DEVICE_ID, IicMux_0->VirtAdapter[0]);
-
-    // Initialize HDMI Output
-	ADV7511 *ADV7511_0 = ADV7511_Initialize(XPAR_ADV7511_0_DEVICE_ID, IicMux_0->VirtAdapter[1]);
-
-	// Initialize VDMAs
-	XAxiVdma *XAxiVdma_0 = XAxiVdma_Initialize(XPAR_AXI_VDMA_0_DEVICE_ID);
-#ifdef USE_TPG
-	XAxiVdma *XAxiVdma_1 = XAxiVdma_Initialize(XPAR_AXI_VDMA_1_DEVICE_ID);
-#endif
-
-	// Initialize VTC
-	XVtc *XVtc_0 = XVtc_Initialize(XPAR_V_TC_0_DEVICE_ID);
-
-	// Initialize OSD
-	XOSD *XOSD_0 = XOSD_Initialize(XPAR_V_OSD_0_DEVICE_ID);
-
-	// Initialize FB0
-	FB_Initialize(FB0_ADDR, Timing, Format, XAxiVdma_0->MaxNumFrames);
-
-    // Configure Clock Synthesizer
-    SI570_Configure(SI570_0, Timing);
-
-	// Configure HDMI Output
-	Status = ADV7511_SetVideoMode(ADV7511_0, V_UYVY);
-	if (Status == XST_FAILURE) {
-		xil_printf("ERROR : No monitor detected on HDMI output!\r\n");
-		exit(XST_FAILURE);
-	}
-
-    // Configure and Start VTC
+	// Configure and Start VTC
 	XVtc_Configure(XVtc_0, Timing);
 	XVtc_Start(XVtc_0);
 
 	// Configure and Start Chroma Resampler
-    CRESAMPLE_Configure(Timing);
-    CRESAMPLE_Start();
+	CRESAMPLE_Configure(Timing);
+	CRESAMPLE_Start();
 
-    // Configure and Start Color Space Converter
-    RGB_Configure(Timing);
-    RGB_Start();
+	// Configure and Start Color Space Converter
+	RGB_Configure(Timing);
+	RGB_Start();
 
 	// Configure and Start On Screen Display
-    struct XOSD_LayerConfig Layer0 = {
+	struct XOSD_LayerConfig Layer0 = {
 		.Enable = 1,
-    	.Index = 0,
+		.Index = 0,
 		.Priority = XOSD_LAYER_PRIORITY_0,
 		.GlobalAlphaEnble = 1,
 		.GlobalAlphaValue = 0xff,
@@ -189,12 +159,12 @@ int main()
 		.YStart = 0,
 		.XSize = Timing->LineWidth,
 		.YSize = Timing->Field0Height
-    };
+	};
 
 #ifdef USE_TPG
-    struct XOSD_LayerConfig Layer1 = {
+	struct XOSD_LayerConfig Layer1 = {
 		.Enable = 1,
-    	.Index = 1,
+		.Index = 1,
 		.Priority = XOSD_LAYER_PRIORITY_1,
 		.GlobalAlphaEnble = 1,
 		.GlobalAlphaValue = 0x80,
@@ -202,7 +172,7 @@ int main()
 		.YStart = 0,
 		.XSize = Timing->LineWidth,
 		.YSize = Timing->Field0Height
-    };
+	};
 #endif
 
 	XOSD_Configure(XOSD_0, Timing);
@@ -217,19 +187,71 @@ int main()
 	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
 
 #ifdef USE_TPG
-    // Configure and Start Test Pattern Generator
-    TPG_SetPattern(V_TPG_ZonePlate, 1);
-    TPG_Configure(Timing);
-    TPG_Start();
+	// Configure and Start Test Pattern Generator
+	TPG_SetPattern(V_TPG_ZonePlate, 1);
+	TPG_Configure(Timing);
+	TPG_Start();
 
 	// Configure and Start VDMA1 S2MM
-	XAxiVdma_SetupWriteChannel(XAxiVdma_1, Timing, Format, FB1_ADDR, 3, 1);
+	XAxiVdma_SetupWriteChannel(XAxiVdma_1, Timing, Format, FB1_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_WRITE);
 
 	// Configure and Start VDMA1 MM2S
-	XAxiVdma_SetupReadChannel(XAxiVdma_1, Timing, Format, FB1_ADDR, 3, 1);
+	XAxiVdma_SetupReadChannel(XAxiVdma_1, Timing, Format, FB1_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_READ);
 #endif
+}
+
+
+// main
+int main()
+{
+	int Status;
+	const VideoTiming *Timing = LookupVideoTiming_ById(V_1080p);
+	const VideoFormat *Format = LookupVideoFormat_ById(V_ARGB32);
+
+	printf("Video Output Resolution: %ux%u @ 60fps\r\n", Timing->LineWidth, Timing->Field0Height);
+
+    // Initialize PS I2C0 Adapter
+    XIicPs_0 = XIicPs_Initialize(XPAR_XIICPS_0_DEVICE_ID, 100000);
+    IicAdapter_XIicPs_0 = XIicPs_RegisterAdapter((void *) XIicPs_0);
+
+    // Initialize I2C Mux
+    IicMux_0 = PCA954X_Initialize(XPAR_PCA954X_0_DEVICE_ID, IicAdapter_XIicPs_0);
+
+    // Initialize Clock Synthesizer
+    SI570_0 = SI570_Initialize(XPAR_SI570_0_DEVICE_ID, IicMux_0->VirtAdapter[0]);
+
+    // Initialize HDMI Output
+	ADV7511_0 = ADV7511_Initialize(XPAR_ADV7511_0_DEVICE_ID, IicMux_0->VirtAdapter[1]);
+
+	// Initialize VDMAs
+	XAxiVdma_0 = XAxiVdma_Initialize(XPAR_AXI_VDMA_0_DEVICE_ID);
+#ifdef USE_TPG
+	XAxiVdma_1 = XAxiVdma_Initialize(XPAR_AXI_VDMA_1_DEVICE_ID);
+#endif
+
+	// Initialize VTC
+	XVtc_0 = XVtc_Initialize(XPAR_V_TC_0_DEVICE_ID);
+
+	// Initialize OSD
+	XOSD_0 = XOSD_Initialize(XPAR_V_OSD_0_DEVICE_ID);
+
+	// Write pattern to FB0
+	FB_Initialize(FB0_ADDR, Timing, Format, XAxiVdma_0->MaxNumFrames);
+
+	// Configure Clock Synthesizer
+	SI570_Configure(SI570_0, Timing);
+
+	// Configure HDMI Output
+	Status = ADV7511_SetVideoMode(ADV7511_0, V_UYVY);
+	if (Status == XST_FAILURE) {
+		xil_printf("ERROR : No monitor detected on HDMI output!\r\n");
+		exit(XST_FAILURE);
+	}
+
+    // Configure Video Pipeline
+	VideoPipe_Configure(Timing, Format);
 
 	printf("Exit simple_output!\r\n");
 
