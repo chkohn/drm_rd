@@ -62,6 +62,10 @@
 #define FB0_ADDR 0x30000000
 #define FB1_ADDR 0x307E9000
 
+// OSD Layers
+#define CPU_LAYER 0
+#define TPG_LAYER 1
+
 
 // Global Variables
 XIicPs *XIicPs_0;
@@ -74,6 +78,8 @@ XAxiVdma *XAxiVdma_1;
 XVtc *XVtc_0;
 XOSD *XOSD_0;
 
+static int Layer0_Enable = 0;
+static int Layer1_Enable = 0;
 
 static const u32 pix_argb32[8] = {
 		ARGB32_WHITE,
@@ -105,7 +111,7 @@ void SI570_Configure(SI570 *Instance, const VideoTiming *Timing)
 
 	SI570_SetFrequency(Instance, (unsigned long long) (Timing->VideoClkFrequency * 1000));
     usleep(100000);
-    printf("Video Clock Frequency: %llu Hz\n\r", SI570_GetFrequency(Instance));
+    debug_printf("Video Clock Frequency: %llu Hz\n\r", SI570_GetFrequency(Instance));
 }
 
 
@@ -133,10 +139,24 @@ void FB_Initialize(u32 BaseAddr, const VideoTiming *Timing, const VideoFormat *F
 
 void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 {
-	// Configure Clock Synthesizer
-//	SI570_Configure(SI570_0, Timing);
+#ifdef USE_TPG
+	// Stop VDMA1 S2MM
+	XAxiVdma_DmaStop(XAxiVdma_1, XAXIVDMA_WRITE);
 
-	// Configure and Start VTC
+	// Stop VDMA1 MM2S
+	XAxiVdma_DmaStop(XAxiVdma_1, XAXIVDMA_READ);
+#endif
+
+	// Stop VDMA0 MM2S
+	XAxiVdma_DmaStop(XAxiVdma_0, XAXIVDMA_READ);
+
+	// Write pattern to FB0
+	FB_Initialize(FB0_ADDR, Timing, Format, XAxiVdma_0->MaxNumFrames);
+
+	// Configure Clock Synthesizer
+	SI570_Configure(SI570_0, Timing);
+
+	// Configure and Start Video Timing Controller
 	XVtc_Configure(XVtc_0, Timing);
 	XVtc_Start(XVtc_0);
 
@@ -149,37 +169,30 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	RGB_Start();
 
 	// Configure and Start On Screen Display
-	struct XOSD_LayerConfig Layer0 = {
-		.Enable = 1,
-		.Index = 0,
-		.Priority = XOSD_LAYER_PRIORITY_0,
-		.GlobalAlphaEnble = 1,
-		.GlobalAlphaValue = 0xff,
-		.XStart = 0,
-		.YStart = 0,
-		.XSize = Timing->LineWidth,
-		.YSize = Timing->Field0Height
-	};
-
-#ifdef USE_TPG
-	struct XOSD_LayerConfig Layer1 = {
-		.Enable = 1,
-		.Index = 1,
-		.Priority = XOSD_LAYER_PRIORITY_1,
-		.GlobalAlphaEnble = 1,
-		.GlobalAlphaValue = 0x80,
-		.XStart = 0,
-		.YStart = 0,
-		.XSize = Timing->LineWidth,
-		.YSize = Timing->Field0Height
-	};
-#endif
-
 	XOSD_Configure(XOSD_0, Timing);
-	XOSD_ConfigureLayer(XOSD_0, &Layer0);
+
+	// Configure Layer 0
+	XOSD_RegUpdateDisable(XOSD_0);
+	XOSD_DisableLayer(XOSD_0, CPU_LAYER);
+	XOSD_SetLayerAlpha(XOSD_0, CPU_LAYER, 1, 0xff);
+	XOSD_SetLayerPriority(XOSD_0, CPU_LAYER, XOSD_LAYER_PRIORITY_0);
+	XOSD_SetLayerDimension(XOSD_0, CPU_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
+	if (Layer0_Enable)
+		XOSD_EnableLayer(XOSD_0, CPU_LAYER);
+	XOSD_RegUpdateEnable(XOSD_0);
+
 #ifdef USE_TPG
-	XOSD_ConfigureLayer(XOSD_0, &Layer1);
+	// Configure Layer 1
+	XOSD_RegUpdateDisable(XOSD_0);
+	XOSD_DisableLayer(XOSD_0, TPG_LAYER);
+	XOSD_SetLayerAlpha(XOSD_0, TPG_LAYER, 1, 0x80);
+	XOSD_SetLayerPriority(XOSD_0, TPG_LAYER, XOSD_LAYER_PRIORITY_1);
+	XOSD_SetLayerDimension(XOSD_0, TPG_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
+	if (Layer1_Enable)
+		XOSD_EnableLayer(XOSD_0, TPG_LAYER);
+	XOSD_RegUpdateEnable(XOSD_0);
 #endif
+
 	XOSD_Start(XOSD_0);
 
 	// Configure and Start VDMA0 MM2S
@@ -203,6 +216,36 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 }
 
 
+void VideoPipe_Stop()
+{
+#ifdef USE_TPG
+	// Stop VDMA1 MM2S
+	XAxiVdma_DmaStop(XAxiVdma_1, XAXIVDMA_READ);
+
+	// Stop VDMA1 S2MM
+	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_WRITE);
+
+	// Stop Test Pattern Generator
+	TPG_Stop();
+#endif
+
+	// Stop VDMA0 MM2S
+	XAxiVdma_DmaStop(XAxiVdma_0, XAXIVDMA_READ);
+
+	// Stop OSD
+	XOSD_Stop(XOSD_0);
+
+	// Stop Color SPace Converter
+	RGB_Stop();
+
+	// Stop Chroma Resampler
+	CRESAMPLE_Stop();
+
+	// Stop Video Timing Controller
+	XVtc_Stop(XVtc_0);
+}
+
+
 // main
 int main()
 {
@@ -210,7 +253,7 @@ int main()
 	const VideoTiming *Timing = LookupVideoTiming_ById(V_1080p);
 	const VideoFormat *Format = LookupVideoFormat_ById(V_ARGB32);
 
-	printf("Video Output Resolution: %ux%u @ 60fps\r\n", Timing->LineWidth, Timing->Field0Height);
+	debug_printf("Video Output Resolution: %ux%u @ 60fps\r\n", Timing->LineWidth, Timing->Field0Height);
 
     // Initialize PS I2C0 Adapter
     XIicPs_0 = XIicPs_Initialize(XPAR_XIICPS_0_DEVICE_ID, 100000);
@@ -237,9 +280,6 @@ int main()
 	// Initialize OSD
 	XOSD_0 = XOSD_Initialize(XPAR_V_OSD_0_DEVICE_ID);
 
-	// Write pattern to FB0
-	FB_Initialize(FB0_ADDR, Timing, Format, XAxiVdma_0->MaxNumFrames);
-
 	// Configure Clock Synthesizer
 	SI570_Configure(SI570_0, Timing);
 
@@ -253,7 +293,68 @@ int main()
     // Configure Video Pipeline
 	VideoPipe_Configure(Timing, Format);
 
-	printf("Exit simple_output!\r\n");
+	// Display Menu
+//	int OptionCurr = 0;
+	int OptionNext = '1'; // default
+	while (1) {
+		switch (OptionNext) {
+			case '1':
+				if (Layer0_Enable) {
+					XOSD_DisableLayer(XOSD_0, CPU_LAYER);
+					Layer0_Enable = 0;
+				} else {
+					XOSD_EnableLayer(XOSD_0, CPU_LAYER);
+					Layer0_Enable = 1;
+				}
+				break;
+			case '2':
+				if (Layer1_Enable) {
+					XOSD_DisableLayer(XOSD_0, TPG_LAYER);
+					Layer1_Enable = 0;
+				} else {
+					XOSD_EnableLayer(XOSD_0, TPG_LAYER);
+					Layer1_Enable = 1;
+				}
+				break;
+			case '3':
+				VideoPipe_Configure(LookupVideoTiming_ById(V_1080p), Format);
+				break;
+			case '4':
+				VideoPipe_Configure(LookupVideoTiming_ById(V_720p), Format);
+				break;
+			default:
+				break;
+		}
+
+//menu:
+		do {
+			xil_printf("    1: Toggle CPU Layer\n\r");
+			xil_printf("    2: Toggle TPG Layer\n\r");
+			xil_printf("    3: Set 1080p Resolution\n\r");
+			xil_printf("    4: Set  720p Resolution\n\r");
+//			xil_printf("    9: Reset\n\r");
+			xil_printf("    0: Exit\n\r");
+			xil_printf("\n\r> ");
+
+//			OptionCurr = OptionNext;
+			OptionNext = inbyte();
+			if (isalpha(OptionNext)) {
+				OptionNext = toupper(OptionNext);
+			}
+
+			xil_printf("%c\n\r\n\r", OptionNext);
+		} while (!isdigit(OptionNext));
+
+//		if (OptionNext == OptionCurr)
+//			goto menu;
+
+		if (OptionNext == '0') {
+			VideoPipe_Stop();
+			break;
+		}
+	}
+
+	xil_printf("Exit simple_output!\r\n");
 
     return 0;
 }

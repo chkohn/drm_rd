@@ -63,28 +63,16 @@ void XOSD_Configure(XOSD *Instance, const VideoTiming *Timing)
     XOSD_RegUpdateEnable(Instance);
 }
 
-void XOSD_ConfigureLayer(XOSD *Instance, struct XOSD_LayerConfig *Config)
-{
-	debug_printf("Configure On Screen Display - Layer %d\r\n", Config->Index);
-
-	XOSD_RegUpdateDisable(Instance);
-
-	if (Config->Enable) {
-		// Set up Layer Alpha, Priority, Dimension and enable it
-		XOSD_SetLayerAlpha(Instance, Config->Index, Config->GlobalAlphaEnble, Config->GlobalAlphaValue);
-		XOSD_SetLayerPriority(Instance, Config->Index, Config->Priority);
-		XOSD_SetLayerDimension(Instance, Config->Index, Config->XStart, Config->YStart, Config->XSize, Config->YSize);
-		XOSD_EnableLayer(Instance, Config->Index);
-	} else {
-		XOSD_DisableLayer(Instance, Config->Index);
-	}
-
-	XOSD_RegUpdateEnable(Instance);
-}
-
 void XOSD_Start(XOSD *Instance)
 {
 	debug_printf("Start On Screen Display\r\n");
 
 	XOSD_Enable(Instance);
+}
+
+void XOSD_Stop(XOSD *Instance)
+{
+	debug_printf("Stop On Screen Display\r\n");
+
+	XOSD_Disable(Instance);
 }
