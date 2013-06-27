@@ -42,9 +42,6 @@
 #include <stdlib.h>
 
 
-//static int RunningFilter;
-
-
 XSobel_filter *XSobel_Initialize(u16 DeviceId)
 {
 	XSobel_filter *Instance = malloc(sizeof *Instance);
@@ -89,10 +86,6 @@ void XSobel_Configure(XSobel_filter *Instance, const VideoTiming *Timing)
 
 void XSobel_Start(XSobel_filter *Instance)
 {
-	// Enable Interrupts
-//	XSobel_filter_InterruptGlobalEnable(Instance);
-//	XSobel_filter_InterruptEnable(Instance, 1);
-
 	// Start Filter
 	XSobel_filter_EnableAutoRestart(Instance);
 	XSobel_filter_Start(Instance);
@@ -103,30 +96,4 @@ void XSobel_Stop(XSobel_filter *Instance)
 	// Wait until Filter stops
 	XSobel_filter_DisableAutoRestart(Instance);
 	while (!XSobel_filter_IsIdle(Instance));
-
-	// Disable Interrupts
-//	XSobel_filter_InterruptGlobalDisable(Instance);
-//	XSobel_filter_InterruptDisable(Instance, 1);
 }
-
-//void XSobel_Isr(void *Instance)
-//{
-//	XSobel_filter *FilterInstance = (XSobel_filter *) Instance;
-//    u32 Status;
-//
-////    static int cnt;
-////    xil_printf("\n\rInfo : XSobel_filterIsr %d\n\r", ++cnt);
-//
-//    XSobel_filter_InterruptDisable(FilterInstance, 0xffffffff);
-//
-//    // check interrupt status
-//    Status = XSobel_filter_InterruptGetStatus(FilterInstance);
-//    Xil_AssertVoid(Status == 1);
-//
-//	XSobel_filter_InterruptClear(FilterInstance, 1);
-//
-//    if (RunningFilter) {
-//    	XSobel_filter_InterruptEnable(FilterInstance, 1);
-//        XSobel_filter_Start(FilterInstance);
-//    }
-//}

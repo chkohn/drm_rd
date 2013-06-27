@@ -51,7 +51,6 @@
 #include "crgb2ycrcb.h"
 #include "ctpg.h"
 #include "sobel.h"
-#include "gic.h"
 #include "xiicps_adapter.h"
 
 #include "xparameters_zc702.h"
@@ -82,7 +81,6 @@ XAxiVdma *XAxiVdma_2;
 XVtc *XVtc_0;
 XOSD *XOSD_0;
 XSobel_filter* XSobel_filter_0;
-XScuGic *XScuGic_0;
 
 
 static const u32 pix_argb32[8] = {
@@ -143,25 +141,6 @@ void FB_Initialize(u32 BaseAddr, const VideoTiming *Timing, const VideoFormat *F
 
 void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 {
-#ifdef USE_TPG
-	// Stop VDMA1 S2MM
-//	XAxiVdma_DmaStop(XAxiVdma_1, XAXIVDMA_WRITE);
-
-	// Stop VDMA1 MM2S
-//	XAxiVdma_DmaStop(XAxiVdma_1, XAXIVDMA_READ);
-#endif
-
-#ifdef USE_FILTER
-	// Stop VDMA1 S2MM
-//	XAxiVdma_DmaStop(XAxiVdma_2, XAXIVDMA_WRITE);
-
-	// Stop VDMA1 MM2S
-//	XAxiVdma_DmaStop(XAxiVdma_2, XAXIVDMA_READ);
-#endif
-
-	// Stop VDMA0 MM2S
-//	XAxiVdma_DmaStop(XAxiVdma_0, XAXIVDMA_READ);
-
 	// Configure and Start Video Timing Controller
 	XVtc_Configure(XVtc_0, Timing);
 	XVtc_Start(XVtc_0);
@@ -183,10 +162,10 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	XOSD_SetLayerAlpha(XOSD_0, CPU_LAYER, 1, 0xff);
 	XOSD_SetLayerPriority(XOSD_0, CPU_LAYER, XOSD_LAYER_PRIORITY_0);
 	XOSD_SetLayerDimension(XOSD_0, CPU_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
-//	XOSD_EnableLayer(XOSD_0, CPU_LAYER);
+	XOSD_EnableLayer(XOSD_0, CPU_LAYER);
 	XOSD_RegUpdateEnable(XOSD_0);
 
-#ifdef USE_TPG
+#ifdef USE_CAPTURE
 	// Configure Layer 1
 	XOSD_RegUpdateDisable(XOSD_0);
 	XOSD_DisableLayer(XOSD_0, TPG_LAYER);
@@ -203,32 +182,18 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
 
-	u32 tpg_addr = FB1_ADDR;
-
-#ifdef USE_FILTER
-	tpg_addr = TMP_ADDR;
-
-	// Configure and Start Sobel Filter
-	XSobel_Configure(XSobel_filter_0, Timing);
-	XSobel_Start(XSobel_filter_0);
-
-	// Configure and Start VDMA2 S2MM
-	XAxiVdma_SetupWriteChannel(XAxiVdma_2, Timing, Format, FB1_ADDR, 1, 0);
-	XAxiVdma_DmaStart(XAxiVdma_2, XAXIVDMA_WRITE);
-
-	// Configure and Start Filter VDMA2 MM2S
-	XAxiVdma_SetupReadChannel(XAxiVdma_2, Timing, Format, tpg_addr, 1, 0);
-	XAxiVdma_DmaStart(XAxiVdma_2, XAXIVDMA_READ);
-#endif
-
-#ifdef USE_TPG
+#ifdef USE_CAPTURE
 	// Configure and Start Test Pattern Generator
 	TPG_SetPattern(V_TPG_ZonePlate, 1);
 	TPG_Configure(Timing);
 	TPG_Start();
 
+	// Configure and Start Sobel Filter
+	XSobel_Configure(XSobel_filter_0, Timing);
+	XSobel_Start(XSobel_filter_0);
+
 	// Configure and Start VDMA1 S2MM
-	XAxiVdma_SetupWriteChannel(XAxiVdma_1, Timing, Format, tpg_addr, 1, 1);
+	XAxiVdma_SetupWriteChannel(XAxiVdma_1, Timing, Format, FB1_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_WRITE);
 
 	// Configure and Start VDMA1 MM2S
@@ -263,17 +228,9 @@ int main()
 	// Initialize VDMA_0
 	XAxiVdma_0 = XAxiVdma_Initialize(XPAR_AXI_VDMA_0_DEVICE_ID);
 
-#ifdef USE_TPG
+#ifdef USE_CAPTURE
 	// Initialize VDMA_1
 	XAxiVdma_1 = XAxiVdma_Initialize(XPAR_AXI_VDMA_1_DEVICE_ID);
-#endif
-
-#ifdef USE_FILTER
-	// Initialize VDMA_2
-	XAxiVdma_2 = XAxiVdma_Initialize(XPAR_AXI_VDMA_2_DEVICE_ID);
-
-	// Initialize General Interrupt Controller
-//	XScuGic_0 = XScuGic_Initialize(XPAR_SCUGIC_SINGLE_DEVICE_ID);
 
 	// Initialize Sobel Filter
 	XSobel_filter_0 = XSobel_Initialize(XPAR_SOBEL_FILTER_TOP_0_DEVICE_ID);
@@ -297,13 +254,6 @@ int main()
 		xil_printf("ERROR : No monitor detected on HDMI output!\r\n");
 		exit(XST_FAILURE);
 	}
-
-//#ifdef USE_FILTER
-//	// Register and Enable Sobel Filter ISR
-//	XScuGic_Connect(XScuGic_0, XPAR_FABRIC_SOBEL_FILTER_TOP_0_INTERRUPT_INTR, (Xil_InterruptHandler) XSobel_Isr, XSobel_filter_0);
-//	XScuGic_Enable(XScuGic_0, XPAR_FABRIC_SOBEL_FILTER_TOP_0_INTERRUPT_INTR);
-//	xil_printf("isr register and enable\r\n");
-//#endif
 
     // Configure Video Pipeline
 	VideoPipe_Configure(Timing, Format);

@@ -32,8 +32,7 @@
 								</option>
 								<option id="xilinx.gnu.compiler.inferred.swplatform.flags.1920080490" name="Software Platform Inferred Flags" superClass="xilinx.gnu.compiler.inferred.swplatform.flags" value=" " valueType="string"/>
 								<option id="xilinx.gnu.compiler.symbols.defined.1884906378" name="Defined symbols (-D)" superClass="xilinx.gnu.compiler.symbols.defined" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="USE_TPG"/>
-									<listOptionValue builtIn="false" value="USE_FILTER"/>
+									<listOptionValue builtIn="false" value="USE_CAPTURE"/>
 								</option>
 								<inputType id="xilinx.gnu.arm.c.compiler.input.1549419747" name="C source files" superClass="xilinx.gnu.arm.c.compiler.input"/>
 							</tool>
