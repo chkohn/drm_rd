@@ -89,11 +89,11 @@ int XAxiVdma_SetupReadChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing, 
 	}
 
 //	XAxiVdma_ResetChannel(InstancePtr, XAXIVDMA_READ);
-//	XAxiVdma_SetFrmStore(InstancePtr, FrameStore, XAXIVDMA_READ);
-//	if (UseSOF)
-//		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_S2MM_TUSER_FSYNC, XAXIVDMA_READ);
-//	else
-//		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_CHAN_FSYNC, XAXIVDMA_READ);
+	XAxiVdma_SetFrmStore(InstancePtr, FrameStore, XAXIVDMA_READ);
+	if (UseSOF)
+		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_S2MM_TUSER_FSYNC, XAXIVDMA_READ);
+	else
+		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_CHAN_FSYNC, XAXIVDMA_READ);
 
 	ReadCfg.VertSizeInput = Timing->Field0Height;
 	ReadCfg.HoriSizeInput = Timing->LineWidth * Format->BytesPerPixel;
@@ -150,11 +150,11 @@ int XAxiVdma_SetupWriteChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing,
 	}
 
 //	XAxiVdma_ResetChannel(InstancePtr, XAXIVDMA_WRITE);
-//	XAxiVdma_SetFrmStore(InstancePtr, InstancePtr->MaxNumFrames, XAXIVDMA_WRITE);
-//	if (UseSOF)
-//		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_S2MM_TUSER_FSYNC, XAXIVDMA_WRITE);
-//	else
-//		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_CHAN_FSYNC, XAXIVDMA_WRITE);
+	XAxiVdma_SetFrmStore(InstancePtr, InstancePtr->MaxNumFrames, XAXIVDMA_WRITE);
+	if (UseSOF)
+		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_S2MM_TUSER_FSYNC, XAXIVDMA_WRITE);
+	else
+		XAxiVdma_FsyncSrcSelect(InstancePtr, XAXIVDMA_CHAN_FSYNC, XAXIVDMA_WRITE);
 
 	WriteCfg.VertSizeInput = Timing->Field0Height;
 	WriteCfg.HoriSizeInput = Timing->LineWidth * Format->BytesPerPixel;
@@ -163,7 +163,7 @@ int XAxiVdma_SetupWriteChannel(XAxiVdma *InstancePtr, const VideoTiming *Timing,
 	WriteCfg.FrameDelay = 0;  /* This example does not test frame delay */
 
 	WriteCfg.EnableCircularBuf = 1;
-	WriteCfg.EnableSync = 1;  /* No Gen-Lock */
+	WriteCfg.EnableSync = 0;  /* No Gen-Lock */
 
 	WriteCfg.PointNum = 0;    /* No Gen-Lock */
 	WriteCfg.EnableFrameCounter = 0; /* Endless transfers */

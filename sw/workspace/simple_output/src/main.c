@@ -50,6 +50,8 @@
 #include "ccresample.h"
 #include "crgb2ycrcb.h"
 #include "ctpg.h"
+#include "sobel.h"
+#include "gic.h"
 #include "xiicps_adapter.h"
 
 #include "xparameters_zc702.h"
@@ -61,6 +63,7 @@
 // Frame Buffer Base Addresses
 #define FB0_ADDR 0x30000000
 #define FB1_ADDR 0x307E9000
+#define TMP_ADDR 0x30FD2000
 
 // OSD Layers
 #define CPU_LAYER 0
@@ -75,11 +78,12 @@ SI570 *SI570_0;
 ADV7511 *ADV7511_0;
 XAxiVdma *XAxiVdma_0;
 XAxiVdma *XAxiVdma_1;
+XAxiVdma *XAxiVdma_2;
 XVtc *XVtc_0;
 XOSD *XOSD_0;
+XSobel_filter* XSobel_filter_0;
+XScuGic *XScuGic_0;
 
-static int Layer0_Enable = 0;
-static int Layer1_Enable = 0;
 
 static const u32 pix_argb32[8] = {
 		ARGB32_WHITE,
@@ -141,20 +145,22 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 {
 #ifdef USE_TPG
 	// Stop VDMA1 S2MM
-	XAxiVdma_DmaStop(XAxiVdma_1, XAXIVDMA_WRITE);
+//	XAxiVdma_DmaStop(XAxiVdma_1, XAXIVDMA_WRITE);
 
 	// Stop VDMA1 MM2S
-	XAxiVdma_DmaStop(XAxiVdma_1, XAXIVDMA_READ);
+//	XAxiVdma_DmaStop(XAxiVdma_1, XAXIVDMA_READ);
+#endif
+
+#ifdef USE_FILTER
+	// Stop VDMA1 S2MM
+//	XAxiVdma_DmaStop(XAxiVdma_2, XAXIVDMA_WRITE);
+
+	// Stop VDMA1 MM2S
+//	XAxiVdma_DmaStop(XAxiVdma_2, XAXIVDMA_READ);
 #endif
 
 	// Stop VDMA0 MM2S
-	XAxiVdma_DmaStop(XAxiVdma_0, XAXIVDMA_READ);
-
-	// Write pattern to FB0
-	FB_Initialize(FB0_ADDR, Timing, Format, XAxiVdma_0->MaxNumFrames);
-
-	// Configure Clock Synthesizer
-	SI570_Configure(SI570_0, Timing);
+//	XAxiVdma_DmaStop(XAxiVdma_0, XAXIVDMA_READ);
 
 	// Configure and Start Video Timing Controller
 	XVtc_Configure(XVtc_0, Timing);
@@ -177,8 +183,7 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	XOSD_SetLayerAlpha(XOSD_0, CPU_LAYER, 1, 0xff);
 	XOSD_SetLayerPriority(XOSD_0, CPU_LAYER, XOSD_LAYER_PRIORITY_0);
 	XOSD_SetLayerDimension(XOSD_0, CPU_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
-	if (Layer0_Enable)
-		XOSD_EnableLayer(XOSD_0, CPU_LAYER);
+//	XOSD_EnableLayer(XOSD_0, CPU_LAYER);
 	XOSD_RegUpdateEnable(XOSD_0);
 
 #ifdef USE_TPG
@@ -188,8 +193,7 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	XOSD_SetLayerAlpha(XOSD_0, TPG_LAYER, 1, 0x80);
 	XOSD_SetLayerPriority(XOSD_0, TPG_LAYER, XOSD_LAYER_PRIORITY_1);
 	XOSD_SetLayerDimension(XOSD_0, TPG_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
-	if (Layer1_Enable)
-		XOSD_EnableLayer(XOSD_0, TPG_LAYER);
+	XOSD_EnableLayer(XOSD_0, TPG_LAYER);
 	XOSD_RegUpdateEnable(XOSD_0);
 #endif
 
@@ -199,6 +203,24 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
 
+	u32 tpg_addr = FB1_ADDR;
+
+#ifdef USE_FILTER
+	tpg_addr = TMP_ADDR;
+
+	// Configure and Start Sobel Filter
+	XSobel_Configure(XSobel_filter_0, Timing);
+	XSobel_Start(XSobel_filter_0);
+
+	// Configure and Start VDMA2 S2MM
+	XAxiVdma_SetupWriteChannel(XAxiVdma_2, Timing, Format, FB1_ADDR, 1, 0);
+	XAxiVdma_DmaStart(XAxiVdma_2, XAXIVDMA_WRITE);
+
+	// Configure and Start Filter VDMA2 MM2S
+	XAxiVdma_SetupReadChannel(XAxiVdma_2, Timing, Format, tpg_addr, 1, 0);
+	XAxiVdma_DmaStart(XAxiVdma_2, XAXIVDMA_READ);
+#endif
+
 #ifdef USE_TPG
 	// Configure and Start Test Pattern Generator
 	TPG_SetPattern(V_TPG_ZonePlate, 1);
@@ -206,43 +228,13 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	TPG_Start();
 
 	// Configure and Start VDMA1 S2MM
-	XAxiVdma_SetupWriteChannel(XAxiVdma_1, Timing, Format, FB1_ADDR, 1, 1);
+	XAxiVdma_SetupWriteChannel(XAxiVdma_1, Timing, Format, tpg_addr, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_WRITE);
 
 	// Configure and Start VDMA1 MM2S
 	XAxiVdma_SetupReadChannel(XAxiVdma_1, Timing, Format, FB1_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_READ);
 #endif
-}
-
-
-void VideoPipe_Stop()
-{
-#ifdef USE_TPG
-	// Stop VDMA1 MM2S
-	XAxiVdma_DmaStop(XAxiVdma_1, XAXIVDMA_READ);
-
-	// Stop VDMA1 S2MM
-	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_WRITE);
-
-	// Stop Test Pattern Generator
-	TPG_Stop();
-#endif
-
-	// Stop VDMA0 MM2S
-	XAxiVdma_DmaStop(XAxiVdma_0, XAXIVDMA_READ);
-
-	// Stop OSD
-	XOSD_Stop(XOSD_0);
-
-	// Stop Color SPace Converter
-	RGB_Stop();
-
-	// Stop Chroma Resampler
-	CRESAMPLE_Stop();
-
-	// Stop Video Timing Controller
-	XVtc_Stop(XVtc_0);
 }
 
 
@@ -268,10 +260,23 @@ int main()
     // Initialize HDMI Output
 	ADV7511_0 = ADV7511_Initialize(XPAR_ADV7511_0_DEVICE_ID, IicMux_0->VirtAdapter[1]);
 
-	// Initialize VDMAs
+	// Initialize VDMA_0
 	XAxiVdma_0 = XAxiVdma_Initialize(XPAR_AXI_VDMA_0_DEVICE_ID);
+
 #ifdef USE_TPG
+	// Initialize VDMA_1
 	XAxiVdma_1 = XAxiVdma_Initialize(XPAR_AXI_VDMA_1_DEVICE_ID);
+#endif
+
+#ifdef USE_FILTER
+	// Initialize VDMA_2
+	XAxiVdma_2 = XAxiVdma_Initialize(XPAR_AXI_VDMA_2_DEVICE_ID);
+
+	// Initialize General Interrupt Controller
+//	XScuGic_0 = XScuGic_Initialize(XPAR_SCUGIC_SINGLE_DEVICE_ID);
+
+	// Initialize Sobel Filter
+	XSobel_filter_0 = XSobel_Initialize(XPAR_SOBEL_FILTER_TOP_0_DEVICE_ID);
 #endif
 
 	// Initialize VTC
@@ -279,6 +284,9 @@ int main()
 
 	// Initialize OSD
 	XOSD_0 = XOSD_Initialize(XPAR_V_OSD_0_DEVICE_ID);
+
+	// Write pattern to FB0
+	FB_Initialize(FB0_ADDR, Timing, Format, XAxiVdma_0->MaxNumFrames);
 
 	// Configure Clock Synthesizer
 	SI570_Configure(SI570_0, Timing);
@@ -290,71 +298,17 @@ int main()
 		exit(XST_FAILURE);
 	}
 
+//#ifdef USE_FILTER
+//	// Register and Enable Sobel Filter ISR
+//	XScuGic_Connect(XScuGic_0, XPAR_FABRIC_SOBEL_FILTER_TOP_0_INTERRUPT_INTR, (Xil_InterruptHandler) XSobel_Isr, XSobel_filter_0);
+//	XScuGic_Enable(XScuGic_0, XPAR_FABRIC_SOBEL_FILTER_TOP_0_INTERRUPT_INTR);
+//	xil_printf("isr register and enable\r\n");
+//#endif
+
     // Configure Video Pipeline
 	VideoPipe_Configure(Timing, Format);
 
-	// Display Menu
-//	int OptionCurr = 0;
-	int OptionNext = '1'; // default
-	while (1) {
-		switch (OptionNext) {
-			case '1':
-				if (Layer0_Enable) {
-					XOSD_DisableLayer(XOSD_0, CPU_LAYER);
-					Layer0_Enable = 0;
-				} else {
-					XOSD_EnableLayer(XOSD_0, CPU_LAYER);
-					Layer0_Enable = 1;
-				}
-				break;
-			case '2':
-				if (Layer1_Enable) {
-					XOSD_DisableLayer(XOSD_0, TPG_LAYER);
-					Layer1_Enable = 0;
-				} else {
-					XOSD_EnableLayer(XOSD_0, TPG_LAYER);
-					Layer1_Enable = 1;
-				}
-				break;
-			case '3':
-				VideoPipe_Configure(LookupVideoTiming_ById(V_1080p), Format);
-				break;
-			case '4':
-				VideoPipe_Configure(LookupVideoTiming_ById(V_720p), Format);
-				break;
-			default:
-				break;
-		}
-
-//menu:
-		do {
-			xil_printf("    1: Toggle CPU Layer\n\r");
-			xil_printf("    2: Toggle TPG Layer\n\r");
-			xil_printf("    3: Set 1080p Resolution\n\r");
-			xil_printf("    4: Set  720p Resolution\n\r");
-//			xil_printf("    9: Reset\n\r");
-			xil_printf("    0: Exit\n\r");
-			xil_printf("\n\r> ");
-
-//			OptionCurr = OptionNext;
-			OptionNext = inbyte();
-			if (isalpha(OptionNext)) {
-				OptionNext = toupper(OptionNext);
-			}
-
-			xil_printf("%c\n\r\n\r", OptionNext);
-		} while (!isdigit(OptionNext));
-
-//		if (OptionNext == OptionCurr)
-//			goto menu;
-
-		if (OptionNext == '0') {
-			VideoPipe_Stop();
-			break;
-		}
-	}
-
-	xil_printf("Exit simple_output!\r\n");
+	printf("Exit simple_output!\r\n");
 
     return 0;
 }
