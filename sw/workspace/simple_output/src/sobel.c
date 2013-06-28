@@ -42,9 +42,6 @@
 #include <stdlib.h>
 
 
-//static int RunningFilter;
-
-
 XSobel_filter *XSobel_Initialize(u16 DeviceId)
 {
 	XSobel_filter *Instance = malloc(sizeof *Instance);
@@ -100,4 +97,3 @@ void XSobel_Stop(XSobel_filter *Instance)
 	XSobel_filter_DisableAutoRestart(Instance);
 	while (!XSobel_filter_IsIdle(Instance));
 }
-
