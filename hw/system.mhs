@@ -357,7 +357,6 @@ BEGIN axi_vdma
  PORT s_axis_s2mm_aclk = clk_150mhz
  PORT mm2s_introut = axi_vdma_1_mm2s_introut
  PORT s2mm_introut = axi_vdma_1_s2mm_introut
- PORT s2mm_fsync_out = axi_vdma_1_s2mm_fsync_out
 END
 
 BEGIN axis_vremapper
@@ -390,7 +389,7 @@ BEGIN axi_vdma
  PARAMETER C_BASEADDR = 0x40070000
  PARAMETER C_HIGHADDR = 0x4007FFFF
  PARAMETER C_NUM_FSTORES = 1
- PARAMETER C_USE_FSYNC = 1
+ PARAMETER C_USE_FSYNC = 0
  PARAMETER C_M_AXI_MM2S_DATA_WIDTH = 64
  PARAMETER C_M_AXI_S2MM_DATA_WIDTH = 64
  PARAMETER C_INTERCONNECT_S_AXI_LITE_MASTERS = processing_system7_0.M_AXI_GP0
@@ -408,8 +407,6 @@ BEGIN axi_vdma
  PORT m_axis_mm2s_aclk = clk_150mhz
  PORT mm2s_introut = axi_vdma_2_mm2s_introut
  PORT s2mm_introut = axi_vdma_2_s2mm_introut
- PORT mm2s_fsync = axi_vdma_1_s2mm_fsync_out
- PORT s2mm_fsync = axi_vdma_1_s2mm_fsync_out
 END
 
 BEGIN sobel_filter_top
