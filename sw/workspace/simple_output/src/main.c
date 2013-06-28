@@ -51,7 +51,6 @@
 #include "crgb2ycrcb.h"
 #include "ctpg.h"
 #include "sobel.h"
-#include "gic.h"
 #include "xiicps_adapter.h"
 
 #include "xparameters_zc702.h"
@@ -82,7 +81,6 @@ XAxiVdma *XAxiVdma_2;
 XVtc *XVtc_0;
 XOSD *XOSD_0;
 XSobel_filter* XSobel_filter_0;
-XScuGic *XScuGic_0;
 
 
 static const u32 pix_argb32[8] = {
@@ -213,11 +211,11 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	XSobel_Start(XSobel_filter_0);
 
 	// Configure and Start VDMA2 S2MM
-	XAxiVdma_SetupWriteChannel(XAxiVdma_2, Timing, Format, FB1_ADDR, 1, 0);
+	XAxiVdma_SetupWriteChannel(XAxiVdma_2, Timing, Format, FB1_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_2, XAXIVDMA_WRITE);
 
 	// Configure and Start Filter VDMA2 MM2S
-	XAxiVdma_SetupReadChannel(XAxiVdma_2, Timing, Format, tpg_addr, 1, 0);
+	XAxiVdma_SetupReadChannel(XAxiVdma_2, Timing, Format, tpg_addr, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_2, XAXIVDMA_READ);
 #endif
 
@@ -272,9 +270,6 @@ int main()
 	// Initialize VDMA_2
 	XAxiVdma_2 = XAxiVdma_Initialize(XPAR_AXI_VDMA_2_DEVICE_ID);
 
-	// Initialize General Interrupt Controller
-//	XScuGic_0 = XScuGic_Initialize(XPAR_SCUGIC_SINGLE_DEVICE_ID);
-
 	// Initialize Sobel Filter
 	XSobel_filter_0 = XSobel_Initialize(XPAR_SOBEL_FILTER_TOP_0_DEVICE_ID);
 #endif
@@ -297,13 +292,6 @@ int main()
 		xil_printf("ERROR : No monitor detected on HDMI output!\r\n");
 		exit(XST_FAILURE);
 	}
-
-//#ifdef USE_FILTER
-//	// Register and Enable Sobel Filter ISR
-//	XScuGic_Connect(XScuGic_0, XPAR_FABRIC_SOBEL_FILTER_TOP_0_INTERRUPT_INTR, (Xil_InterruptHandler) XSobel_Isr, XSobel_filter_0);
-//	XScuGic_Enable(XScuGic_0, XPAR_FABRIC_SOBEL_FILTER_TOP_0_INTERRUPT_INTR);
-//	xil_printf("isr register and enable\r\n");
-//#endif
 
     // Configure Video Pipeline
 	VideoPipe_Configure(Timing, Format);

@@ -49,7 +49,6 @@ XSobel_filter *XSobel_Initialize(u16 DeviceId);
 void XSobel_Configure(XSobel_filter *Instance, const VideoTiming *Timing);
 void XSobel_Start(XSobel_filter *Instance);
 void XSobel_Stop(XSobel_filter *Instance);
-//void XSobel_Isr(void *Instance);
 
 
 #endif /* SOBEL_H_ */
