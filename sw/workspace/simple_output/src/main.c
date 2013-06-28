@@ -181,7 +181,7 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	XOSD_SetLayerAlpha(XOSD_0, CPU_LAYER, 1, 0xff);
 	XOSD_SetLayerPriority(XOSD_0, CPU_LAYER, XOSD_LAYER_PRIORITY_0);
 	XOSD_SetLayerDimension(XOSD_0, CPU_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
-//	XOSD_EnableLayer(XOSD_0, CPU_LAYER);
+	XOSD_EnableLayer(XOSD_0, CPU_LAYER);
 	XOSD_RegUpdateEnable(XOSD_0);
 
 #ifdef USE_TPG
