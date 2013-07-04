@@ -97,11 +97,10 @@ BEGIN processing_system7
  PARAMETER C_USE_S_AXI_HP0 = 1
  PARAMETER C_EMIO_GPIO_WIDTH = 64
  PARAMETER C_USE_M_AXI_GP1 = 0
- PARAMETER C_USE_S_AXI_HP2 = 1
- PARAMETER C_INTERCONNECT_S_AXI_HP2_MASTERS = axi_vdma_1.M_AXI_MM2S & axi_vdma_1.M_AXI_S2MM
+ PARAMETER C_USE_S_AXI_HP2 = 0
+ PARAMETER C_INTERCONNECT_S_AXI_HP0_MASTERS = axi_vdma_0.M_AXI_MM2S & axi_vdma_1.M_AXI_MM2S & axi_vdma_1.M_AXI_S2MM
  BUS_INTERFACE M_AXI_GP0 = axi_interconnect_gp0
  BUS_INTERFACE S_AXI_HP0 = axi_interconnect_hp0
- BUS_INTERFACE S_AXI_HP2 = axi_interconnect_hp2
  PORT MIO = processing_system7_0_MIO
  PORT PS_SRSTB = processing_system7_0_PS_SRSTB
  PORT PS_CLK = processing_system7_0_PS_CLK
@@ -128,8 +127,7 @@ BEGIN processing_system7
  PORT FCLK_RESET0_N = fclk_rst_0_n
  PORT M_AXI_GP0_ACLK = clk_75mhz
  PORT S_AXI_HP0_ACLK = clk_150mhz
- PORT S_AXI_HP2_ACLK = clk_150mhz
- PORT IRQ_F2P = hdmi_int & axi_vdma_0_mm2s_introut & axi_vdma_1_mm2s_introut & axi_vdma_1_s2mm_introut & v_osd_0_irq & v_tpg_0_irq & v_tc_0_irq & v_cresample_0_irq & v_rgb2ycrcb_0_irq
+ PORT IRQ_F2P = hdmi_int & axi_vdma_0_mm2s_introut & axi_vdma_1_mm2s_introut & axi_vdma_1_s2mm_introut & v_osd_0_irq & v_tc_0_irq
 END
 
 BEGIN axi_interconnect
@@ -142,14 +140,6 @@ END
 
 BEGIN axi_interconnect
  PARAMETER INSTANCE = axi_interconnect_hp0
- PARAMETER HW_VER = 1.06.a
- PARAMETER C_INTERCONNECT_CONNECTIVITY_MODE = 0
- PORT INTERCONNECT_ACLK = clk_150mhz
- PORT INTERCONNECT_ARESETN = fclk_rst_0_n
-END
-
-BEGIN axi_interconnect
- PARAMETER INSTANCE = axi_interconnect_hp2
  PARAMETER HW_VER = 1.06.a
  PORT INTERCONNECT_ACLK = clk_150mhz
  PORT INTERCONNECT_ARESETN = fclk_rst_0_n
@@ -172,7 +162,7 @@ BEGIN axi_vdma
  PARAMETER C_INTERCONNECT_M_AXI_MM2S_R_REGISTER = 0
  PARAMETER C_INTERCONNECT_M_AXI_MM2S_B_REGISTER = 0
  PARAMETER C_INTERCONNECT_M_AXI_MM2S_WRITE_FIFO_DEPTH = 0
- PARAMETER C_MM2S_LINEBUFFER_DEPTH = 2048
+ PARAMETER C_MM2S_LINEBUFFER_DEPTH = 4096
  PARAMETER C_BASEADDR = 0x40000000
  PARAMETER C_HIGHADDR = 0x4000ffff
  BUS_INTERFACE S_AXI_LITE = axi_interconnect_gp0
@@ -232,7 +222,6 @@ BEGIN v_rgb2ycrcb
  PORT aclk = clk_150mhz
  PORT aclken = net_vcc
  PORT aresetn = fclk_rst_0_n
- PORT irq = v_rgb2ycrcb_0_irq
 END
 
 BEGIN v_cresample
@@ -252,7 +241,6 @@ BEGIN v_cresample
  PORT aclk = clk_150mhz
  PORT aclken = net_vcc
  PORT aresetn = fclk_rst_0_n
- PORT irq = v_cresample_0_irq
 END
 
 BEGIN v_axi4s_vid_out
@@ -330,7 +318,6 @@ BEGIN v_tpg
  PORT aclken = net_vcc
  PORT aresetn = fclk_rst_0_n
  PORT s_axi_aclken = net_vcc
- PORT irq = v_tpg_0_irq
 END
 
 BEGIN axi_vdma
@@ -338,16 +325,16 @@ BEGIN axi_vdma
  PARAMETER HW_VER = 5.04.a
  PARAMETER C_USE_FSYNC = 0
  PARAMETER C_M_AXI_MM2S_DATA_WIDTH = 64
- PARAMETER C_MM2S_LINEBUFFER_DEPTH = 2048
+ PARAMETER C_MM2S_LINEBUFFER_DEPTH = 4096
  PARAMETER C_M_AXI_S2MM_DATA_WIDTH = 64
  PARAMETER C_S2MM_LINEBUFFER_DEPTH = 2048
  PARAMETER C_BASEADDR = 0x40060000
- PARAMETER C_HIGHADDR = 0x40060FFF
+ PARAMETER C_HIGHADDR = 0x4006FFFF
  PARAMETER C_INTERCONNECT_S_AXI_LITE_MASTERS = processing_system7_0.M_AXI_GP0
  PARAMETER C_NUM_FSTORES = 1
  BUS_INTERFACE S_AXI_LITE = axi_interconnect_gp0
- BUS_INTERFACE M_AXI_MM2S = axi_interconnect_hp2
- BUS_INTERFACE M_AXI_S2MM = axi_interconnect_hp2
+ BUS_INTERFACE M_AXI_MM2S = axi_interconnect_hp0
+ BUS_INTERFACE M_AXI_S2MM = axi_interconnect_hp0
  BUS_INTERFACE M_AXIS_MM2S = axi_vdma_1_M_AXIS_MM2S
  BUS_INTERFACE S_AXIS_S2MM = axis_vremapper_1_M_AXIS
  PORT s_axi_lite_aclk = clk_75mhz

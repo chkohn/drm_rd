@@ -62,6 +62,10 @@
 #define FB0_ADDR 0x30000000
 #define FB1_ADDR 0x307E9000
 
+// OSD Layers
+#define CPU_LAYER 0
+#define TPG_LAYER 1
+
 
 // Global Variables
 XIicPs *XIicPs_0;
@@ -105,7 +109,7 @@ void SI570_Configure(SI570 *Instance, const VideoTiming *Timing)
 
 	SI570_SetFrequency(Instance, (unsigned long long) (Timing->VideoClkFrequency * 1000));
     usleep(100000);
-    printf("Video Clock Frequency: %llu Hz\n\r", SI570_GetFrequency(Instance));
+    debug_printf("Video Clock Frequency: %llu Hz\n\r", SI570_GetFrequency(Instance));
 }
 
 
@@ -133,10 +137,7 @@ void FB_Initialize(u32 BaseAddr, const VideoTiming *Timing, const VideoFormat *F
 
 void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 {
-	// Configure Clock Synthesizer
-//	SI570_Configure(SI570_0, Timing);
-
-	// Configure and Start VTC
+	// Configure and Start Video Timing Controller
 	XVtc_Configure(XVtc_0, Timing);
 	XVtc_Start(XVtc_0);
 
@@ -149,44 +150,35 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	RGB_Start();
 
 	// Configure and Start On Screen Display
-	struct XOSD_LayerConfig Layer0 = {
-		.Enable = 1,
-		.Index = 0,
-		.Priority = XOSD_LAYER_PRIORITY_0,
-		.GlobalAlphaEnble = 1,
-		.GlobalAlphaValue = 0xff,
-		.XStart = 0,
-		.YStart = 0,
-		.XSize = Timing->LineWidth,
-		.YSize = Timing->Field0Height
-	};
-
-#ifdef USE_TPG
-	struct XOSD_LayerConfig Layer1 = {
-		.Enable = 1,
-		.Index = 1,
-		.Priority = XOSD_LAYER_PRIORITY_1,
-		.GlobalAlphaEnble = 1,
-		.GlobalAlphaValue = 0x80,
-		.XStart = 0,
-		.YStart = 0,
-		.XSize = Timing->LineWidth,
-		.YSize = Timing->Field0Height
-	};
-#endif
-
 	XOSD_Configure(XOSD_0, Timing);
-	XOSD_ConfigureLayer(XOSD_0, &Layer0);
-#ifdef USE_TPG
-	XOSD_ConfigureLayer(XOSD_0, &Layer1);
+
+	// Configure Layer 0
+	XOSD_RegUpdateDisable(XOSD_0);
+	XOSD_DisableLayer(XOSD_0, CPU_LAYER);
+	XOSD_SetLayerAlpha(XOSD_0, CPU_LAYER, 1, 0xff);
+	XOSD_SetLayerPriority(XOSD_0, CPU_LAYER, XOSD_LAYER_PRIORITY_0);
+	XOSD_SetLayerDimension(XOSD_0, CPU_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
+	XOSD_EnableLayer(XOSD_0, CPU_LAYER);
+	XOSD_RegUpdateEnable(XOSD_0);
+
+#ifdef USE_CAP
+	// Configure Layer 1
+	XOSD_RegUpdateDisable(XOSD_0);
+	XOSD_DisableLayer(XOSD_0, TPG_LAYER);
+	XOSD_SetLayerAlpha(XOSD_0, TPG_LAYER, 1, 0x80);
+	XOSD_SetLayerPriority(XOSD_0, TPG_LAYER, XOSD_LAYER_PRIORITY_1);
+	XOSD_SetLayerDimension(XOSD_0, TPG_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
+	XOSD_EnableLayer(XOSD_0, TPG_LAYER);
+	XOSD_RegUpdateEnable(XOSD_0);
 #endif
+
 	XOSD_Start(XOSD_0);
 
 	// Configure and Start VDMA0 MM2S
 	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
 
-#ifdef USE_TPG
+#ifdef USE_CAP
 	// Configure and Start Test Pattern Generator
 	TPG_SetPattern(V_TPG_ZonePlate, 1);
 	TPG_Configure(Timing);
@@ -210,7 +202,7 @@ int main()
 	const VideoTiming *Timing = LookupVideoTiming_ById(V_1080p);
 	const VideoFormat *Format = LookupVideoFormat_ById(V_ARGB32);
 
-	printf("Video Output Resolution: %ux%u @ 60fps\r\n", Timing->LineWidth, Timing->Field0Height);
+	debug_printf("Video Output Resolution: %ux%u @ 60fps\r\n", Timing->LineWidth, Timing->Field0Height);
 
     // Initialize PS I2C0 Adapter
     XIicPs_0 = XIicPs_Initialize(XPAR_XIICPS_0_DEVICE_ID, 100000);
@@ -225,9 +217,11 @@ int main()
     // Initialize HDMI Output
 	ADV7511_0 = ADV7511_Initialize(XPAR_ADV7511_0_DEVICE_ID, IicMux_0->VirtAdapter[1]);
 
-	// Initialize VDMAs
+	// Initialize VDMA_0
 	XAxiVdma_0 = XAxiVdma_Initialize(XPAR_AXI_VDMA_0_DEVICE_ID);
-#ifdef USE_TPG
+
+#ifdef USE_CAP
+	// Initialize VDMA_1
 	XAxiVdma_1 = XAxiVdma_Initialize(XPAR_AXI_VDMA_1_DEVICE_ID);
 #endif
 

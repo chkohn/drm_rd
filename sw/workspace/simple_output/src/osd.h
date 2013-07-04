@@ -45,23 +45,10 @@
 #include "video_common.h"
 
 
-struct XOSD_LayerConfig {
-	u8  Index;
-	u8  Enable;
-	u8  Priority;
-	u8  GlobalAlphaEnble;
-	u16 GlobalAlphaValue;
-	u16 XStart;
-	u16 YStart;
-	u16 XSize;
-	u16 YSize;
-};
-
-
 XOSD *XOSD_Initialize(u16 DeviceId);
 void XOSD_Configure(XOSD *Instance, const VideoTiming *Timing);
-void XOSD_ConfigureLayer(XOSD *Instance, struct XOSD_LayerConfig *Config);
 void XOSD_Start(XOSD *Instance);
+void XOSD_Stop(XOSD *Instance);
 
 
 #endif /* OSD_H_ */
