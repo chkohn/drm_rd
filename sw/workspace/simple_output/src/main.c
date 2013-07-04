@@ -47,8 +47,6 @@
 #include "vdma.h"
 #include "osd.h"
 #include "vtc.h"
-#include "ccresample.h"
-#include "crgb2ycrcb.h"
 #include "ctpg.h"
 #include "sobel.h"
 #include "xiicps_adapter.h"
@@ -143,14 +141,6 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	XVtc_Configure(XVtc_0, Timing);
 	XVtc_Start(XVtc_0);
 
-	// Configure and Start Chroma Resampler
-	CRESAMPLE_Configure(Timing);
-	CRESAMPLE_Start();
-
-	// Configure and Start Color Space Converter
-	RGB_Configure(Timing);
-	RGB_Start();
-
 	// Configure and Start On Screen Display
 	XOSD_Configure(XOSD_0, Timing);
 
@@ -206,7 +196,7 @@ int main()
 {
 	int Status;
 	const VideoTiming *Timing = LookupVideoTiming_ById(V_1080p);
-	const VideoFormat *Format = LookupVideoFormat_ById(V_ARGB32);
+	const VideoFormat *Format = LookupVideoFormat_ById(V_UYVY);
 
 	debug_printf("Video Output Resolution: %ux%u @ 60fps\r\n", Timing->LineWidth, Timing->Field0Height);
 
