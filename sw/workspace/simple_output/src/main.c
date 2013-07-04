@@ -141,25 +141,6 @@ void FB_Initialize(u32 BaseAddr, const VideoTiming *Timing, const VideoFormat *F
 
 void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 {
-#ifdef USE_TPG
-	// Stop VDMA1 S2MM
-//	XAxiVdma_DmaStop(XAxiVdma_1, XAXIVDMA_WRITE);
-
-	// Stop VDMA1 MM2S
-//	XAxiVdma_DmaStop(XAxiVdma_1, XAXIVDMA_READ);
-#endif
-
-#ifdef USE_FILTER
-	// Stop VDMA1 S2MM
-//	XAxiVdma_DmaStop(XAxiVdma_2, XAXIVDMA_WRITE);
-
-	// Stop VDMA1 MM2S
-//	XAxiVdma_DmaStop(XAxiVdma_2, XAXIVDMA_READ);
-#endif
-
-	// Stop VDMA0 MM2S
-//	XAxiVdma_DmaStop(XAxiVdma_0, XAXIVDMA_READ);
-
 	// Configure and Start Video Timing Controller
 	XVtc_Configure(XVtc_0, Timing);
 	XVtc_Start(XVtc_0);
@@ -184,7 +165,7 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	XOSD_EnableLayer(XOSD_0, CPU_LAYER);
 	XOSD_RegUpdateEnable(XOSD_0);
 
-#ifdef USE_TPG
+#ifdef USE_CAP
 	// Configure Layer 1
 	XOSD_RegUpdateDisable(XOSD_0);
 	XOSD_DisableLayer(XOSD_0, TPG_LAYER);
@@ -203,7 +184,8 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 
 	u32 tpg_addr = FB1_ADDR;
 
-#ifdef USE_FILTER
+#ifdef USE_CAP
+#ifdef USE_M2M
 	tpg_addr = TMP_ADDR;
 
 	// Configure and Start Sobel Filter
@@ -219,7 +201,6 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	XAxiVdma_DmaStart(XAxiVdma_2, XAXIVDMA_READ);
 #endif
 
-#ifdef USE_TPG
 	// Configure and Start Test Pattern Generator
 	TPG_SetPattern(V_TPG_ZonePlate, 1);
 	TPG_Configure(Timing);
@@ -261,17 +242,17 @@ int main()
 	// Initialize VDMA_0
 	XAxiVdma_0 = XAxiVdma_Initialize(XPAR_AXI_VDMA_0_DEVICE_ID);
 
-#ifdef USE_TPG
+#ifdef USE_CAP
 	// Initialize VDMA_1
 	XAxiVdma_1 = XAxiVdma_Initialize(XPAR_AXI_VDMA_1_DEVICE_ID);
-#endif
 
-#ifdef USE_FILTER
+#ifdef USE_M2M
 	// Initialize VDMA_2
 	XAxiVdma_2 = XAxiVdma_Initialize(XPAR_AXI_VDMA_2_DEVICE_ID);
 
 	// Initialize Sobel Filter
 	XSobel_filter_0 = XSobel_Initialize(XPAR_SOBEL_FILTER_TOP_0_DEVICE_ID);
+#endif
 #endif
 
 	// Initialize VTC
