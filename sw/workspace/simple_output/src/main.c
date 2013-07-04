@@ -62,7 +62,6 @@
 // Frame Buffer Base Addresses
 #define FB0_ADDR 0x30000000
 #define FB1_ADDR 0x307E9000
-#define TMP_ADDR 0x30FD2000
 
 // OSD Layers
 #define CPU_LAYER 0
@@ -77,7 +76,6 @@ SI570 *SI570_0;
 ADV7511 *ADV7511_0;
 XAxiVdma *XAxiVdma_0;
 XAxiVdma *XAxiVdma_1;
-XAxiVdma *XAxiVdma_2;
 XVtc *XVtc_0;
 XOSD *XOSD_0;
 XSobel_filter* XSobel_filter_0;
@@ -165,7 +163,7 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	XOSD_EnableLayer(XOSD_0, CPU_LAYER);
 	XOSD_RegUpdateEnable(XOSD_0);
 
-#ifdef USE_CAPTURE
+#ifdef USE_CAP
 	// Configure Layer 1
 	XOSD_RegUpdateDisable(XOSD_0);
 	XOSD_DisableLayer(XOSD_0, TPG_LAYER);
@@ -182,7 +180,7 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
 
-#ifdef USE_CAPTURE
+#ifdef USE_CAP
 	// Configure and Start Test Pattern Generator
 	TPG_SetPattern(V_TPG_ZonePlate, 1);
 	TPG_Configure(Timing);
@@ -228,7 +226,7 @@ int main()
 	// Initialize VDMA_0
 	XAxiVdma_0 = XAxiVdma_Initialize(XPAR_AXI_VDMA_0_DEVICE_ID);
 
-#ifdef USE_CAPTURE
+#ifdef USE_CAP
 	// Initialize VDMA_1
 	XAxiVdma_1 = XAxiVdma_Initialize(XPAR_AXI_VDMA_1_DEVICE_ID);
 
