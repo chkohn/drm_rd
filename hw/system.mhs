@@ -234,7 +234,6 @@ BEGIN v_rgb2ycrcb
  PORT aresetn = fclk_rst_0_n
 END
 
-# PORT irq = v_rgb2ycrcb_0_irq
 BEGIN v_cresample
  PARAMETER INSTANCE = v_cresample_0
  PARAMETER HW_VER = 3.01.a
@@ -254,7 +253,6 @@ BEGIN v_cresample
  PORT aresetn = fclk_rst_0_n
 END
 
-# PORT irq = v_cresample_0_irq
 BEGIN v_axi4s_vid_out
  PARAMETER INSTANCE = v_axi4s_vid_out_0
  PARAMETER HW_VER = 2.01.a
@@ -332,7 +330,6 @@ BEGIN v_tpg
  PORT s_axi_aclken = net_vcc
 END
 
-# PORT irq = v_tpg_0_irq
 BEGIN axi_vdma
  PARAMETER INSTANCE = axi_vdma_1
  PARAMETER HW_VER = 5.04.a
@@ -419,7 +416,6 @@ BEGIN sobel_filter_top
  BUS_INTERFACE INPUT_STREAM = axi_vdma_2_M_AXIS_MM2S
  BUS_INTERFACE OUTPUT_STREAM = sobel_filter_top_0_OUTPUT_STREAM
  PORT aclk = clk_150mhz
-# PORT aresetn = fclk_rst_0_n
  PORT interrupt = sobel_filter_top_0_interrupt
 END
 
