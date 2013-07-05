@@ -446,7 +446,7 @@
 			compatible = "xlnx,axi-tpg";
 			reg = <0x40050000 0x10000>;
 
-			xlnx,axi-video-format = "rbg";
+			xlnx,axi-video-format = "yuv422";
 			xlnx,axi-video-width = <8>;
 
 			port {
@@ -477,7 +477,7 @@
 			interrupt-parent = <&gic>;
 
 			xlnx,axi-video-width = <8>;
-			xlnx,axi-video-format = "xrgb";
+			xlnx,axi-video-format = "yuv422";
 
 			ports {
 				#address-cells = <1>;
