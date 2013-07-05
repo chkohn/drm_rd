@@ -92,15 +92,15 @@ static const u32 pix_argb32[8] = {
 		ARGB32_BLACK
 };
 
-static const u32 pix_uyvy[8] = {
-		UYVY_WHITE,
-		UYVY_YELLOW,
-		UYVY_CYAN,
-		UYVY_GREEN,
-		UYVY_MAGENTA,
-		UYVY_RED,
-		UYVY_BLUE,
-		UYVY_BLACK
+static const u32 pix_vyuy[8] = {
+		VYUY_WHITE,
+		VYUY_YELLOW,
+		VYUY_CYAN,
+		VYUY_GREEN,
+		VYUY_MAGENTA,
+		VYUY_RED,
+		VYUY_BLUE,
+		VYUY_BLACK
 };
 
 
@@ -116,18 +116,21 @@ void SI570_Configure(SI570 *Instance, const VideoTiming *Timing)
 
 
 // Initialize frame buffer
-void FB_Initialize(u32 BaseAddr, const VideoTiming *Timing, const VideoFormat *Format, int FrameCnt)
+void FB_Initialize(u32 BaseAddr, const VideoTiming *Timing, const VideoFormat *Format, int BufCnt)
 {
-	u32 fcnt, row, col;
+	u32 buf, row, col;
 	u32 addr = BaseAddr;
 
-	for (fcnt = 0; fcnt < FrameCnt; fcnt++) {
-		for (row = 0; row < Timing->Field0Height; row++) {
-			for (col = 0; col < Timing->LineWidth; col++) {
+	u32 RowCnt = Timing->Field0Height;
+	u32 ColCnt = Timing->LineWidth * Format->BytesPerPixel / 4;
+
+	for (buf = 0; buf < BufCnt; buf++) {
+		for (row = 0; row < RowCnt; row++) {
+			for (col = 0; col < ColCnt; col++) {
 				if (Format->Id == V_ARGB32)
-					Xil_Out32(addr, pix_argb32[col / (Timing->LineWidth / 8)]);
-				else if (Format->Id == V_UYVY)
-					Xil_Out32(addr, pix_uyvy[col / (Timing->LineWidth / 8)]);
+					Xil_Out32(addr, pix_argb32[col / (ColCnt / 8)]);
+				else if (Format->Id == V_VYUY)
+					Xil_Out32(addr, pix_vyuy[col / (ColCnt / 8)]);
 				addr += 4;
 			}
 		}
@@ -146,6 +149,7 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	// Configure and Start On Screen Display
 	XOSD_Configure(XOSD_0, Timing);
 
+#ifdef USE_CPU
 	// Configure Layer 0
 	XOSD_RegUpdateDisable(XOSD_0);
 	XOSD_DisableLayer(XOSD_0, CPU_LAYER);
@@ -154,6 +158,7 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	XOSD_SetLayerDimension(XOSD_0, CPU_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
 	XOSD_EnableLayer(XOSD_0, CPU_LAYER);
 	XOSD_RegUpdateEnable(XOSD_0);
+#endif
 
 #ifdef USE_CAP
 	// Configure Layer 1
@@ -212,7 +217,7 @@ int main()
 {
 	int Status;
 	const VideoTiming *Timing = LookupVideoTiming_ById(V_1080p);
-	const VideoFormat *Format = LookupVideoFormat_ById(V_UYVY);
+	const VideoFormat *Format = LookupVideoFormat_ById(V_VYUY);
 
 	debug_printf("Video Output Resolution: %ux%u @ 60fps\r\n", Timing->LineWidth, Timing->Field0Height);
 
@@ -258,7 +263,7 @@ int main()
 	SI570_Configure(SI570_0, Timing);
 
 	// Configure HDMI Output
-	Status = ADV7511_SetVideoMode(ADV7511_0, V_UYVY);
+	Status = ADV7511_SetVideoMode(ADV7511_0, V_VYUY);
 	if (Status == XST_FAILURE) {
 		xil_printf("ERROR : No monitor detected on HDMI output!\r\n");
 		exit(XST_FAILURE);
