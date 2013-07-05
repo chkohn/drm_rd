@@ -54,24 +54,24 @@
 
 
 // ARGB32 colors [0, 255]
-#define ARGB32_BLACK    0x00000000
 #define ARGB32_WHITE    0x00FFFFFF
-#define ARGB32_RED      0x00FF0000
-#define ARGB32_GREEN    0x0000FF00
-#define ARGB32_BLUE     0x000000FF
-#define ARGB32_CYAN     0x0000FFFF
-#define ARGB32_MAGENTA  0x00FF00FF
 #define ARGB32_YELLOW   0x00FFFF00
+#define ARGB32_CYAN     0x0000FFFF
+#define ARGB32_GREEN    0x0000FF00
+#define ARGB32_MAGENTA  0x00FF00FF
+#define ARGB32_RED      0x00FF0000
+#define ARGB32_BLUE     0x000000FF
+#define ARGB32_BLACK    0x00000000
 
-// UYVY colors [16, 235]
-#define UYVY_WHITE    0x80EB80EB
-#define UYVY_YELLOW   0x10D292D2
-#define UYVY_CYAN     0xA6AA10AA
-#define UYVY_GREEN	  0x36912291
-#define UYVY_MAGENTA  0xCA6ADE6A
-#define UYVY_RED      0x5A51F051
-#define UYVY_BLUE     0xF0296E29
-#define UYVY_BLACK    0x80108010
+// VYUY colors [16, 235]
+#define VYUY_WHITE      0x80EB80EB
+#define VYUY_YELLOW     0x92D208D2
+#define VYUY_CYAN       0x08AAA6AA
+#define VYUY_GREEN      0x22913691
+#define VYUY_MAGENTA    0xDE6ACa6A
+#define VYUY_RED        0xF0515A51
+#define VYUY_BLUE       0x6E29F029
+#define VYUY_BLACK      0x80088008
 
 
 #define NAME_SIZE 32
@@ -114,11 +114,11 @@ typedef struct {
 
 enum VideoFormatId {
 	V_ARGB32,  // The frame is stored using a 32-bit ARGB format (0xAARRGGBB)
-	V_UYVY,    // The frame is stored using an 8-bit per component packed YUV format
-			   // with the U and V planes horizontally sub-sampled (Y-U-Y-V),
+	V_VYUY,    // The frame is stored using an 8-bit per component packed YUV format
+			   // with the U and V planes horizontally sub-sampled (V-Y-U-Y),
 	           // i.e. two horizontally adjacent pixels are stored as a 32-bit macropixel
 	           // which has a Y value for each pixel and common U and V values.
-	V_YUYV_emb_sync  // same as above but using embedded sync signals instead
+	V_VYUY_emb_sync  // same as above but using embedded sync signals instead
 };
 
 typedef struct {
