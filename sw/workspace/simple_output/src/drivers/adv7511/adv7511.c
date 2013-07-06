@@ -257,9 +257,9 @@ int ADV7511_SetVideoMode(ADV7511 *Instance, enum VideoFormatId Format)
 	// write ADV7511 configuration
 	if (Format == V_ARGB32)
 		Instance->IicAdapter->Funcs->Iic_WriteMsg( Instance->IicAdapter, Instance->Config.IicAddress, ADV7511_HdmiRGB444, ADV7511_HDMI_RGB444_LEN );
-	if (Format == V_UYVY)
+	if (Format == V_VYUY)
 		Instance->IicAdapter->Funcs->Iic_WriteMsg( Instance->IicAdapter, Instance->Config.IicAddress, ADV7511_HdmiYCbCr422, ADV7511_HDMI_YCBCR422_LEN );
-	if (Format == V_YUYV_emb_sync)
+	if (Format == V_VYUY_emb_sync)
 		Instance->IicAdapter->Funcs->Iic_WriteMsg( Instance->IicAdapter, Instance->Config.IicAddress, ADV7511_HdmiYCbCr422EmbSync, ADV7511_HDMI_YCBCR422_EMB_SYNC_LEN );
 
 	Instance->Format = Format;
