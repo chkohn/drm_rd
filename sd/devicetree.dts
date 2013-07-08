@@ -416,7 +416,7 @@
 			dma-s2mmchannel@0x40070000 {
 				compatible = "xlnx,axi-vdma-s2mm-channel";
 				interrupt-parent = <&gic>;
-				interrupts = <0 51 4>;
+				interrupts = <0 36 4>;
 				xlnx,datawidth = <0x40>;
 				xlnx,device-id = <1>;
 			};
