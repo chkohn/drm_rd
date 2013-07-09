@@ -47,6 +47,8 @@
 #include "vdma.h"
 #include "osd.h"
 #include "vtc.h"
+#include "ccresample.h"
+#include "crgb2ycrcb.h"
 #include "ctpg.h"
 #include "sobel.h"
 #include "xiicps_adapter.h"
@@ -140,16 +142,27 @@ void FB_Initialize(u32 BaseAddr, const VideoTiming *Timing, const VideoFormat *F
 }
 
 
-void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
+void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *FormatCap, const VideoFormat *FormatOut)
 {
 	// Configure and Start Video Timing Controller
 	XVtc_Configure(XVtc_0, Timing);
 	XVtc_Start(XVtc_0);
 
+	// Configure and Start Chroma Resampler
+	CRESAMPLE_Configure(Timing);
+	CRESAMPLE_Start();
+
+	// Configure and Start Color Space Converter
+	RGB_Configure(Timing);
+	RGB_Start();
+
 	// Configure and Start On Screen Display
 	XOSD_Configure(XOSD_0, Timing);
 
 #ifdef USE_CPU
+	// Write pattern to FB0
+	FB_Initialize(FB0_ADDR, Timing, FormatOut, XAxiVdma_0->MaxNumFrames);
+
 	// Configure Layer 0
 	XOSD_RegUpdateDisable(XOSD_0);
 	XOSD_DisableLayer(XOSD_0, CPU_LAYER);
@@ -158,9 +171,12 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	XOSD_SetLayerDimension(XOSD_0, CPU_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
 	XOSD_EnableLayer(XOSD_0, CPU_LAYER);
 	XOSD_RegUpdateEnable(XOSD_0);
+
+	// Configure and Start VDMA0 MM2S
+	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, FormatOut, FB0_ADDR, 1, 1);
+	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
 #endif
 
-#ifdef USE_CAP
 	// Configure Layer 1
 	XOSD_RegUpdateDisable(XOSD_0);
 	XOSD_DisableLayer(XOSD_0, TPG_LAYER);
@@ -169,45 +185,43 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *Format)
 	XOSD_SetLayerDimension(XOSD_0, TPG_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
 	XOSD_EnableLayer(XOSD_0, TPG_LAYER);
 	XOSD_RegUpdateEnable(XOSD_0);
-#endif
+
+	// Configure and Start VDMA1 MM2S
+	XAxiVdma_SetupReadChannel(XAxiVdma_1, Timing, FormatOut, FB1_ADDR, 1, 1);
+	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_READ);
 
 	XOSD_Start(XOSD_0);
 
-	// Configure and Start VDMA0 MM2S
-	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, Format, FB0_ADDR, 1, 1);
-	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
-
 	u32 tpg_addr = FB1_ADDR;
 
-#ifdef USE_CAP
 #ifdef USE_M2M
 	tpg_addr = TMP_ADDR;
+
+	// Write pattern to FB0
+	FB_Initialize(tpg_addr, Timing, FormatCap, XAxiVdma_1->MaxNumFrames);
 
 	// Configure and Start Sobel Filter
 	XSobel_Configure(XSobel_filter_0, Timing);
 	XSobel_Start(XSobel_filter_0);
 
 	// Configure and Start VDMA2 S2MM
-	XAxiVdma_SetupWriteChannel(XAxiVdma_2, Timing, Format, FB1_ADDR, 1, 1);
+	XAxiVdma_SetupWriteChannel(XAxiVdma_2, Timing, FormatCap, FB1_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_2, XAXIVDMA_WRITE);
 
-	// Configure and Start Filter VDMA2 MM2S
-	XAxiVdma_SetupReadChannel(XAxiVdma_2, Timing, Format, tpg_addr, 1, 1);
+	// Configure and Start VDMA2 MM2S
+	XAxiVdma_SetupReadChannel(XAxiVdma_2, Timing, FormatCap, tpg_addr, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_2, XAXIVDMA_READ);
 #endif
 
+#ifdef USE_CAP
 	// Configure and Start Test Pattern Generator
 	TPG_SetPattern(V_TPG_ZonePlate, 1);
 	TPG_Configure(Timing);
 	TPG_Start();
 
 	// Configure and Start VDMA1 S2MM
-	XAxiVdma_SetupWriteChannel(XAxiVdma_1, Timing, Format, tpg_addr, 1, 1);
+	XAxiVdma_SetupWriteChannel(XAxiVdma_1, Timing, FormatCap, tpg_addr, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_WRITE);
-
-	// Configure and Start VDMA1 MM2S
-	XAxiVdma_SetupReadChannel(XAxiVdma_1, Timing, Format, FB1_ADDR, 1, 1);
-	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_READ);
 #endif
 }
 
@@ -217,7 +231,8 @@ int main()
 {
 	int Status;
 	const VideoTiming *Timing = LookupVideoTiming_ById(V_1080p);
-	const VideoFormat *Format = LookupVideoFormat_ById(V_VYUY);
+	const VideoFormat *FormatCap = LookupVideoFormat_ById(V_ARGB32);
+	const VideoFormat *FormatOut = LookupVideoFormat_ById(V_VYUY);
 
 	debug_printf("Video Output Resolution: %ux%u @ 60fps\r\n", Timing->LineWidth, Timing->Field0Height);
 
@@ -234,10 +249,11 @@ int main()
     // Initialize HDMI Output
 	ADV7511_0 = ADV7511_Initialize(XPAR_ADV7511_0_DEVICE_ID, IicMux_0->VirtAdapter[1]);
 
+#ifdef USE_CPU
 	// Initialize VDMA_0
 	XAxiVdma_0 = XAxiVdma_Initialize(XPAR_AXI_VDMA_0_DEVICE_ID);
+#endif
 
-#ifdef USE_CAP
 	// Initialize VDMA_1
 	XAxiVdma_1 = XAxiVdma_Initialize(XPAR_AXI_VDMA_1_DEVICE_ID);
 
@@ -248,16 +264,12 @@ int main()
 	// Initialize Sobel Filter
 	XSobel_filter_0 = XSobel_Initialize(XPAR_SOBEL_FILTER_TOP_0_DEVICE_ID);
 #endif
-#endif
 
 	// Initialize VTC
 	XVtc_0 = XVtc_Initialize(XPAR_V_TC_0_DEVICE_ID);
 
 	// Initialize OSD
 	XOSD_0 = XOSD_Initialize(XPAR_V_OSD_0_DEVICE_ID);
-
-	// Write pattern to FB0
-	FB_Initialize(FB0_ADDR, Timing, Format, XAxiVdma_0->MaxNumFrames);
 
 	// Configure Clock Synthesizer
 	SI570_Configure(SI570_0, Timing);
@@ -270,7 +282,7 @@ int main()
 	}
 
     // Configure Video Pipeline
-	VideoPipe_Configure(Timing, Format);
+	VideoPipe_Configure(Timing, FormatCap, FormatOut);
 
 	printf("Exit simple_output!\r\n");
 
