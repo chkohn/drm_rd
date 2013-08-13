@@ -161,7 +161,7 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *FormatCap
 
 #ifdef USE_CPU
 	// Write pattern to FB0
-	FB_Initialize(FB0_ADDR, Timing, FormatOut, XAxiVdma_0->MaxNumFrames);
+	FB_Initialize(FB0_ADDR, Timing, FormatCap, XAxiVdma_0->MaxNumFrames);
 
 	// Configure Layer 0
 	XOSD_RegUpdateDisable(XOSD_0);
@@ -171,26 +171,28 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *FormatCap
 	XOSD_SetLayerDimension(XOSD_0, CPU_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
 	XOSD_EnableLayer(XOSD_0, CPU_LAYER);
 	XOSD_RegUpdateEnable(XOSD_0);
-
-	// Configure and Start VDMA0 MM2S
-	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, FormatOut, FB0_ADDR, 1, 1);
-	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
 #endif
 
+#ifdef USE_CAP
 	// Configure Layer 1
 	XOSD_RegUpdateDisable(XOSD_0);
 	XOSD_DisableLayer(XOSD_0, TPG_LAYER);
 	XOSD_SetLayerAlpha(XOSD_0, TPG_LAYER, 1, 0x80);
 	XOSD_SetLayerPriority(XOSD_0, TPG_LAYER, XOSD_LAYER_PRIORITY_1);
 	XOSD_SetLayerDimension(XOSD_0, TPG_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
-	XOSD_EnableLayer(XOSD_0, TPG_LAYER);
+//	XOSD_EnableLayer(XOSD_0, TPG_LAYER);
 	XOSD_RegUpdateEnable(XOSD_0);
 
 	// Configure and Start VDMA1 MM2S
 	XAxiVdma_SetupReadChannel(XAxiVdma_1, Timing, FormatOut, FB1_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_READ);
+#endif
 
 	XOSD_Start(XOSD_0);
+
+	// Configure and Start VDMA0 MM2S
+	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, FormatCap, FB0_ADDR, 1, 1);
+	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
 
 	u32 tpg_addr = FB1_ADDR;
 
@@ -251,25 +253,27 @@ int main()
 
 #ifdef USE_CPU
 	// Initialize VDMA_0
-	XAxiVdma_0 = XAxiVdma_Initialize(XPAR_AXI_VDMA_0_DEVICE_ID);
+	XAxiVdma_0 = XAxiVdma_Initialize(XPAR_VIDEO_DISPLAY_AXI_VDMA_2_DEVICE_ID);
 #endif
 
+#ifdef USE_CAP
 	// Initialize VDMA_1
 	XAxiVdma_1 = XAxiVdma_Initialize(XPAR_AXI_VDMA_1_DEVICE_ID);
+#endif
 
 #ifdef USE_M2M
 	// Initialize VDMA_2
-	XAxiVdma_2 = XAxiVdma_Initialize(XPAR_AXI_VDMA_2_DEVICE_ID);
+	XAxiVdma_2 = XAxiVdma_Initialize(XPAR_AXI_VDMA_M2M_DEVICE_ID);
 
 	// Initialize Sobel Filter
-	XSobel_filter_0 = XSobel_Initialize(XPAR_SOBEL_FILTER_TOP_0_DEVICE_ID);
+	XSobel_filter_0 = XSobel_Initialize(XPAR_SOBEL_FILTER_1_DEVICE_ID);
 #endif
 
 	// Initialize VTC
-	XVtc_0 = XVtc_Initialize(XPAR_V_TC_0_DEVICE_ID);
+	XVtc_0 = XVtc_Initialize(XPAR_VIDEO_DISPLAY_V_TC_1_DEVICE_ID);
 
 	// Initialize OSD
-	XOSD_0 = XOSD_Initialize(XPAR_V_OSD_0_DEVICE_ID);
+	XOSD_0 = XOSD_Initialize(XPAR_VIDEO_DISPLAY_V_OSD_1_DEVICE_ID);
 
 	// Configure Clock Synthesizer
 	SI570_Configure(SI570_0, Timing);

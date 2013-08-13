@@ -45,21 +45,21 @@ void RGB_Configure(const VideoTiming *Timing)
 {
 	debug_printf("Configure Color Space Converter\r\n");
 
-	RGB_RegUpdateDisable(XPAR_V_RGB2YCRCB_0_BASEADDR);
-	RGB_WriteReg(XPAR_V_RGB2YCRCB_0_BASEADDR, RGB_ACTIVE_SIZE, (Timing->Field0Height<<16 | Timing->LineWidth));
-    RGB_RegUpdateEnable(XPAR_V_RGB2YCRCB_0_BASEADDR);
+	RGB_RegUpdateDisable(XPAR_VIDEO_DISPLAY_V_RGB2YCRCB_1_BASEADDR);
+	RGB_WriteReg(XPAR_VIDEO_DISPLAY_V_RGB2YCRCB_1_BASEADDR, RGB_ACTIVE_SIZE, (Timing->Field0Height<<16 | Timing->LineWidth));
+    RGB_RegUpdateEnable(XPAR_VIDEO_DISPLAY_V_RGB2YCRCB_1_BASEADDR);
 }
 
 void RGB_Start()
 {
 	debug_printf("Start Color Space Converter\r\n");
 
-	RGB_Enable(XPAR_V_RGB2YCRCB_0_BASEADDR);
+	RGB_Enable(XPAR_VIDEO_DISPLAY_V_RGB2YCRCB_1_BASEADDR);
 }
 
 void RGB_Stop()
 {
 	debug_printf("Stop Color Space Converter\r\n");
 
-	RGB_Disable(XPAR_V_RGB2YCRCB_0_BASEADDR);
+	RGB_Disable(XPAR_VIDEO_DISPLAY_V_RGB2YCRCB_1_BASEADDR);
 }
