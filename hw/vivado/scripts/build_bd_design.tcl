@@ -314,8 +314,8 @@ proc create_root_design { parentCell } {
   set hdmio_vsync [ create_bd_port -dir O hdmio_vsync ]
   set hdmio_de [ create_bd_port -dir O hdmio_de ]
   set hdmio_data [ create_bd_port -dir O -from 15 -to 0 hdmio_data ]
-  set hdmio_int [ create_bd_port -dir I -type intr hdmio_int ]
-  set_property -dict [ list CONFIG.SENSITIVITY {LEVEL_HIGH}  ] $hdmio_int
+  set hdmio_int_b [ create_bd_port -dir I -type intr hdmio_int_b ]
+  set_property -dict [ list CONFIG.SENSITIVITY {LEVEL_HIGH}  ] $hdmio_int_b
   set video_clk [ create_bd_port -dir I -type clk video_clk ]
   set_property -dict [ list CONFIG.FREQ_HZ {148500000} CONFIG.PHASE {0.000} CONFIG.CLK_DOMAIN {system_hdmi_clk}  ] $video_clk
   set hdmio_clk [ create_bd_port -dir O hdmio_clk ]
@@ -406,7 +406,7 @@ connect_bd_intf_net -intf_net axi_interconnect_hp1_m00_axi [get_bd_intf_pins axi
   connect_bd_net -net v_axi4s_vid_out_1_vid_vsync [get_bd_ports hdmio_vsync] [get_bd_pins video_display/vid_vsync]
   connect_bd_net -net v_axi4s_vid_out_1_vid_active_video [get_bd_ports hdmio_de] [get_bd_pins video_display/vid_active_video]
   connect_bd_net -net v_axi4s_vid_out_1_vid_data [get_bd_ports hdmio_data] [get_bd_pins video_display/vid_data]
-  connect_bd_net -net hdmi_int_1 [get_bd_ports hdmio_int] [get_bd_pins pl_interrupts/In0]
+  connect_bd_net -net hdmi_int_1 [get_bd_ports hdmio_int_b] [get_bd_pins pl_interrupts/In0]
   connect_bd_net -net hdmi_clk_1 [get_bd_ports video_clk] [get_bd_ports hdmio_clk] [get_bd_pins video_display/vid_io_out_clk] [get_bd_pins video_display/clk]
   connect_bd_net -net video_display_irq1 [get_bd_pins video_display/irq1] [get_bd_pins pl_interrupts/In5]
   connect_bd_net -net processing_system7_1_fclk_clk2 [get_bd_pins processing_system7_1/FCLK_CLK0] [get_bd_pins clk_wiz_1/clk_in1]
