@@ -30,7 +30,7 @@ set_property STEPS.PLACE_DESIGN.ARGS.DIRECTIVE SSI_ExtraTimingOpt [get_runs impl
 set_property STEPS.ROUTE_DESIGN.ARGS.DIRECTIVE MoreGlobalIterations [get_runs impl_1]
 
 # add hdl sources and xdc constraints to project
-add_files -fileset sources_1 -norecurse $hdl_dir/${bd_name}_wrapper.vhd
+add_files -fileset sources_1 -norecurse $hdl_dir/${bd_name}_wrapper.v
 add_files -fileset constrs_1 -norecurse $constrs_dir/$bd_name.xdc
 update_compile_order -fileset sources_1
 update_compile_order -fileset sim_1

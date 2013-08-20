@@ -11,8 +11,8 @@ create_clock -period 6.734 -name video_clk [get_ports video_clk_p]
 ####################
 
 # Rename auto-generated clocks from MMCM
-create_generated_clock -name clk_75mhz [get_pins system_i/clk_wiz_1/U0/mmcm_adv_inst/CLKOUT0]
-create_generated_clock -name clk_150mhz [get_pins system_i/clk_wiz_1/U0/mmcm_adv_inst/CLKOUT1]
+create_generated_clock -name clk_75mhz [get_pins system_top_i/clk_wiz_1/inst/mmcm_adv_inst/CLKOUT0]
+create_generated_clock -name clk_150mhz [get_pins system_top_i/clk_wiz_1/inst/mmcm_adv_inst/CLKOUT1]
 
 ################
 # Clock Groups #
@@ -41,7 +41,7 @@ set_property PACKAGE_PIN L16 [get_ports hdmio_clk]
 set_property PACKAGE_PIN H15 [get_ports hdmio_vsync]
 set_property PACKAGE_PIN R18 [get_ports hdmio_hsync]
 set_property PACKAGE_PIN T18 [get_ports hdmio_de]
-set_property PACKAGE_PIN U14 [get_ports hdmio_int]
+set_property PACKAGE_PIN U14 [get_ports hdmio_int_b]
 set_property PACKAGE_PIN AB21 [get_ports {hdmio_data[0]}]
 set_property PACKAGE_PIN AA21 [get_ports {hdmio_data[1]}]
 set_property PACKAGE_PIN AB22 [get_ports {hdmio_data[2]}]
