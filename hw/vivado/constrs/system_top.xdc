@@ -22,13 +22,6 @@ create_generated_clock -name clk_150mhz [get_pins system_top_i/clk_wiz_1/inst/mm
 # There is no known phase relationship, hence they are treated  as asynchronous
 set_clock_groups -name async_clks -asynchronous -group {clk_75mhz clk_150mhz} -group video_clk
 
-#############
-# I/O Delay #
-#############
-
-#  2ns of output delay for HDMI output
-set_output_delay -clock video_clk -min 2.000 [get_ports hdmio_data*]
-
 ########################
 # Physical Constraints #
 ########################
@@ -36,6 +29,7 @@ set_output_delay -clock video_clk -min 2.000 [get_ports hdmio_data*]
 set_property PACKAGE_PIN Y9 [get_ports video_clk_p]
 set_property PACKAGE_PIN Y8 [get_ports video_clk_n]
 set_property IOSTANDARD LVDS_25 [get_ports video_clk_*]
+set_property DIFF_TERM TRUE [get_ports video_clk_*]
 
 set_property PACKAGE_PIN L16 [get_ports hdmio_clk]
 set_property PACKAGE_PIN H15 [get_ports hdmio_vsync]
@@ -59,3 +53,4 @@ set_property PACKAGE_PIN R19 [get_ports {hdmio_data[13]}]
 set_property PACKAGE_PIN T17 [get_ports {hdmio_data[14]}]
 set_property PACKAGE_PIN T16 [get_ports {hdmio_data[15]}]
 set_property IOSTANDARD LVCMOS25 [get_ports hdmio_*]
+set_property IOB TRUE [get_cells -hierarchical vid_out_formatter_i/in_*_mux_reg*]
