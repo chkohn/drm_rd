@@ -142,7 +142,7 @@ void FB_Initialize(u32 BaseAddr, const VideoTiming *Timing, const VideoFormat *F
 }
 
 
-void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *FormatCap, const VideoFormat *FormatOut)
+void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *FormatCap, const VideoFormat *FormatProc, const VideoFormat *FormatOut)
 {
 	// Configure and Start Video Timing Controller
 	XVtc_Configure(XVtc_0, Timing);
@@ -161,7 +161,7 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *FormatCap
 
 #ifdef USE_CPU
 	// Write pattern to FB0
-	FB_Initialize(FB0_ADDR, Timing, FormatCap, XAxiVdma_0->MaxNumFrames);
+	FB_Initialize(FB0_ADDR, Timing, FormatOut, XAxiVdma_0->MaxNumFrames);
 
 	// Configure Layer 0
 	XOSD_RegUpdateDisable(XOSD_0);
@@ -184,14 +184,14 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *FormatCap
 	XOSD_RegUpdateEnable(XOSD_0);
 
 	// Configure and Start VDMA1 MM2S
-	XAxiVdma_SetupReadChannel(XAxiVdma_1, Timing, FormatOut, FB1_ADDR, 1, 1);
+	XAxiVdma_SetupReadChannel(XAxiVdma_1, Timing, FormatCap, FB1_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_READ);
 #endif
 
 	XOSD_Start(XOSD_0);
 
 	// Configure and Start VDMA0 MM2S
-	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, FormatCap, FB0_ADDR, 1, 1);
+	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, FormatOut, FB0_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
 
 	u32 tpg_addr = FB1_ADDR;
@@ -200,18 +200,18 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *FormatCap
 	tpg_addr = TMP_ADDR;
 
 	// Write pattern to FB0
-	FB_Initialize(tpg_addr, Timing, FormatCap, XAxiVdma_1->MaxNumFrames);
+	FB_Initialize(tpg_addr, Timing, FormatProc, XAxiVdma_1->MaxNumFrames);
 
 	// Configure and Start Sobel Filter
 	XSobel_Configure(XSobel_filter_0, Timing);
 	XSobel_Start(XSobel_filter_0);
 
 	// Configure and Start VDMA2 S2MM
-	XAxiVdma_SetupWriteChannel(XAxiVdma_2, Timing, FormatCap, FB1_ADDR, 1, 1);
+	XAxiVdma_SetupWriteChannel(XAxiVdma_2, Timing, FormatProc, FB1_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_2, XAXIVDMA_WRITE);
 
 	// Configure and Start VDMA2 MM2S
-	XAxiVdma_SetupReadChannel(XAxiVdma_2, Timing, FormatCap, tpg_addr, 1, 1);
+	XAxiVdma_SetupReadChannel(XAxiVdma_2, Timing, FormatProc, tpg_addr, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_2, XAXIVDMA_READ);
 #endif
 
@@ -233,8 +233,9 @@ int main()
 {
 	int Status;
 	const VideoTiming *Timing = LookupVideoTiming_ById(V_1080p);
-	const VideoFormat *FormatCap = LookupVideoFormat_ById(V_ARGB32);
-	const VideoFormat *FormatOut = LookupVideoFormat_ById(V_VYUY);
+	const VideoFormat *FormatOut = LookupVideoFormat_ById(V_ARGB32);
+	const VideoFormat *FormatCap = LookupVideoFormat_ById(V_VYUY);
+	const VideoFormat *FormatProc = FormatCap;
 
 	debug_printf("Video Output Resolution: %ux%u @ 60fps\r\n", Timing->LineWidth, Timing->Field0Height);
 
@@ -286,7 +287,7 @@ int main()
 	}
 
     // Configure Video Pipeline
-	VideoPipe_Configure(Timing, FormatCap, FormatOut);
+	VideoPipe_Configure(Timing, FormatCap, FormatProc, FormatOut);
 
 	printf("Exit simple_output!\r\n");
 
