@@ -69,7 +69,7 @@
 #define TPG_LAYER 1
 
 
-// Global Variables
+// Drivers
 XIicPs *XIicPs_0;
 IicAdapter *IicAdapter_XIicPs_0;
 PCA954X *IicMux_0;
@@ -81,6 +81,13 @@ XAxiVdma *XAxiVdma_2;
 XVtc *XVtc_0;
 XOSD *XOSD_0;
 XSobel_filter* XSobel_filter_0;
+
+
+// Video Formats
+const VideoFormat *FormatOUT0;
+const VideoFormat *FormatOUT1;
+const VideoFormat *FormatCAP;
+const VideoFormat *FormatM2M;
 
 
 static const u32 pix_argb32[8] = {
@@ -95,14 +102,14 @@ static const u32 pix_argb32[8] = {
 };
 
 static const u32 pix_vyuy[8] = {
-		VYUY_WHITE,
-		VYUY_YELLOW,
-		VYUY_CYAN,
-		VYUY_GREEN,
-		VYUY_MAGENTA,
-		VYUY_RED,
+		VYUY_BLACK,
 		VYUY_BLUE,
-		VYUY_BLACK
+		VYUY_RED,
+		VYUY_MAGENTA,
+		VYUY_GREEN,
+		VYUY_CYAN,
+		VYUY_YELLOW,
+		VYUY_WHITE
 };
 
 
@@ -142,11 +149,29 @@ void FB_Initialize(u32 BaseAddr, const VideoTiming *Timing, const VideoFormat *F
 }
 
 
-void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *FormatCap, const VideoFormat *FormatProc, const VideoFormat *FormatOut)
+void VideoPipe_Configure(enum VideoTimingId Id)
 {
+	u32 tpg_addr = FB1_ADDR;
+	const VideoTiming *Timing = LookupVideoTiming_ById(Id);
+
+	debug_printf("Video Output Resolution: %ux%u @ 60fps\r\n", Timing->LineWidth, Timing->Field0Height);
+
+#if defined(USE_OUT0) || defined(USE_OUT1)
+	// Configure Clock Synthesizer
+	SI570_Configure(SI570_0, Timing);
+
 	// Configure and Start Video Timing Controller
 	XVtc_Configure(XVtc_0, Timing);
 	XVtc_Start(XVtc_0);
+
+	// Configure and Start On Screen Display
+	XOSD_Configure(XOSD_0, Timing);
+	XOSD_Start(XOSD_0);
+#endif
+
+#ifdef USE_OUT0
+	// Write pattern to FB0
+	FB_Initialize(FB0_ADDR, Timing, FormatOUT0, XAxiVdma_0->MaxNumFrames);
 
 	// Configure and Start Chroma Resampler
 	CRESAMPLE_Configure(Timing);
@@ -156,62 +181,58 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *FormatCap
 	RGB_Configure(Timing);
 	RGB_Start();
 
-	// Configure and Start On Screen Display
-	XOSD_Configure(XOSD_0, Timing);
-
-#ifdef USE_CPU
-	// Write pattern to FB0
-	FB_Initialize(FB0_ADDR, Timing, FormatOut, XAxiVdma_0->MaxNumFrames);
-
 	// Configure Layer 0
 	XOSD_RegUpdateDisable(XOSD_0);
 	XOSD_DisableLayer(XOSD_0, CPU_LAYER);
-	XOSD_SetLayerAlpha(XOSD_0, CPU_LAYER, 1, 0xff);
+	XOSD_SetLayerAlpha(XOSD_0, CPU_LAYER, 1, 0x80);
 	XOSD_SetLayerPriority(XOSD_0, CPU_LAYER, XOSD_LAYER_PRIORITY_0);
 	XOSD_SetLayerDimension(XOSD_0, CPU_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
 	XOSD_EnableLayer(XOSD_0, CPU_LAYER);
 	XOSD_RegUpdateEnable(XOSD_0);
+
+	// Configure and Start VDMA0 MM2S
+	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, FormatOUT0, FB0_ADDR, 1, 1);
+	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
 #endif
 
-#ifdef USE_CAP
+#ifdef USE_OUT1
+#if !defined(USE_CAP) && !defined(USE_M2M)
+	// Write pattern to FB0
+	FB_Initialize(FB1_ADDR, Timing, FormatOUT1, XAxiVdma_1->MaxNumFrames);
+#endif
+
 	// Configure Layer 1
 	XOSD_RegUpdateDisable(XOSD_0);
 	XOSD_DisableLayer(XOSD_0, TPG_LAYER);
 	XOSD_SetLayerAlpha(XOSD_0, TPG_LAYER, 1, 0x80);
 	XOSD_SetLayerPriority(XOSD_0, TPG_LAYER, XOSD_LAYER_PRIORITY_1);
 	XOSD_SetLayerDimension(XOSD_0, TPG_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
-//	XOSD_EnableLayer(XOSD_0, TPG_LAYER);
+	XOSD_EnableLayer(XOSD_0, TPG_LAYER);
 	XOSD_RegUpdateEnable(XOSD_0);
 
 	// Configure and Start VDMA1 MM2S
-	XAxiVdma_SetupReadChannel(XAxiVdma_1, Timing, FormatCap, FB1_ADDR, 1, 1);
+	XAxiVdma_SetupReadChannel(XAxiVdma_1, Timing, FormatOUT1, FB1_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_READ);
 #endif
-
-	XOSD_Start(XOSD_0);
-
-	// Configure and Start VDMA0 MM2S
-	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, FormatOut, FB0_ADDR, 1, 1);
-	XAxiVdma_DmaStart(XAxiVdma_0, XAXIVDMA_READ);
-
-	u32 tpg_addr = FB1_ADDR;
 
 #ifdef USE_M2M
 	tpg_addr = TMP_ADDR;
 
+#ifndef USE_CAP
 	// Write pattern to FB0
 	FB_Initialize(tpg_addr, Timing, FormatProc, XAxiVdma_1->MaxNumFrames);
+#endif
 
 	// Configure and Start Sobel Filter
 	XSobel_Configure(XSobel_filter_0, Timing);
 	XSobel_Start(XSobel_filter_0);
 
 	// Configure and Start VDMA2 S2MM
-	XAxiVdma_SetupWriteChannel(XAxiVdma_2, Timing, FormatProc, FB1_ADDR, 1, 1);
+	XAxiVdma_SetupWriteChannel(XAxiVdma_2, Timing, FormatM2M, FB1_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_2, XAXIVDMA_WRITE);
 
 	// Configure and Start VDMA2 MM2S
-	XAxiVdma_SetupReadChannel(XAxiVdma_2, Timing, FormatProc, tpg_addr, 1, 1);
+	XAxiVdma_SetupReadChannel(XAxiVdma_2, Timing, FormatM2M, tpg_addr, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_2, XAXIVDMA_READ);
 #endif
 
@@ -222,7 +243,7 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *FormatCap
 	TPG_Start();
 
 	// Configure and Start VDMA1 S2MM
-	XAxiVdma_SetupWriteChannel(XAxiVdma_1, Timing, FormatCap, tpg_addr, 1, 1);
+	XAxiVdma_SetupWriteChannel(XAxiVdma_1, Timing, FormatCAP, tpg_addr, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_WRITE);
 #endif
 }
@@ -232,12 +253,12 @@ void VideoPipe_Configure(const VideoTiming *Timing, const VideoFormat *FormatCap
 int main()
 {
 	int Status;
-	const VideoTiming *Timing = LookupVideoTiming_ById(V_1080p);
-	const VideoFormat *FormatOut = LookupVideoFormat_ById(V_ARGB32);
-	const VideoFormat *FormatCap = LookupVideoFormat_ById(V_VYUY);
-	const VideoFormat *FormatProc = FormatCap;
 
-	debug_printf("Video Output Resolution: %ux%u @ 60fps\r\n", Timing->LineWidth, Timing->Field0Height);
+	// Set Video Formats
+	FormatOUT0 = LookupVideoFormat_ById(V_ARGB32);
+	FormatOUT1 = LookupVideoFormat_ById(V_VYUY);
+	FormatCAP  = LookupVideoFormat_ById(V_VYUY);
+	FormatM2M  = LookupVideoFormat_ById(V_VYUY);
 
     // Initialize PS I2C0 Adapter
     XIicPs_0 = XIicPs_Initialize(XPAR_XIICPS_0_DEVICE_ID, 100000);
@@ -252,32 +273,23 @@ int main()
     // Initialize HDMI Output
 	ADV7511_0 = ADV7511_Initialize(XPAR_ADV7511_0_DEVICE_ID, IicMux_0->VirtAdapter[1]);
 
-#ifdef USE_CPU
 	// Initialize VDMA_0
 	XAxiVdma_0 = XAxiVdma_Initialize(XPAR_VIDEO_DISPLAY_AXI_VDMA_2_DEVICE_ID);
-#endif
 
-#ifdef USE_CAP
 	// Initialize VDMA_1
 	XAxiVdma_1 = XAxiVdma_Initialize(XPAR_AXI_VDMA_1_DEVICE_ID);
-#endif
 
-#ifdef USE_M2M
 	// Initialize VDMA_2
-	XAxiVdma_2 = XAxiVdma_Initialize(XPAR_AXI_VDMA_M2M_DEVICE_ID);
+	XAxiVdma_2 = XAxiVdma_Initialize(XPAR_VIDEO_PROCESSING_AXI_VDMA_M2M_DEVICE_ID);
 
 	// Initialize Sobel Filter
-	XSobel_filter_0 = XSobel_Initialize(XPAR_SOBEL_FILTER_1_DEVICE_ID);
-#endif
+	XSobel_filter_0 = XSobel_Initialize(XPAR_VIDEO_PROCESSING_SOBEL_FILTER_1_DEVICE_ID);
 
 	// Initialize VTC
 	XVtc_0 = XVtc_Initialize(XPAR_VIDEO_DISPLAY_V_TC_1_DEVICE_ID);
 
 	// Initialize OSD
 	XOSD_0 = XOSD_Initialize(XPAR_VIDEO_DISPLAY_V_OSD_1_DEVICE_ID);
-
-	// Configure Clock Synthesizer
-	SI570_Configure(SI570_0, Timing);
 
 	// Configure HDMI Output
 	Status = ADV7511_SetVideoMode(ADV7511_0, V_VYUY);
@@ -287,7 +299,7 @@ int main()
 	}
 
     // Configure Video Pipeline
-	VideoPipe_Configure(Timing, FormatCap, FormatProc, FormatOut);
+	VideoPipe_Configure(V_1080p);
 
 	printf("Exit simple_output!\r\n");
 
