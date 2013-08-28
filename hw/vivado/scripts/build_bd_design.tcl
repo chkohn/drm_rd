@@ -137,13 +137,9 @@ proc create_hier_cell_video_display { parentCell nameHier } {
   set axis_subset_converter_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_subset_converter:1.0 axis_subset_converter_1 ]
   set_property -dict [ list CONFIG.S_TDATA_NUM_BYTES {4} CONFIG.M_TDATA_NUM_BYTES {3} CONFIG.S_HAS_TSTRB {0} CONFIG.S_HAS_TKEEP {0} CONFIG.M_HAS_TSTRB {0} CONFIG.M_HAS_TKEEP {0} CONFIG.TDATA_REMAP {tdata[23:16],tdata[7:0],tdata[15:8]}  ] $axis_subset_converter_1
 
-  # Create instance: axis_subset_converter_2, and set properties
-  set axis_subset_converter_2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_subset_converter:1.0 axis_subset_converter_2 ]
-  set_property -dict [ list CONFIG.S_TDATA_NUM_BYTES {4} CONFIG.M_TDATA_NUM_BYTES {3} CONFIG.S_HAS_TSTRB {0} CONFIG.S_HAS_TKEEP {0} CONFIG.M_HAS_TSTRB {0} CONFIG.M_HAS_TKEEP {0} CONFIG.TDATA_REMAP {tdata[23:16],tdata[7:0],tdata[15:8]}  ] $axis_subset_converter_2
-
   # Create instance: v_osd_1, and set properties
   set v_osd_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:v_osd:6.0 v_osd_1 ]
-  set_property -dict [ list CONFIG.HAS_INTC_IF {false} CONFIG.NUMBER_OF_LAYERS {2} CONFIG.SCREEN_WIDTH {1920} CONFIG.S_AXIS_VIDEO_FORMAT {RGB} CONFIG.M_AXIS_VIDEO_WIDTH {1920} CONFIG.M_AXIS_VIDEO_HEIGHT {1080}  ] $v_osd_1
+  set_property -dict [ list CONFIG.HAS_INTC_IF {false} CONFIG.NUMBER_OF_LAYERS {2} CONFIG.SCREEN_WIDTH {1920} CONFIG.S_AXIS_VIDEO_FORMAT {YUV_422} CONFIG.M_AXIS_VIDEO_WIDTH {1920} CONFIG.M_AXIS_VIDEO_HEIGHT {1080}  ] $v_osd_1
 
   # Create instance: v_axi4s_vid_out_1, and set properties
   set v_axi4s_vid_out_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:v_axi4s_vid_out:3.0 v_axi4s_vid_out_1 ]
@@ -170,31 +166,30 @@ proc create_hier_cell_video_display { parentCell nameHier } {
 
   # Create interface connections
   connect_bd_intf_net -intf_net axi_vdma_2_m_axis_mm2s [get_bd_intf_pins axi_vdma_2/M_AXIS_MM2S] [get_bd_intf_pins axis_subset_converter_1/S_AXIS]
-  connect_bd_intf_net -intf_net axis_subset_converter_1_m_axis [get_bd_intf_pins axis_subset_converter_1/M_AXIS] [get_bd_intf_pins v_osd_1/video_s0_in]
-  connect_bd_intf_net -intf_net axis_subset_converter_2_m_axis [get_bd_intf_pins axis_subset_converter_2/M_AXIS] [get_bd_intf_pins v_osd_1/video_s1_in]
-  connect_bd_intf_net -intf_net v_osd_1_video_out [get_bd_intf_pins v_osd_1/video_out] [get_bd_intf_pins v_rgb2ycrcb_1/video_in]
-  connect_bd_intf_net -intf_net v_cresample_1_video_out [get_bd_intf_pins v_cresample_1/video_out] [get_bd_intf_pins v_axi4s_vid_out_1/video_in]
   connect_bd_intf_net -intf_net v_rgb2ycrcb_1_video_out [get_bd_intf_pins v_cresample_1/video_in] [get_bd_intf_pins v_rgb2ycrcb_1/video_out]
   connect_bd_intf_net -intf_net v_tc_1_vtiming_out [get_bd_intf_pins v_axi4s_vid_out_1/vtiming_in] [get_bd_intf_pins v_tc_1/vtiming_out]
-  connect_bd_intf_net -intf_net axi_vdma_1_m_axis_mm2s [get_bd_intf_pins S_AXIS] [get_bd_intf_pins axis_subset_converter_2/S_AXIS]
   connect_bd_intf_net -intf_net axi_interconnect_gp0_m05_axi [get_bd_intf_pins ctrl] [get_bd_intf_pins v_osd_1/ctrl]
   connect_bd_intf_net -intf_net axi_interconnect_gp0_m06_axi [get_bd_intf_pins ctrl1] [get_bd_intf_pins v_rgb2ycrcb_1/ctrl]
   connect_bd_intf_net -intf_net axi_interconnect_gp0_m07_axi [get_bd_intf_pins ctrl2] [get_bd_intf_pins v_cresample_1/ctrl]
   connect_bd_intf_net -intf_net axi_interconnect_gp0_m04_axi [get_bd_intf_pins S_AXI_LITE] [get_bd_intf_pins axi_vdma_2/S_AXI_LITE]
   connect_bd_intf_net -intf_net s02_axi_1 [get_bd_intf_pins M_AXI_MM2S] [get_bd_intf_pins axi_vdma_2/M_AXI_MM2S]
   connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins ctrl3] [get_bd_intf_pins v_tc_1/ctrl]
+  connect_bd_intf_net -intf_net axis_subset_converter_1_m_axis [get_bd_intf_pins axis_subset_converter_1/M_AXIS] [get_bd_intf_pins v_rgb2ycrcb_1/video_in]
+  connect_bd_intf_net -intf_net v_cresample_1_video_out [get_bd_intf_pins v_cresample_1/video_out] [get_bd_intf_pins v_osd_1/video_s0_in]
+  connect_bd_intf_net -intf_net v_osd_1_video_out [get_bd_intf_pins v_osd_1/video_out] [get_bd_intf_pins v_axi4s_vid_out_1/video_in]
+  connect_bd_intf_net -intf_net s_axis_1 [get_bd_intf_pins S_AXIS] [get_bd_intf_pins v_osd_1/video_s1_in]
 
   # Create port connections
   connect_bd_net -net processing_system7_1_fclk_clk0 [get_bd_pins s_axi_lite_aclk] [get_bd_pins axi_vdma_2/s_axi_lite_aclk] [get_bd_pins v_rgb2ycrcb_1/s_axi_aclk] [get_bd_pins v_cresample_1/s_axi_aclk] [get_bd_pins v_osd_1/s_axi_aclk]
   connect_bd_net -net hdmi_clk_1 [get_bd_pins vid_io_out_clk] [get_bd_pins v_axi4s_vid_out_1/vid_io_out_clk]
-  connect_bd_net -net processing_system7_1_fclk_clk1 [get_bd_pins m_axi_mm2s_aclk] [get_bd_pins axi_vdma_2/m_axi_mm2s_aclk] [get_bd_pins axi_vdma_2/m_axis_mm2s_aclk] [get_bd_pins v_osd_1/aclk] [get_bd_pins v_rgb2ycrcb_1/aclk] [get_bd_pins v_cresample_1/aclk] [get_bd_pins v_axi4s_vid_out_1/aclk] [get_bd_pins axis_subset_converter_2/aclk] [get_bd_pins axis_subset_converter_1/aclk]
+  connect_bd_net -net processing_system7_1_fclk_clk1 [get_bd_pins m_axi_mm2s_aclk] [get_bd_pins axi_vdma_2/m_axi_mm2s_aclk] [get_bd_pins axi_vdma_2/m_axis_mm2s_aclk] [get_bd_pins v_osd_1/aclk] [get_bd_pins v_rgb2ycrcb_1/aclk] [get_bd_pins v_cresample_1/aclk] [get_bd_pins v_axi4s_vid_out_1/aclk] [get_bd_pins axis_subset_converter_1/aclk]
   connect_bd_net -net axi_vdma_2_mm2s_introut [get_bd_pins mm2s_introut] [get_bd_pins axi_vdma_2/mm2s_introut]
   connect_bd_net -net v_osd_1_irq [get_bd_pins irq] [get_bd_pins v_osd_1/irq]
   connect_bd_net -net s_axi_aclk_1 [get_bd_pins s_axi_aclk] [get_bd_pins v_tc_1/s_axi_aclk]
   connect_bd_net -net v_tc_1_irq [get_bd_pins irq1] [get_bd_pins v_tc_1/irq]
   connect_bd_net -net clk_1 [get_bd_pins clk] [get_bd_pins v_tc_1/clk]
   connect_bd_net -net v_axi4s_vid_out_1_vtg_ce [get_bd_pins v_axi4s_vid_out_1/vtg_ce] [get_bd_pins v_tc_1/gen_clken]
-  connect_bd_net -net xlconstant_1_const [get_bd_pins xlconstant_1/const] [get_bd_pins axis_subset_converter_2/aresetn] [get_bd_pins axis_subset_converter_1/aresetn]
+  connect_bd_net -net xlconstant_1_const [get_bd_pins xlconstant_1/const] [get_bd_pins axis_subset_converter_1/aresetn]
   connect_bd_net -net v_axi4s_vid_out_1_vid_hsync [get_bd_pins vid_hsync] [get_bd_pins v_axi4s_vid_out_1/vid_hsync]
   connect_bd_net -net v_axi4s_vid_out_1_vid_active_video [get_bd_pins vid_active_video] [get_bd_pins v_axi4s_vid_out_1/vid_active_video]
   connect_bd_net -net v_axi4s_vid_out_1_vid_vsync [get_bd_pins vid_vsync] [get_bd_pins v_axi4s_vid_out_1/vid_vsync]
@@ -248,6 +243,7 @@ proc create_hier_cell_video_processing { parentCell nameHier } {
   create_bd_pin -dir I -type clk s_axis_s2mm_aclk
   create_bd_pin -dir O -type intr s2mm_introut
   create_bd_pin -dir O -type intr interrupt
+  create_bd_pin -dir I aresetn
 
   # Create instance: axi_vdma_m2m, and set properties
   set axi_vdma_m2m [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_vdma:6.0 axi_vdma_m2m ]
@@ -334,7 +330,7 @@ proc create_root_design { parentCell } {
 
   # Create instance: axi_vdma_1, and set properties
   set axi_vdma_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_vdma:6.0 axi_vdma_1 ]
-  set_property -dict [ list CONFIG.c_s_axis_s2mm_tdata_width {16} CONFIG.c_num_fstores {1} CONFIG.c_mm2s_linebuffer_depth {4096} CONFIG.c_s2mm_linebuffer_depth {4096} CONFIG.c_include_mm2s {1}  ] $axi_vdma_1
+  set_property -dict [ list CONFIG.c_m_axis_mm2s_tdata_width {16} CONFIG.c_s_axis_s2mm_tdata_width {16} CONFIG.c_num_fstores {1} CONFIG.c_mm2s_linebuffer_depth {4096} CONFIG.c_s2mm_linebuffer_depth {4096} CONFIG.c_include_mm2s {1}  ] $axi_vdma_1
 
   # Create instance: pl_interrupts, and set properties
   set pl_interrupts [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:1.0 pl_interrupts ]
