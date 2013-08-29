@@ -82,12 +82,11 @@ XVtc *XVtc_0;
 XOSD *XOSD_0;
 XSobel_filter* XSobel_filter_0;
 
-
 // Video Formats
 const VideoFormat *FormatOUT0;
 const VideoFormat *FormatOUT1;
-const VideoFormat *FormatCAP;
 const VideoFormat *FormatM2M;
+const VideoFormat *FormatCAP;
 
 
 static const u32 pix_argb32[8] = {
@@ -149,7 +148,7 @@ void FB_Initialize(u32 BaseAddr, const VideoTiming *Timing, const VideoFormat *F
 }
 
 
-void VideoPipe_Configure(enum VideoTimingId Id)
+void VideoPipe_Configure(const enum VideoTimingId Id)
 {
 	u32 tpg_addr = FB1_ADDR;
 	const VideoTiming *Timing = LookupVideoTiming_ById(Id);
@@ -173,6 +172,15 @@ void VideoPipe_Configure(enum VideoTimingId Id)
 	// Write pattern to FB0
 	FB_Initialize(FB0_ADDR, Timing, FormatOUT0, XAxiVdma_0->MaxNumFrames);
 
+	// Configure Layer 0
+	XOSD_RegUpdateDisable(XOSD_0);
+	XOSD_DisableLayer(XOSD_0, CPU_LAYER);
+	XOSD_SetLayerAlpha(XOSD_0, CPU_LAYER, 1, 0xff);
+	XOSD_SetLayerPriority(XOSD_0, CPU_LAYER, XOSD_LAYER_PRIORITY_0);
+	XOSD_SetLayerDimension(XOSD_0, CPU_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
+	XOSD_EnableLayer(XOSD_0, CPU_LAYER);
+	XOSD_RegUpdateEnable(XOSD_0);
+
 	// Configure and Start Chroma Resampler
 	CRESAMPLE_Configure(Timing);
 	CRESAMPLE_Start();
@@ -180,15 +188,6 @@ void VideoPipe_Configure(enum VideoTimingId Id)
 	// Configure and Start Color Space Converter
 	RGB_Configure(Timing);
 	RGB_Start();
-
-	// Configure Layer 0
-	XOSD_RegUpdateDisable(XOSD_0);
-	XOSD_DisableLayer(XOSD_0, CPU_LAYER);
-	XOSD_SetLayerAlpha(XOSD_0, CPU_LAYER, 1, 0x80);
-	XOSD_SetLayerPriority(XOSD_0, CPU_LAYER, XOSD_LAYER_PRIORITY_0);
-	XOSD_SetLayerDimension(XOSD_0, CPU_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
-	XOSD_EnableLayer(XOSD_0, CPU_LAYER);
-	XOSD_RegUpdateEnable(XOSD_0);
 
 	// Configure and Start VDMA0 MM2S
 	XAxiVdma_SetupReadChannel(XAxiVdma_0, Timing, FormatOUT0, FB0_ADDR, 1, 1);
@@ -220,7 +219,7 @@ void VideoPipe_Configure(enum VideoTimingId Id)
 
 #ifndef USE_CAP
 	// Write pattern to FB0
-	FB_Initialize(tpg_addr, Timing, FormatProc, XAxiVdma_1->MaxNumFrames);
+	FB_Initialize(tpg_addr, Timing, FormatM2M, XAxiVdma_1->MaxNumFrames);
 #endif
 
 	// Configure and Start Sobel Filter
@@ -257,8 +256,8 @@ int main()
 	// Set Video Formats
 	FormatOUT0 = LookupVideoFormat_ById(V_ARGB32);
 	FormatOUT1 = LookupVideoFormat_ById(V_VYUY);
-	FormatCAP  = LookupVideoFormat_ById(V_VYUY);
-	FormatM2M  = LookupVideoFormat_ById(V_VYUY);
+	FormatM2M = LookupVideoFormat_ById(V_VYUY);
+	FormatCAP = LookupVideoFormat_ById(V_VYUY);
 
     // Initialize PS I2C0 Adapter
     XIicPs_0 = XIicPs_Initialize(XPAR_XIICPS_0_DEVICE_ID, 100000);
