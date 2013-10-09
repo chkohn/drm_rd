@@ -26,11 +26,13 @@ set_clock_groups -name async_clks -asynchronous -group {clk_75mhz clk_150mhz} -g
 # Physical Constraints #
 ########################
 
+# Clock Synthesizer (SI570) on ZC702
 set_property PACKAGE_PIN Y9 [get_ports video_clk_p]
 set_property PACKAGE_PIN Y8 [get_ports video_clk_n]
 set_property IOSTANDARD LVDS_25 [get_ports video_clk_*]
 set_property DIFF_TERM TRUE [get_ports video_clk_*]
 
+# HDMI Output (ADV7511) on ZC702
 set_property PACKAGE_PIN L16 [get_ports hdmio_clk]
 set_property PACKAGE_PIN H15 [get_ports hdmio_vsync]
 set_property PACKAGE_PIN R18 [get_ports hdmio_hsync]
