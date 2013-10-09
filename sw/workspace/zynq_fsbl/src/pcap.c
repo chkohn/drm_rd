@@ -77,6 +77,7 @@
 #include "xparameters.h"
 #include "xil_exception.h"
 #include "xdevcfg.h"
+#include "sleep.h"
 
 #ifdef XPAR_XWDTPS_0_BASEADDR
 #include "xwdtps.h"
@@ -95,7 +96,6 @@
 /***************** Macros (Inline Functions) Definitions *********************/
 
 /************************** Function Prototypes ******************************/
-void EnablePLtoPSLevelShifter(void);
 extern int XDcfgPollDone(u32 MaskValue, u32 MaxCount);
 
 /************************** Variable Definitions *****************************/
@@ -107,7 +107,6 @@ XDcfg *DcfgInstPtr;
 extern XWdtPs Watchdog;	/* Instance of WatchDog Timer	*/
 #endif
 
-extern u32 PcapCtrlRegVal;
 /******************************************************************************/
 /**
 *
@@ -260,14 +259,10 @@ u32 PcapLoadPartition(u32 *SourceDataPtr, u32 *DestinationDataPtr,
 	DestinationDataPtr = (u32*)XDCFG_DMA_INVALID_ADDRESS;
 
 	/*
-	 * Check for AES source key
+	 * New Bitstream download initialization sequence
 	 */
-	if (!(PcapCtrlRegVal & PCAP_CTRL_PCFG_AES_FUSE_EFUSE_MASK)) {
-		/*
-		 * New Bitstream download initialization sequence
-		 */
-		FabricInit();
-	}
+	FabricInit();
+
 
 #ifdef	XPAR_XWDTPS_0_BASEADDR
 	/*
@@ -408,11 +403,19 @@ void FabricInit(void)
 				(PcapReg | XDCFG_CTRL_PCFG_PROG_B_MASK));
 
 	/*
+	 * 5msec delay
+	 */
+	usleep(5000);
+	/*
 	 * Setting PCFG_PROG_B signal to low
 	 */
 	XDcfg_WriteReg(DcfgInstPtr->Config.BaseAddr, XDCFG_CTRL_OFFSET,
 				(PcapReg & ~XDCFG_CTRL_PCFG_PROG_B_MASK));
 
+	/*
+	 * 5msec delay
+	 */
+	usleep(5000);
 	/*
 	 * Polling the PCAP_INIT status for Reset
 	 */
@@ -420,7 +423,7 @@ void FabricInit(void)
 				XDCFG_STATUS_PCFG_INIT_MASK);
 
 	/*
-	 * Setting PCFG_PROG_B signal to low
+	 * Setting PCFG_PROG_B signal to high
 	 */
 	XDcfg_WriteReg(DcfgInstPtr->Config.BaseAddr, XDCFG_CTRL_OFFSET,
 			(PcapReg | XDCFG_CTRL_PCFG_PROG_B_MASK));
@@ -438,50 +441,6 @@ void FabricInit(void)
 	fsbl_printf(DEBUG_INFO,"Devcfg Status register = 0x%x \r\n",StatusReg);
 
 	fsbl_printf(DEBUG_INFO,"PCAP:Fabric is Initialized done\r\n");
-}
-
-/******************************************************************************/
-/**
-*
-* This function programs sets the level shifter.
-*
-* @param	None
-*
-* @return	None
-*
-* @note		 none
-*
-****************************************************************************/
-void EnablePLtoPSLevelShifter(void)
-{
-	/*
-	 * FSBL will not enable the level shifters for a NON PS instantiated
-	 * Bitstream
-	 * CR# 671028
-	 * This flag can be set during compilation for a NON PS instantiated
-	 * bitstream
-	 */
-#ifndef NON_PS_INSTANTIATED_BITSTREAM
-	u32 PcapReg;
-
-	/*
-	 * Set Level Shifters DT618760
-	 */
-	PcapReg = LVL_PL_PS;
-	Xil_Out32(PS_LVL_SHFTR_EN, PcapReg);
-	fsbl_printf(DEBUG_INFO,"Enabling Level Shifters PL to PS "
-			"Address = 0x%x Value = 0x%x \n\r",
-			PS_LVL_SHFTR_EN, Xil_In32(PS_LVL_SHFTR_EN));
-
-	/*
-	 * Enable AXI interface
-	 */
-	Xil_Out32(FPGA_RESET_REG, 0);
-	fsbl_printf(DEBUG_INFO,"AXI Interface enabled \n\r");
-	fsbl_printf(DEBUG_INFO, "FPGA Reset Register "
-			"Address = 0x%x , Value = 0x%x \r\n",
-			FPGA_RESET_REG ,Xil_In32(FPGA_RESET_REG));
-#endif
 }
 
 /******************************************************************************/
@@ -662,6 +621,13 @@ int XDcfgPollDone(u32 MaskValue, u32 MaxCount)
 				MaskValue) {
 		IntrStsReg = XDcfg_IntrGetStatus(DcfgInstPtr);
 		Count -=1;
+
+		if (IntrStsReg & FSBL_XDCFG_IXR_ERROR_FLAGS_MASK) {
+				fsbl_printf(DEBUG_INFO,"FATAL errors in PCAP %x\r\n",
+						IntrStsReg);
+				PcapDumpRegisters();
+				return XST_FAILURE;
+		}
 
 		if(!Count) {
 			fsbl_printf(DEBUG_GENERAL,"PCAP transfer timed out \r\n");

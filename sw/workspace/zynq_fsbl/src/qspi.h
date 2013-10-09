@@ -52,6 +52,8 @@
 * ----- ---- -------- -------------------------------------------------------
 * 1.00a ecm	01/10/10 Initial release
 * 3.00a mb  01/09/12 Added the Delay Values defines for qspi
+* 5.00a sgd	05/17/13 Added Flash Size > 128Mbit support
+* 					 Dual Stack support
 * </pre>
 *
 * @note
@@ -68,13 +70,57 @@ extern "C" {
 /***************************** Include Files *********************************/
 #include "fsbl.h"
 
+/************************** Constant Definitions *****************************/
+#define SINGLE_FLASH_CONNECTION			0
+#define DUAL_STACK_CONNECTION			1
+#define DUAL_PARALLEL_CONNECTION		2
+#define FLASH_SIZE_16MB					0x1000000
+
+/*
+ * Bank mask
+ */
+#define BANKMASK 0xF000000
+
+/*
+ * Identification of Flash
+ * Micron:
+ * Byte 0 is Manufacturer ID;
+ * Byte 1 is first byte of Device ID - 0xBB or 0xBA
+ * Byte 2 is second byte of Device ID describes flash size:
+ * 128Mbit : 0x18; 256Mbit : 0x19; 512Mbit : 0x20
+ * Spansion:
+ * Byte 0 is Manufacturer ID;
+ * Byte 1 is Device ID - Memory Interface type - 0x20 or 0x02
+ * Byte 2 is second byte of Device ID describes flash size:
+ * 128Mbit : 0x18; 256Mbit : 0x19; 512Mbit : 0x20
+ */
+
+#define MICRON_ID		0x20
+#define SPANSION_ID		0x01
+#define WINBOND_ID		0xEF
+
+#define FLASH_SIZE_ID_128M		0x18
+#define FLASH_SIZE_ID_256M		0x19
+#define FLASH_SIZE_ID_512M		0x20
+#define FLASH_SIZE_ID_1G		0x21
+
+/*
+ * Size in bytes
+ */
+#define FLASH_SIZE_128M			0x1000000
+#define FLASH_SIZE_256M			0x2000000
+#define FLASH_SIZE_512M			0x4000000
+#define FLASH_SIZE_1G			0x8000000
+
 /************************** Function Prototypes ******************************/
-void InitQspi(void);
+u32 InitQspi(void);
 
 u32 QspiAccess( u32 SourceAddress,
 		u32 DestinationAddress,
 		u32 LengthBytes);
 
+u32 FlashReadID(void);
+u32 SendBankSelect(u8 BankSel);
 /************************** Variable Definitions *****************************/
 
 

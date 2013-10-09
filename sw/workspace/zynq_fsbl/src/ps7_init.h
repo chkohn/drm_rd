@@ -87,7 +87,10 @@ extern unsigned long  * ps7_peripherals_init_data;
 /* Returns codes  of PS7_Init */
 #define PS7_INIT_SUCCESS   (0)    // 0 is success in good old C
 #define PS7_INIT_CORRUPT   (1)    // 1 the data is corrupted, and slcr reg are in corrupted state now
-#define PS7_INIT_TIMEOUT   (2)    // 1 when a poll operation timed out
+#define PS7_INIT_TIMEOUT   (2)    // 2 when a poll operation timed out
+#define PS7_POLL_FAILED_DDR_INIT (3)    // 3 when a poll operation timed out for ddr init
+#define PS7_POLL_FAILED_DMA      (4)    // 4 when a poll operation timed out for dma done bit
+#define PS7_POLL_FAILED_PLL      (5)    // 5 when a poll operation timed out for pll sequence init
 
 
 /* Silicon Versions */
@@ -95,10 +98,13 @@ extern unsigned long  * ps7_peripherals_init_data;
 #define PCW_SILICON_VERSION_2 1
 #define PCW_SILICON_VERSION_3 2
 
+/* This flag to be used by FSBL to check whether ps7_post_config() proc exixts */
+#define PS7_POST_CONFIG
+
 /* Freq of all peripherals */
 
 #define APU_FREQ  666666666
-#define DDR_FREQ  533333313
+#define DDR_FREQ  533333333
 #define DCI_FREQ  10159000
 #define QSPI_FREQ  200000000
 #define SMC_FREQ  100000000
@@ -115,14 +121,16 @@ extern unsigned long  * ps7_peripherals_init_data;
 #define CAN_FREQ  23809500
 #define PCAP_FREQ  200000000
 #define TPIU_FREQ  0
-#define FPGA0_FREQ  75000000
-#define FPGA1_FREQ  150000000
-#define FPGA2_FREQ  100000000
-#define FPGA3_FREQ  100000000
+#define FPGA0_FREQ  100000000
+#define FPGA1_FREQ  50000000
+#define FPGA2_FREQ  50000000
+#define FPGA3_FREQ  50000000
 
 
 int ps7_config( unsigned long*);
 int ps7_init();
+int ps7_post_config();
+char* getPS7MessageInfo(unsigned key);
 
 #ifdef __cplusplus
 }

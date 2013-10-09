@@ -51,12 +51,17 @@
 * Ver	Who	Date		Changes
 * ----- ---- -------- -------------------------------------------------------
 * 1.00a bh	05/28/11	Initial release
-* 1.00a nm	03/20/12	Changed the SD base clock divider from 
+* 1.00a nm	03/20/12	Changed the SD base clock divider from
 						0x40 to 0x04.
 * 3.00a mb 	08/16/12	Added the flag XPAR_PS7_SD_0_S_AXI_BASEADDR
 * 3.00a	sgd	08/16/12	SD Boot time improvement
 * 						Added SD high speed and 4bit support check
 * 4.00a sgd	02/28/13	Code cleanup
+* 5.00a sgd 05/17/13	Added MMC support
+* 						To support MMC, added two separate functions
+* 						sd_init for SD initialization
+* 						mmc_init for MMC initialization
+*
 * </pre>
 *
 * @note
@@ -70,6 +75,7 @@
 #include "ff.h"
 #include "xil_types.h"
 #include "sd_hardware.h"
+#include "sleep.h"
 #ifndef PEEP_CODE
 #include "ps7_init.h"
 #endif
@@ -102,6 +108,23 @@ static u32 desc_table[4];
 #define sd_in16(InAddress)		Xil_In16((XPAR_PS7_SD_0_S_AXI_BASEADDR) + (InAddress))
 #define sd_in8(InAddress)		Xil_In8((XPAR_PS7_SD_0_S_AXI_BASEADDR) + (InAddress))
 
+#ifdef MMC_SUPPORT
+
+#define MMC_CLK_52M				52000000
+#define MMC_CLK_26M				26000000
+#define MMC_HS_SUPPORT			0x1
+#define MMC_4BIT_SUPPORT		0x1
+#define EXT_CSD_BUS_WIDTH		183
+#define EXT_CSD_HS_TIMING		185
+#define MMC_SWITCH_MODE_WRITE_BYTE	0x03
+#define MMC_OCR_REG_VALUE	((0x1 << 30) | (0x1FF << 15))
+
+static DRESULT mmc_init(void);
+#else
+
+static DRESULT sd_init(void);
+
+#endif
 /******************************************************************************/
 /**
 *
@@ -188,11 +211,12 @@ static void init_port(void)
 #define ACMD41	(0x80+41)	/* SEND_OP_COND (SDC) */
 #define CMD2	(2)		/* SEND_CID */
 #define CMD3	(3)		/* RELATIVE_ADDR */
+#define CMD4	(4)		/* SET_DSR */
 #define CMD5	(5)		/* SLEEP_WAKE (SDC) */
 #define CMD6    (6)		/* SWITCH_FUNC */
 #define ACMD6   (0x80+6)   	/* SET_BUS_WIDTH (SDC) */
 #define CMD7	(7)		/* SELECT */
-#define CMD8	(8)		/* SEND_IF_COND */
+#define CMD8	(8)		/* SEND_IF_COND/SEND_EXT_CSD */
 #define CMD9	(9)		/* SEND_CSD */
 #define CMD10	(10)		/* SEND_CID */
 #define CMD12	(12)		/* STOP_TRANSMISSION */
@@ -260,21 +284,36 @@ static int make_command (unsigned cmd)
 		case CMD3:
 			retval |= RSP_R6;
 		break;
+		case CMD4:
+			retval |= (SD_CMD_RESP_NONE);
+			break;
 		case CMD5:
 			retval |= RSP_R1b;
 		break;
+#ifdef MMC_SUPPORT
 		case CMD6:
-			retval |= RSP_R1|SD_CMD_DATA;
+			retval |= RSP_R1b;
 		break;
+#else
+		case CMD6:
+			retval |= RSP_R1 | SD_CMD_DATA;
+			break;
+#endif
 		case ACMD6:
 			retval |= RSP_R1;
 		break;
 		case CMD7:
 			retval |= RSP_R1;
 		break;
+#ifdef MMC_SUPPORT
+		case CMD8:
+			retval |= RSP_R1 | SD_CMD_DATA;
+			break;
+#else
 		case CMD8:
 			retval |= RSP_R1;
-		break;
+			break;
+#endif
 		case CMD9:
 			retval |= RSP_R2;
 		break;
@@ -512,8 +551,6 @@ DSTATUS disk_status (
 		return s;
 }
 
-
-
 /*-----------------------------------------------------------------------*/
 /* Initialize Disk Drive						 */
 /*-----------------------------------------------------------------------*/
@@ -522,15 +559,7 @@ DSTATUS disk_initialize (
 		BYTE drv	/* Physical drive number (0) */
 )
 {
-	BYTE ty;
 	DSTATUS s;
-	DWORD response;
-	unsigned rca;
-	u16 regval;
-	u8 status_data[64];
-	u8 sd_4bit_flag=0;
-	u8 sd_hs_flag=0;
-	u16 clk_div;
 
 	/*
 	 * Check if card is in the socket
@@ -545,6 +574,356 @@ DSTATUS disk_initialize (
 	 * Initialize the host controller
 	 */
 	init_port();
+
+#ifdef MMC_SUPPORT
+	s = mmc_init();
+	if(s != RES_OK) {
+		fsbl_printf(DEBUG_GENERAL,"MMC Initialization Failed.\n");
+		return s;
+	}
+#else
+	s = sd_init();
+	if(s != RES_OK) {
+		fsbl_printf(DEBUG_GENERAL,"SD Initialization Failed.\n");
+		return s;
+	}
+#endif
+
+	if (CardType)		 /* Initialization succeeded */
+			s &= ~STA_NOINIT;
+	else			/* Initialization failed */
+			s |= STA_NOINIT;
+	Stat = s;
+
+	return s;
+}
+
+
+
+/*-----------------------------------------------------------------------*/
+/* Read Sector(s)							 */
+/*-----------------------------------------------------------------------*/
+
+DRESULT disk_read (
+		BYTE drv,	/* Physical drive number (0) */
+		BYTE *buff,	/* Pointer to the data buffer to store read data */
+		DWORD sector,	/* Start sector number (LBA) */
+		BYTE count	/* Sector count (1..128) */
+)
+{
+	DSTATUS s;
+
+	s = disk_status(drv);
+	if (s & STA_NOINIT) return RES_NOTRDY;
+	if (!count) return RES_PARERR;
+	/* Convert LBA to byte address if needed */
+    if (!(CardType & CT_BLOCK)) sector *= SD_BLOCK_SZ;
+
+    blkcnt = count;
+    blksize= SD_BLOCK_SZ;
+
+    /* set adma2 for transfer */
+    setup_adma2_trans(buff);
+
+    /* Multiple block read */
+    send_cmd(CMD18, sector, NULL);
+
+    /* check for dma transfer complete */
+    if (!dma_trans_cmpl()) {
+    	return RES_ERROR;
+    }
+
+    return RES_OK;
+}
+
+
+/*-----------------------------------------------------------------------*/
+/* Miscellaneous Functions						*/
+/*-----------------------------------------------------------------------*/
+
+DRESULT disk_ioctl (
+	BYTE drv,				/* Physical drive number (0) */
+	BYTE ctrl,				/* Control code */
+	void *buff				/* Buffer to send/receive control data */
+)
+{
+	DRESULT res;
+
+	if (disk_status(drv) & STA_NOINIT)	/* Check if card is in the socket */
+			return RES_NOTRDY;
+
+	res = RES_ERROR;
+	switch (ctrl) {
+		case CTRL_SYNC :	/* Make sure that no pending write process */
+			break;
+
+		case GET_SECTOR_COUNT : /* Get number of sectors on the disk (DWORD) */
+			break;
+
+		case GET_BLOCK_SIZE :	/* Get erase block size in unit of sector (DWORD) */
+			*(DWORD*)buff = 128;
+			res = RES_OK;
+			break;
+
+		default:
+			res = RES_PARERR;
+			break;
+	}
+
+		return res;
+}
+
+/******************************************************************************/
+/**
+*
+* This function is User Provided Timer Function for FatFs module
+*
+* @param	None
+*
+* @return	DWORD
+*
+* @note		None
+*
+****************************************************************************/
+DWORD get_fattime (void)
+{
+	return	((DWORD)(2010 - 1980) << 25)	/* Fixed to Jan. 1, 2010 */
+		| ((DWORD)1 << 21)
+		| ((DWORD)1 << 16)
+		| ((DWORD)0 << 11)
+		| ((DWORD)0 << 5)
+		| ((DWORD)0 >> 1);
+}
+
+
+
+#ifdef MMC_SUPPORT
+/*
+ * MMC initialization
+ */
+static DRESULT mmc_init(void)
+{
+	BYTE ty;
+	DSTATUS s;
+	DWORD response;
+	unsigned rca;
+	u16 regval;
+	u16 clk_div;
+	u32 argument;
+	u8 status_data[512];
+
+	ty= CT_MMC;
+
+	/*
+	 * Enter Idle state
+	 */
+	send_cmd(CMD0, 0, NULL);
+
+	/*
+	 * Wait for leaving idle state (CMD1 with HCS bit)
+	 */
+	while (1) {
+
+		argument = MMC_OCR_REG_VALUE;
+
+		s= send_cmd(CMD1, argument, &response);
+		if (s == 0) {
+			/*
+			 * command error; probably an SD card
+			 */
+			ty = 0;
+			goto fail;
+		}
+		if (response & 1<<31) {
+			break;
+		}
+	}
+
+	if (response & 1<<30) {
+		/*
+		 * Card supports block addressing
+		 */
+		ty |= CT_BLOCK;
+	}
+
+	/*
+	 * Get CID
+	 */
+	send_cmd(CMD2, 0, &response);
+
+	/*
+	 * Set RCA
+	 */
+	rca = 0x1234;
+	send_cmd(CMD3, rca << 16, &response);
+
+	/*
+	 * Send CSD
+	 */
+	send_cmd(CMD9,rca<<16,&response);
+
+	/*
+	 * select card
+	 */
+	send_cmd(CMD7, rca << 16, &response);
+
+	/*
+	 * Switch the bus width to 4bit
+	 */
+	argument = (MMC_SWITCH_MODE_WRITE_BYTE << 24) |
+			(EXT_CSD_BUS_WIDTH << 16) |
+			(1 << 8);
+	send_cmd(CMD6, argument, &response);
+
+	/*
+	 * Delay for device to setup
+	 */
+	usleep(1000);
+
+	/*
+	 * Enable 4bit mode in controller
+	 */
+	regval = sd_in16(SD_HOST_CTRL_R);
+	regval |= SD_HOST_4BIT;
+	sd_out16(SD_HOST_CTRL_R, regval);
+
+	/*
+	 * Switch device to high speed
+	 */
+	argument = (MMC_SWITCH_MODE_WRITE_BYTE << 24) |
+				(EXT_CSD_HS_TIMING << 16) |
+				(1 << 8);
+	send_cmd(CMD6, argument, &response);
+
+	/*
+	 * Delay for device to setup
+	 */
+	usleep(1000);
+
+	/*
+	 * Verify Bus width switch to high speed support
+	 */
+	blkcnt = 1;
+	blksize= 512;
+
+	/*
+	 * Set adma2 for transfer
+	 */
+	setup_adma2_trans(&status_data[0]);
+
+	/*
+	 * Check for high speed support switch
+	 */
+	send_cmd(CMD8, 0x0, &response);
+
+	/*
+	 * Check for dma transfer complete
+	 */
+	if (!dma_trans_cmpl()) {
+		return RES_ERROR;
+	}
+
+	/*
+	 * Check for 4bit support
+	 */
+	if (status_data[EXT_CSD_BUS_WIDTH] ==  MMC_4BIT_SUPPORT) {
+		fsbl_printf(DEBUG_INFO, "Bus Width 4Bit\r\n");
+	}
+
+
+	if (status_data[EXT_CSD_HS_TIMING] == MMC_HS_SUPPORT) {
+		fsbl_printf(DEBUG_INFO, "High Speed Mode\r\n");
+		/*
+		 * Disable SD clock and internal clock
+		 */
+		regval = sd_in16(SD_CLK_CTL_R);
+		regval &= ~(SD_CLK_SD_EN|SD_CLK_INT_EN);
+		sd_out16(SD_CLK_CTL_R, regval);
+
+		clk_div = (SDIO_FREQ / MMC_CLK_52M);
+		if (!(SDIO_FREQ % MMC_CLK_52M)) {
+			clk_div -=1;
+		}
+
+		/*
+		 * Enable Internal clock and wait for it to stabilize
+		 */
+		regval = (clk_div << SD_DIV_SHIFT) | SD_CLK_INT_EN;
+		sd_out16(SD_CLK_CTL_R, regval);
+		do {
+			regval = sd_in16(SD_CLK_CTL_R);
+		} while (!(regval & SD_CLK_INT_STABLE));
+
+		/*
+		 * Enable SD clock
+		 */
+		regval |= SD_CLK_SD_EN;
+		sd_out16(SD_CLK_CTL_R, regval);
+
+		/*
+		 * Enable high speed mode in controller
+		 */
+		regval = sd_in16(SD_HOST_CTRL_R);
+		regval |= SD_HOST_HS;
+		sd_out16(SD_HOST_CTRL_R, regval);
+	} else {
+		/*
+		 * Disable SD clock and internal clock
+		 */
+		regval = sd_in16(SD_CLK_CTL_R);
+		regval &= ~(SD_CLK_SD_EN|SD_CLK_INT_EN);
+		sd_out16(SD_CLK_CTL_R, regval);
+
+		/*
+		 * Calculating clock divisor
+		 */
+		clk_div = (SDIO_FREQ / MMC_CLK_26M);
+		if (!(SDIO_FREQ % MMC_CLK_26M)) {
+			clk_div -=1;
+		}
+
+		/*
+		 * Enable Internal clock and wait for it to stabilize
+		 */
+		regval = (clk_div << SD_DIV_SHIFT) | SD_CLK_INT_EN;
+		sd_out16(SD_CLK_CTL_R, regval);
+		do {
+			regval = sd_in16(SD_CLK_CTL_R);
+		} while (!(regval & SD_CLK_INT_STABLE));
+
+		/*
+		 * Enable SD clock
+		 */
+		regval |= SD_CLK_SD_EN;
+		sd_out16(SD_CLK_CTL_R, regval);
+	}
+
+	/*
+	 * Set R/W block length to 512
+	 */
+	send_cmd(CMD16, SD_BLOCK_SZ, &response);
+
+fail:
+	CardType = ty;
+
+	return RES_OK;
+}
+
+#else
+/*
+ * SD initialization
+ */
+DRESULT sd_init(void)
+{
+	BYTE ty;
+	DSTATUS s;
+	DWORD response;
+	unsigned rca;
+	u16 regval;
+	u8 status_data[64];
+	u8 sd_4bit_flag=0;
+	u8 sd_hs_flag=0;
+	u16 clk_div;
 
 	/*
 	 * Enter Idle state
@@ -711,7 +1090,7 @@ DSTATUS disk_initialize (
 	    setup_adma2_trans(&status_data[0]);
 
 	    /*
-	     * Check for high speed support switch
+	     * Switch device to high speed
 	     */
 		send_cmd(CMD6, 0x80FFFFF1, &response);
 
@@ -794,110 +1173,9 @@ DSTATUS disk_initialize (
 
 fail:
 	CardType = ty;
-	if (ty)		 /* Initialization succeeded */
-			s &= ~STA_NOINIT;
-	else			/* Initialization failed */
-			s |= STA_NOINIT;
-	Stat = s;
 
-	return s;
+	return RES_OK;
 }
-
-
-
-/*-----------------------------------------------------------------------*/
-/* Read Sector(s)							 */
-/*-----------------------------------------------------------------------*/
-
-DRESULT disk_read (
-		BYTE drv,	/* Physical drive number (0) */
-		BYTE *buff,	/* Pointer to the data buffer to store read data */
-		DWORD sector,	/* Start sector number (LBA) */
-		BYTE count	/* Sector count (1..128) */
-)
-{
-	DSTATUS s;
-
-	s = disk_status(drv);
-	if (s & STA_NOINIT) return RES_NOTRDY;
-	if (!count) return RES_PARERR;
-	/* Convert LBA to byte address if needed */
-    if (!(CardType & CT_BLOCK)) sector *= SD_BLOCK_SZ;
-
-    blkcnt = count;
-    blksize= SD_BLOCK_SZ;
-
-    /* set adma2 for transfer */
-    setup_adma2_trans(buff);
-
-    /* Multiple block read */
-    send_cmd(CMD18, sector, NULL);
-
-    /* check for dma transfer complete */
-    if (!dma_trans_cmpl()) {
-    	return RES_ERROR;
-    }
-
-    return RES_OK;
-}
-
-
-/*-----------------------------------------------------------------------*/
-/* Miscellaneous Functions						*/
-/*-----------------------------------------------------------------------*/
-
-DRESULT disk_ioctl (
-	BYTE drv,				/* Physical drive number (0) */
-	BYTE ctrl,				/* Control code */
-	void *buff				/* Buffer to send/receive control data */
-)
-{
-	DRESULT res;
-
-	if (disk_status(drv) & STA_NOINIT)	/* Check if card is in the socket */
-			return RES_NOTRDY;
-
-	res = RES_ERROR;
-	switch (ctrl) {
-		case CTRL_SYNC :	/* Make sure that no pending write process */
-			break;
-
-		case GET_SECTOR_COUNT : /* Get number of sectors on the disk (DWORD) */
-			break;
-
-		case GET_BLOCK_SIZE :	/* Get erase block size in unit of sector (DWORD) */
-			*(DWORD*)buff = 128;
-			res = RES_OK;
-			break;
-
-		default:
-			res = RES_PARERR;
-			break;
-	}
-
-		return res;
-}
-
-/******************************************************************************/
-/**
-*
-* This function is User Provided Timer Function for FatFs module
-*
-* @param	None
-*
-* @return	DWORD
-*
-* @note		None
-*
-****************************************************************************/
-DWORD get_fattime (void)
-{
-	return	((DWORD)(2010 - 1980) << 25)	/* Fixed to Jan. 1, 2010 */
-		| ((DWORD)1 << 21)
-		| ((DWORD)1 << 16)
-		| ((DWORD)0 << 11)
-		| ((DWORD)0 << 5)
-		| ((DWORD)0 >> 1);
-}
+#endif
 
 #endif

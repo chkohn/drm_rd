@@ -62,6 +62,7 @@
 
 #include "fsbl.h"
 #include "xstatus.h"
+#include "fsbl_hooks.h"
 
 /************************** Variable Definitions *****************************/
 
@@ -151,5 +152,22 @@ u32 FsblHookBeforeHandoff(void)
 }
 
 
+/******************************************************************************
+* This function is the hook which will be called in case FSBL fall back
+*
+* @param None
+*
+* @return None
+*
+****************************************************************************/
+void FsblHookFallback(void)
+{
+	/*
+	 * User logic to be added here.
+	 * Errors to be stored in the status variable and returned
+	 */
+	fsbl_printf(DEBUG_INFO,"In FsblHookFallback function \r\n");
+	while(1);
+}
 
 

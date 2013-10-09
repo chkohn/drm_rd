@@ -54,6 +54,7 @@
 * 1.00a ecm	01/10/10 Initial release
 * 2.00a  mb	25/05/12 fsbl changes for standalone bsp based
 * 3.00a sgd	30/01/13 Code cleanup
+* 5.00a sgd	17/05/13 Support for Multi Boot
 * </pre>
 *
 * @note
@@ -77,8 +78,9 @@
 /***************** Macros (Inline Functions) Definitions *********************/
 
 /************************** Function Prototypes ******************************/
-
-u32 ReadNand(u32 Address,u32 *Data);
+static u32 XNandPs_CalculateLength(XNandPs *NandInstPtr,
+										u64 Offset,
+										u32 Length);
 
 /************************** Variable Definitions *****************************/
 
@@ -155,47 +157,6 @@ u32 InitNand(void)
 /******************************************************************************/
 /**
 *
-* This function reads the requested data from NAND FLASH interface.
-* This function does not handle bad blocks. Return what it is.
-*
-* @param	Address into the FLASH data space
-*
-* @return	Data at the provided offset in the FLASH
-*
-* @note		None.
-*
-****************************************************************************/
-u32 ReadNand(u32 Address, u32 *Data)
-{
-
-	u32 Status;
-	u32 Page;
-	u32 *WordPtr;
-
-	fsbl_printf(DEBUG_INFO,"ReadNand: Address = 0x%.8x\r\n", Address);
-
-	WordPtr = (u32 *)NandInstance.DataBuf;
-
-	Page = (Address)/(NandInstance.Geometry.BytesPerPage);
-
-	Status = XNandPs_Read(NandInstPtr,
-				(u64)(Page * (NandInstance.Geometry.BytesPerPage)),
-				NandInstance.Geometry.BytesPerPage,
-				NandInstance.DataBuf,NULL);
-	if (Status != XST_SUCCESS) {
-		fsbl_printf(DEBUG_GENERAL,"ReadNand Failed: Status = 0x%.8x\r\n",
-				 Status);
-		return XST_FAILURE;
-	}
-
-	*Data = WordPtr[((Address) & (NandInstance.Geometry.BytesPerPage - 1))/4];
-
-	return Status;
-}
-
-/******************************************************************************/
-/**
-*
 * This function provides the NAND FLASH interface for the Simplified header
 * functionality. This function handles bad blocks.
 *
@@ -213,110 +174,131 @@ u32 ReadNand(u32 Address, u32 *Data)
 ****************************************************************************/
 u32 NandAccess(u32 SourceAddress, u32 DestinationAddress, u32 LengthBytes)
 {
-	u32 Status = XST_SUCCESS;
-	u32 PageSizeMask;
-	u32 PageSize;
-	u32 BytesPerBlock;
-	u32 TempSourceAddress;
-	u32 ByteCount = 0;
-	u32 TmpAddress = 0;
-	int BlockCount = 0;
-	int BadBlocks = 0;
-	u32 LastBlockCount = 0;
-	u32 Data;
-
-	PageSize = NandInstance.Geometry.BytesPerPage;
-	PageSizeMask = PageSize - 1;
-	TempSourceAddress = SourceAddress;
-	BytesPerBlock = (NandInstance.Geometry.PagesPerBlock * PageSize);
-	Data = 0xFFFFFFFF;
+	u32 ActLen;
+	u32 BlockOffset;
+	u32 Block;
+	u32 Status;
+	u32 BytesLeft = LengthBytes;
+	u32 BlockSize = NandInstPtr->Geometry.BlockSize;
+	u8 *BufPtr = (u8 *)DestinationAddress;
+	u32 ReadLen;
+	u32 BlockReadLen;
+	u32 Offset;
+	u32 TmpAddress = 0 ;
+	u32 BlockCount = 0;
+	u32 BadBlocks = 0;
 
 	/*
 	 * First get bad blocks before the source address
 	 */
 	while (TmpAddress < SourceAddress) {
 		while (XNandPs_IsBlockBad(NandInstPtr, BlockCount) ==
-							XST_SUCCESS) {
+				XST_SUCCESS) {
 			BlockCount ++;
 			BadBlocks ++;
 		}
 
-		TmpAddress += BytesPerBlock;
+		TmpAddress += BlockSize;
 		BlockCount ++;
 	}
 
-	/*
-	 * Previous loop advanced BlockCount one more too much
-	 */
-	LastBlockCount = BlockCount - 1;
+	Offset = SourceAddress + BadBlocks * BlockSize;
 
 	/*
-	 * Now transfer with bad block skipping
+	 * Calculate the actual length including bad blocks
 	 */
-	while (ByteCount < LengthBytes) {
-		int TmpBadBlocks = 0;
-		int Length;
+	ActLen = XNandPs_CalculateLength(NandInstPtr, Offset, LengthBytes);
 
-		TempSourceAddress = SourceAddress + ByteCount +
-								BadBlocks * BytesPerBlock;
-		BlockCount = TempSourceAddress / BytesPerBlock;
-
-		/*
-		 * If advance to the next block, needs to check bad block
-		 */
-		if (BlockCount > LastBlockCount) {
-			LastBlockCount = BlockCount;
-
-		while (XNandPs_IsBlockBad(NandInstPtr, BlockCount) ==
-						XST_SUCCESS) {
-
-			BlockCount ++;
-			TmpBadBlocks ++;
-			fsbl_printf(DEBUG_INFO,"Found bad block %d: %d\r\n",
-						BlockCount, TmpBadBlocks);
-		}
-
-		if (TmpBadBlocks) {
-			BadBlocks += TmpBadBlocks;
-			TempSourceAddress += TmpBadBlocks * BytesPerBlock;
-			LastBlockCount += TmpBadBlocks;
-			}
-		}
-
-		if (LengthBytes == 4) {
-			Status = ReadNand(TempSourceAddress,&Data);
-			*((u32 *)DestinationAddress) = Data;
-
-			return Status;
-		}
-
-		/*
-		 * NAND transfer is page-wise
-		 */
-		Length = PageSize - (TempSourceAddress & PageSizeMask);
-
-		if ((Length + ByteCount) > LengthBytes) {
-			Length = LengthBytes - ByteCount;
-		}
-
-		Status = XNandPs_Read(NandInstPtr,
-					(u64)TempSourceAddress,
-					Length,
-					(u32 *)(DestinationAddress + ByteCount),
-					NULL);
-
-		if (Status != XST_SUCCESS) {
-			fsbl_printf(DEBUG_GENERAL,"NandAccess Failed: source %x, "
-					 "count %d, destinationaddr %x, "
-					 "Status = 0x%.8x\r\n",
-					 (u64)TempSourceAddress, Length,
-					 DestinationAddress + ByteCount, Status);
-			return Status;
-		}
-		ByteCount += Length;
+	/*
+	 *  Check if the actual length cross flash size
+	 */
+	if (Offset + ActLen > NandInstPtr->Geometry.DeviceSize) {
+		return XST_FAILURE;
 	}
 
-	return Status;
+	while (BytesLeft > 0) {
+		BlockOffset = Offset & (BlockSize - 1);
+		Block = (Offset & ~(BlockSize - 1))/BlockSize;
+		BlockReadLen = BlockSize - BlockOffset;
+
+		Status = XNandPs_IsBlockBad(NandInstPtr, Block);
+		if (Status == XST_SUCCESS) {
+			/* Move to next block */
+			Offset += BlockReadLen;
+			continue;
+		}
+
+		/*
+		 * Check if we cross block boundary
+		 */
+		if (BytesLeft < BlockReadLen) {
+			ReadLen = BytesLeft;
+		} else {
+			ReadLen = BlockReadLen;
+		}
+
+		/*
+		 * Read from the NAND flash
+		 */
+		Status = XNandPs_Read(NandInstPtr, Offset, ReadLen, BufPtr, NULL);
+		if (Status != XST_SUCCESS) {
+			return Status;
+		}
+		BytesLeft -= ReadLen;
+		Offset += ReadLen;
+		BufPtr += ReadLen;
+	}
+
+	return XST_SUCCESS;
+}
+
+/*****************************************************************************/
+/**
+*
+* This function returns the length including bad blocks from a given offset and
+* length.
+*
+* @param	NandInstPtr is the pointer to the XNandPs instance.
+* @param	Offset is the flash data address to read from.
+* @param	Length is number of bytes to read.
+*
+* @return
+*		- Return actual length including bad blocks.
+*
+* @note		None.
+*
+******************************************************************************/
+static u32 XNandPs_CalculateLength(XNandPs *NandInstPtr,
+									u64 Offset,
+									u32 Length)
+{
+	u32 BlockSize = NandInstPtr->Geometry.BlockSize;
+	u32 CurBlockLen;
+	u32 CurBlock;
+	u32 Status;
+	u32 TempLen = 0;
+	u32 ActLen = 0;
+
+	while (TempLen < Length) {
+		CurBlockLen = BlockSize - (Offset & (BlockSize - 1));
+		CurBlock = (Offset & ~(BlockSize - 1))/BlockSize;
+
+		/*
+		 * Check if the block is bad
+		 */
+		Status = XNandPs_IsBlockBad(NandInstPtr, CurBlock);
+		if (Status != XST_SUCCESS) {
+			/* Good Block */
+			TempLen += CurBlockLen;
+		}
+		ActLen += CurBlockLen;
+		Offset += CurBlockLen;
+		if (Offset >= NandInstPtr->Geometry.DeviceSize) {
+			break;
+		}
+	}
+
+	return ActLen;
 }
 
 #endif

@@ -26,8 +26,6 @@ MEMORY
 
 ENTRY(_vector_table)
 
-/* Define the sections, and where they are mapped in memory */
-PHDRS { text PT_LOAD; }
 
 SECTIONS
 {
@@ -45,7 +43,7 @@ SECTIONS
    *(.vfp11_veneer)
    *(.ARM.extab)
    *(.gnu.linkonce.armextab.*)
-} > ps7_ram_0_S_AXI_BASEADDR :text
+} > ps7_ram_0_S_AXI_BASEADDR
 
 .init : {
    KEEP (*(.init))
@@ -150,6 +148,46 @@ SECTIONS
    *(.gcc_except_table)
 } > ps7_ram_0_S_AXI_BASEADDR
 
+.mmu_tbl ALIGN(0x4000): {
+   __mmu_tbl_start = .;
+   *(.mmu_tbl)
+   __mmu_tbl_end = .;
+} > ps7_ram_0_S_AXI_BASEADDR
+
+.ARM.exidx : {
+   __exidx_start = .;
+   *(.ARM.exidx*)
+   *(.gnu.linkonce.armexidix.*.*)
+   __exidx_end = .;
+} > ps7_ram_0_S_AXI_BASEADDR
+
+.preinit_array : {
+   __preinit_array_start = .;
+   KEEP (*(SORT(.preinit_array.*)))
+   KEEP (*(.preinit_array))
+   __preinit_array_end = .;
+} > ps7_ram_0_S_AXI_BASEADDR
+
+.init_array : {
+   __init_array_start = .;
+   KEEP (*(SORT(.init_array.*)))
+   KEEP (*(.init_array))
+   __init_array_end = .;
+} > ps7_ram_0_S_AXI_BASEADDR
+
+.fini_array : {
+   __fini_array_start = .;
+   KEEP (*(SORT(.fini_array.*)))
+   KEEP (*(.fini_array))
+   __fini_array_end = .;
+} > ps7_ram_0_S_AXI_BASEADDR
+
+.ARM.attributes : {
+   __ARM.attributes_start = .;
+   *(.ARM.attributes)
+   __ARM.attributes_end = .;
+} > ps7_ram_0_S_AXI_BASEADDR
+
 .sdata : {
    __sdata_start = .;
    *(.sdata)
@@ -189,46 +227,6 @@ SECTIONS
    *(.gnu.linkonce.b.*)
    *(COMMON)
    __bss_end = .;
-} > ps7_ram_0_S_AXI_BASEADDR
-
-.mmu_tbl ALIGN(0x4000): {
-   __mmu_tbl_start = .;
-   *(.mmu_tbl)
-   __mmu_tbl_end = .;
-} > ps7_ram_0_S_AXI_BASEADDR
-
-.ARM.exidx : {
-   __exidx_start = .;
-   *(.ARM.exidx*)
-   *(.gnu.linkonce.armexidix.*.*)
-   __exidx_end = .;
-} > ps7_ram_0_S_AXI_BASEADDR
-
-.preinit_array : {
-   __preinit_array_start = .;
-   KEEP (*(SORT(.preinit_array.*)))
-   KEEP (*(.preinit_array))
-   __preinit_array_end = .;
-} > ps7_ram_0_S_AXI_BASEADDR
-
-.init_array : {
-   __init_array_start = .;
-   KEEP (*(SORT(.init_array.*)))
-   KEEP (*(.init_array))
-   __init_array_end = .;
-} > ps7_ram_0_S_AXI_BASEADDR
-
-.fini_array : {
-   __fini_array_start = .;
-   KEEP (*(SORT(.fini_array.*)))
-   KEEP (*(.fini_array))
-   __fini_array_end = .;
-} > ps7_ram_0_S_AXI_BASEADDR
-
-.ARM.attributes : {
-   __ARM.attributes_start = .;
-   *(.ARM.attributes)
-   __ARM.attributes_end = .;
 } > ps7_ram_0_S_AXI_BASEADDR
 
 _SDA_BASE_ = __sdata_start + ((__sbss_end - __sdata_start) / 2 );

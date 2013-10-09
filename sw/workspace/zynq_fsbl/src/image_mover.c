@@ -61,6 +61,8 @@
 * 4.00a sgd	02/28/13	Fix for CR#691148
 *						Fix for CR#695578
 *
+* 4.00a sgd	04/23/13	Fix for CR#710128
+*
 * </pre>
 *
 * @note
@@ -74,7 +76,16 @@
 #include "xil_printf.h"
 #include "xreg_cortexa9.h"
 #include "pcap.h"
+#include "fsbl_hooks.h"
+#include "md5.h"
 
+#ifdef XPAR_XWDTPS_0_BASEADDR
+#include "xwdtps.h"
+#endif
+
+#ifdef RSA_SUPPORT
+#include "rsa.h"
+#endif
 /************************** Constant Definitions *****************************/
 
 /* We are 32-bit machine */
@@ -86,9 +97,22 @@
 /***************** Macros (Inline Functions) Definitions *********************/
 
 /************************** Function Prototypes ******************************/
-
+u32 ValidateParition(u32 StartAddr, u32 Length, u32 ChecksumOffset);
+u32 GetPartitionChecksum(u32 ChecksumOffset, u8 *Checksum);
+u32 CalcPartitionChecksum(u32 SourceAddr, u32 DataLength, u8 *Checksum);
 
 /************************** Variable Definitions *****************************/
+/*
+ * Partition information flags
+ */
+u8 EncryptedPartitionFlag;
+u8 PLPartitionFlag;
+u8 PSPartitionFlag;
+u8 SignedPartitionFlag;
+u8 PartitionChecksumFlag;
+u8 BitstreamFlag;
+u8 ApplicationFlag;
+
 u32 ExecutionAddress;
 ImageMoverType MoveImage;
 
@@ -98,12 +122,356 @@ ImageMoverType MoveImage;
 PartHeader PartitionHeader[MAX_PARTITION_NUMBER];
 u32 PartitionCount;
 
+#ifdef XPAR_XWDTPS_0_BASEADDR
+extern XWdtPs Watchdog;	/* Instance of WatchDog Timer	*/
+#endif
+
+extern u32 Silicon_Version;
 extern u32 FlashReadBaseAddress;
-extern u8 EncryptedPartitionFlag;
-extern u8 PLPartitionFlag;
-extern u8 PSPartitionFlag;
-extern u8 SignedPartitionFlag;
 extern u8 LinearBootDeviceFlag;
+extern XDcfg *DcfgInstPtr;
+
+/*****************************************************************************/
+/**
+*
+* This function
+*
+* @param
+*
+* @return
+*
+*
+* @note		None
+*
+****************************************************************************/
+u32 LoadBootImage(void)
+{
+	u32 RebootStatusRegister = 0;
+	u32 MultiBootReg = 0;
+	u32 ImageStartAddress = 0;
+	u32 PartitionNum;
+	u32 PartitionDataLength;
+	u32 PartitionImageLength;
+	u32 PartitionTotalSize;
+	u32 PartitionExecAddr;
+	u32 PartitionAttr;
+	u32 ExecAddress = 0;
+	u32 PartitionLoadAddr;
+	u32 PartitionStartAddr;
+	u32 PartitionChecksumOffset;
+	u8 ExecAddrFlag = 0 ;
+	u32 Status;
+	PartHeader *HeaderPtr;
+
+	/*
+	 * Resetting the Flags
+	 */
+	BitstreamFlag = 0;
+	ApplicationFlag = 0;
+
+	RebootStatusRegister = Xil_In32(REBOOT_STATUS_REG);
+	fsbl_printf(DEBUG_INFO,
+			"Reboot status register: 0x%08x\r\n",RebootStatusRegister);
+
+	if (Silicon_Version == SILICON_VERSION_1) {
+		/*
+		 * Clear out fallback mask from previous run
+		 * We start from the first partition again
+		 */
+		if ((RebootStatusRegister & FSBL_FAIL_MASK) ==
+				FSBL_FAIL_MASK) {
+			fsbl_printf(DEBUG_INFO,
+					"Reboot status shows previous run falls back\r\n");
+			RebootStatusRegister &= ~(FSBL_FAIL_MASK);
+			Xil_Out32(REBOOT_STATUS_REG, RebootStatusRegister);
+		}
+
+		/*
+		 * Read the image start address
+		 */
+		ImageStartAddress = *(u32 *)BASEADDR_HOLDER;
+	} else {
+		/*
+		 * read the multiboot register
+		 */
+		MultiBootReg =  XDcfg_ReadReg(DcfgInstPtr->Config.BaseAddr,
+				XDCFG_MULTIBOOT_ADDR_OFFSET);
+
+		fsbl_printf(DEBUG_INFO,"Multiboot Register: 0x%08x\r\n",MultiBootReg);
+
+		/*
+		 * Compute the image start address
+		 */
+		ImageStartAddress = (MultiBootReg & PCAP_MBOOT_REG_REBOOT_OFFSET_MASK)
+									* GOLDEN_IMAGE_OFFSET;
+	}
+
+	fsbl_printf(DEBUG_INFO,"Image Start Address: 0x%08x\r\n",ImageStartAddress);
+
+	/*
+	 * Get partitions header information
+	 */
+	Status = GetPartitionHeaderInfo(ImageStartAddress);
+	if (Status != XST_SUCCESS) {
+		fsbl_printf(DEBUG_GENERAL, "Partition Header Load Failed\r\n");
+		OutputStatus(GET_HEADER_INFO_FAIL);
+		FsblFallback();
+	}
+
+#ifdef MMC_SUPPORT
+	/*
+	 * In case of MMC support
+	 * boot image preset in MMC will not have FSBL partition
+	 */
+	PartitionNum = 0;
+#else
+	/*
+	 * First partition header was ignored by FSBL
+	 * As it contain FSBL partition information
+	 */
+	PartitionNum = 1;
+#endif
+
+	while (PartitionNum < PartitionCount) {
+
+		fsbl_printf(DEBUG_INFO, "Partition Number: %d\r\n", PartitionNum);
+
+		HeaderPtr = &PartitionHeader[PartitionNum];
+
+		/*
+		 * Print partition header information
+		 */
+		HeaderDump(HeaderPtr);
+
+		/*
+		 * Validate partition header
+		 */
+		Status = ValidateHeader(HeaderPtr);
+		if (Status != XST_SUCCESS) {
+			fsbl_printf(DEBUG_GENERAL, "INVALID_HEADER_FAIL\r\n");
+			OutputStatus(INVALID_HEADER_FAIL);
+			FsblFallback();
+		}
+
+		/*
+		 * Load partition header information in to local variables
+		 */
+		PartitionDataLength = HeaderPtr->DataWordLen;
+		PartitionImageLength = HeaderPtr->ImageWordLen;
+		PartitionExecAddr = HeaderPtr->ExecAddr;
+		PartitionAttr = HeaderPtr->PartitionAttr;
+		PartitionLoadAddr = HeaderPtr->LoadAddr;
+		PartitionChecksumOffset = HeaderPtr->CheckSumOffset;
+		PartitionStartAddr = HeaderPtr->PartitionStart;
+		PartitionTotalSize = HeaderPtr->PartitionWordLen;
+
+
+		if (PartitionAttr & ATTRIBUTE_PL_IMAGE_MASK) {
+			fsbl_printf(DEBUG_INFO, "Bitstream\r\n");
+			PLPartitionFlag = 1;
+			PSPartitionFlag = 0;
+			BitstreamFlag = 1;
+			if (ApplicationFlag == 1) {
+				xil_printf("\r\nFSBL Warning !!!"
+						"Bitstream not loaded into PL\r\n");
+                xil_printf("Partition order invalid\r\n");                   
+				break;
+			}
+		}
+
+		if (PartitionAttr & ATTRIBUTE_PS_IMAGE_MASK) {
+			fsbl_printf(DEBUG_INFO, "Application\r\n");
+			PSPartitionFlag = 1;
+			PLPartitionFlag = 0;
+			ApplicationFlag = 1;
+		}
+
+		/*
+		 * Encrypted partition will have different value
+		 * for Image length and data length
+		 */
+		if (PartitionDataLength != PartitionImageLength) {
+			fsbl_printf(DEBUG_INFO, "Encrypted\r\n");
+			EncryptedPartitionFlag = 1;
+		} else {
+			EncryptedPartitionFlag = 0;
+		}
+
+		/*
+		 * Check for partition checksum check
+		 */
+		if (PartitionAttr & ATTRIBUTE_CHECKSUM_TYPE_MASK) {
+			PartitionChecksumFlag = 1;
+		} else {
+			PartitionChecksumFlag = 0;
+		}
+
+		/*
+		 * RSA signature check
+		 */
+		if (PartitionAttr & ATTRIBUTE_RSA_PRESENT_MASK) {
+			fsbl_printf(DEBUG_INFO, "RSA Signed\r\n");
+			SignedPartitionFlag = 1;
+		} else {
+			SignedPartitionFlag = 0;
+		}
+
+		/*
+		 * Load address check
+		 * Loop will break when PS load address zero and partition is
+		 * un-signed or un-encrypted
+		 */
+		if ((PSPartitionFlag == 1) && (PartitionLoadAddr < DDR_START_ADDR)) {
+			if ((PartitionLoadAddr == 0) &&
+					(!((SignedPartitionFlag == 1) ||
+							(EncryptedPartitionFlag == 1)))) {
+				break;
+			} else {
+				fsbl_printf(DEBUG_GENERAL,
+						"INVALID_LOAD_ADDRESS_FAIL\r\n");
+				OutputStatus(INVALID_LOAD_ADDRESS_FAIL);
+				FsblFallback();
+			}
+		}
+
+		if (PSPartitionFlag && (PartitionLoadAddr > DDR_END_ADDR)) {
+			fsbl_printf(DEBUG_GENERAL,
+					"INVALID_LOAD_ADDRESS_FAIL\r\n");
+			OutputStatus(INVALID_LOAD_ADDRESS_FAIL);
+			FsblFallback();
+		}
+
+        /*
+         * Load execution address of first PS partition
+         */
+        if (PSPartitionFlag && (!ExecAddrFlag)) {
+        	ExecAddrFlag++;
+        	ExecAddress = PartitionExecAddr;
+        }
+
+		/*
+		 * FSBL user hook call before bitstream download
+		 */
+		if (PLPartitionFlag) {
+			Status = FsblHookBeforeBitstreamDload();
+			if (Status != XST_SUCCESS) {
+				fsbl_printf(DEBUG_GENERAL,"FSBL_BEFORE_BSTREAM_HOOK_FAIL\r\n");
+				OutputStatus(FSBL_BEFORE_BSTREAM_HOOK_FAIL);
+				FsblFallback();
+			}
+		}
+
+		/*
+		 * Move partitions from boot device
+		 */
+		Status = PartitionMove(ImageStartAddress, HeaderPtr);
+		if (Status != XST_SUCCESS) {
+			fsbl_printf(DEBUG_GENERAL,"PARTITION_MOVE_FAIL\r\n");
+			OutputStatus(PARTITION_MOVE_FAIL);
+			FsblFallback();
+		}
+
+		if ((SignedPartitionFlag) || (PartitionChecksumFlag)) {
+			if(PLPartitionFlag) {
+				/*
+				 * PL partition loaded in to DDR temporary address
+				 * for authentication and checksum verification
+				 */
+				PartitionStartAddr = DDR_TEMP_START_ADDR;
+			} else {
+				PartitionStartAddr = PartitionLoadAddr;
+			}
+
+			if (PartitionChecksumFlag) {
+				/*
+				 * Validate the partition data with checksum
+				 */
+				Status = ValidateParition(PartitionStartAddr,
+						(PartitionTotalSize << WORD_LENGTH_SHIFT),
+						(PartitionChecksumOffset << WORD_LENGTH_SHIFT));
+				if (Status != XST_SUCCESS) {
+					fsbl_printf(DEBUG_GENERAL,"PARTITION_CHECKSUM_FAIL\r\n");
+					OutputStatus(PARTITION_CHECKSUM_FAIL);
+					FsblFallback();
+				}
+
+				fsbl_printf(DEBUG_INFO, "Partition Validation Done\r\n");
+			}
+
+			/*
+			 * Authentication Partition
+			 */
+			if (SignedPartitionFlag == 1 ) {
+#ifdef RSA_SUPPORT
+				Status = AuthenticateParition((u8*)PartitionStartAddr,
+						(PartitionTotalSize << WORD_LENGTH_SHIFT));
+				if (Status != XST_SUCCESS) {
+					fsbl_printf(DEBUG_GENERAL,"AUTHENTICATION_FAIL\r\n");
+					OutputStatus(AUTHENTICATION_FAIL);
+					FsblFallback();
+				}
+				fsbl_printf(DEBUG_INFO,"Authentication Done\r\n");
+#else
+				/*
+				 * In case user not enabled RSA authentication feature
+				 */
+				fsbl_printf(DEBUG_GENERAL,"RSA_SUPPORT_NOT_ENABLED_FAIL\r\n");
+				OutputStatus(RSA_SUPPORT_NOT_ENABLED_FAIL);
+				FsblFallback();
+#endif
+			}
+
+			/*
+			 * Decrypt PS partition
+			 */
+			if (EncryptedPartitionFlag && PSPartitionFlag) {
+				Status = DecryptPartition(PartitionStartAddr,
+						PartitionDataLength,
+						PartitionImageLength);
+				if (Status != XST_SUCCESS) {
+					fsbl_printf(DEBUG_GENERAL,"DECRYPTION_FAIL\r\n");
+					OutputStatus(DECRYPTION_FAIL);
+					FsblFallback();
+				}
+			}
+
+			/*
+			 * Load Signed PL partition in Fabric
+			 */
+			if (PLPartitionFlag) {
+				Status = PcapLoadPartition((u32*)PartitionStartAddr,
+						(u32*)PartitionLoadAddr,
+						PartitionImageLength,
+						PartitionDataLength,
+						EncryptedPartitionFlag);
+				if (Status != XST_SUCCESS) {
+					fsbl_printf(DEBUG_GENERAL,"BITSTREAM_DOWNLOAD_FAIL\r\n");
+					OutputStatus(BITSTREAM_DOWNLOAD_FAIL);
+					FsblFallback();
+				}
+			}
+		}
+
+
+		/*
+		 * FSBL user hook call after bitstream download
+		 */
+		if (PLPartitionFlag) {
+			Status = FsblHookAfterBitstreamDload();
+			if (Status != XST_SUCCESS) {
+				fsbl_printf(DEBUG_GENERAL,"FSBL_AFTER_BSTREAM_HOOK_FAIL\r\n");
+				OutputStatus(FSBL_AFTER_BSTREAM_HOOK_FAIL);
+				FsblFallback();
+			}
+		}
+		/*
+		 * Increment partition number
+		 */
+		PartitionNum++;
+	}
+
+	return ExecAddress;
+}
 
 /*****************************************************************************/
 /**
@@ -261,6 +629,8 @@ void HeaderDump(PartHeader *Header)
 									Header->PartitionStart);
 	fsbl_printf(DEBUG_INFO, "Partition Attr: 0x%08x\r\n",
 									Header->PartitionAttr);
+	fsbl_printf(DEBUG_INFO, "Partition Checksum Offset: 0x%08x\r\n",
+										Header->CheckSumOffset);
 	fsbl_printf(DEBUG_INFO, "Section Count: 0x%08x\r\n",
 									Header->SectionCount);
 	fsbl_printf(DEBUG_INFO, "Checksum: 0x%08x\r\n",
@@ -513,7 +883,9 @@ u32 PartitionMove(u32 ImageBaseAddress, PartHeader *Header)
 	 * Encrypted and Signed PS partition need to be loaded on to DDR
 	 * without decryption
 	 */
-	if(PSPartitionFlag && SignedPartitionFlag && EncryptedPartitionFlag) {
+	if (PSPartitionFlag &&
+			(SignedPartitionFlag || PartitionChecksumFlag) &&
+			EncryptedPartitionFlag) {
 		SecureTransferFlag = 0;
 	}
 
@@ -543,7 +915,8 @@ u32 PartitionMove(u32 ImageBaseAddress, PartHeader *Header)
 		SourceAddr = LoadAddr;
 	}
 
-	if ((LinearBootDeviceFlag && PLPartitionFlag && SignedPartitionFlag) ||
+	if ((LinearBootDeviceFlag && PLPartitionFlag &&
+			(SignedPartitionFlag || PartitionChecksumFlag)) ||
 				(LinearBootDeviceFlag && PSPartitionFlag) ||
 				((!LinearBootDeviceFlag) && PSPartitionFlag && SecureTransferFlag)) {
 		/*
@@ -575,9 +948,10 @@ u32 PartitionMove(u32 ImageBaseAddress, PartHeader *Header)
 	}
 
 	/*
-	 * Load Bitstream partition in to fabric
+	 * Load Bitstream partition in to fabric only
+	 * if checksum and authentication bits are not set
 	 */
-	if(PLPartitionFlag) {
+	if (PLPartitionFlag && (!(SignedPartitionFlag || PartitionChecksumFlag))) {
 		Status = PcapLoadPartition((u32*)SourceAddr,
 					(u32*)Header->LoadAddr,
 					Header->ImageWordLen,
@@ -629,3 +1003,133 @@ u32 DecryptPartition(u32 StartAddr, u32 DataLength, u32 ImageLength)
 
 	return XST_SUCCESS;
 }
+
+/******************************************************************************/
+/**
+*
+* This function Validate Partition Data by using checksum preset in image
+*
+* @param	Partition header pointer
+* @param	Partition check sum offset
+* @return
+*		- XST_SUCCESS if partition data is ok
+*		- XST_FAILURE if partition data is corrupted
+*
+* @note		None
+*
+*******************************************************************************/
+u32 ValidateParition(u32 StartAddr, u32 Length, u32 ChecksumOffset)
+{
+    u8  Checksum[MD5_CHECKSUM_SIZE];
+    u8  CalcChecksum[MD5_CHECKSUM_SIZE];
+    u32 Status;
+    u32 Index;
+
+#ifdef	XPAR_XWDTPS_0_BASEADDR
+	/*
+	 * Prevent WDT reset
+	 */
+	XWdtPs_RestartWdt(&Watchdog);
+#endif
+
+    /*
+     * Get checksum from flash
+     */
+    Status = GetPartitionChecksum(ChecksumOffset, &Checksum[0]);
+    if(Status != XST_SUCCESS) {
+            return XST_FAILURE;
+    }
+
+    fsbl_printf(DEBUG_INFO, "Actual checksum\r\n");
+
+    for (Index = 0; Index < MD5_CHECKSUM_SIZE; Index++) {
+    	fsbl_printf(DEBUG_INFO, "0x%0x ",Checksum[Index]);
+    }
+
+    fsbl_printf(DEBUG_INFO, "\r\n");
+
+    /*
+     * Calculate checksum for the partition
+     */
+    Status = CalcPartitionChecksum(StartAddr, Length, &CalcChecksum[0]);
+	if(Status != XST_SUCCESS) {
+        return XST_FAILURE;
+    }
+
+    fsbl_printf(DEBUG_INFO, "Calculated checksum\r\n");
+
+    for (Index = 0; Index < MD5_CHECKSUM_SIZE; Index++) {
+        	fsbl_printf(DEBUG_INFO, "0x%0x ",CalcChecksum[Index]);
+    }
+
+    fsbl_printf(DEBUG_INFO, "\r\n");
+
+    /*
+     * Compare actual checksum with the calculated checksum
+     */
+	for (Index = 0; Index < MD5_CHECKSUM_SIZE; Index++) {
+        if(Checksum[Index] != CalcChecksum[Index]) {
+            fsbl_printf(DEBUG_GENERAL, "Error: "
+            		"Partition DataChecksum 0x%0x!= 0x%0x\r\n",
+			Checksum[Index], CalcChecksum[Index]);
+		    return XST_FAILURE;
+        }
+    }
+
+    return XST_SUCCESS;
+}
+
+
+/******************************************************************************/
+/**
+*
+* This function gets partition checksum from flash
+*
+* @param	Check sum offset
+* @param	Checksum pointer
+* @return
+*		- XST_SUCCESS if checksum read success
+*		- XST_FAILURE if unable get checksum
+*
+* @note		None
+*
+*******************************************************************************/
+u32 GetPartitionChecksum(u32 ChecksumOffset, u8 *Checksum)
+{
+    u32 Status;
+
+    Status = MoveImage(ChecksumOffset, (u32)Checksum, MD5_CHECKSUM_SIZE);
+    if(Status != XST_SUCCESS) {
+        return XST_FAILURE;
+    }
+
+    return XST_SUCCESS;
+}
+
+
+/******************************************************************************/
+/**
+*
+* This function calculates the checksum preset in image
+*
+* @param 	Start address
+* @param 	Length of the data
+* @param 	Checksum pointer
+*
+* @return
+*		- XST_SUCCESS if Checksum calculate successful
+*		- XST_FAILURE if Checksum calculate failed
+*
+* @note		None
+*
+*******************************************************************************/
+u32 CalcPartitionChecksum(u32 SourceAddr, u32 DataLength, u8 *Checksum)
+{
+	/*
+	 * Calculate checksum using MD5 algorithm
+	 */
+	md5((u8*)SourceAddr, DataLength, Checksum, 0 );
+
+    return XST_SUCCESS;
+}
+

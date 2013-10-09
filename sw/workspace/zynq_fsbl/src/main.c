@@ -60,7 +60,7 @@
 * 				Added the performance time for ECC DDR init
 * 				Added clearing of ECC Error Code
 * 				Added the watchdog timer value
-* 4.00a sg	02/28/13	Code Cleanup
+* 4.00a sgd 02/28/13	Code Cleanup
 * 						Fix for CR#681014
 * 						Fix for CR#689077
 *						Fix for CR#694038
@@ -71,6 +71,8 @@
 *						Modified hand off address check to 1MB
 *						Added RSA authentication support
 *						Watchdog disabled for AES E-Fuse encryption
+* 5.00a sgd 05/17/13	Fallback support for E-Fuse encryption
+*                       Fix for CR#708728
 * </pre>
 *
 * @note
@@ -100,6 +102,8 @@
 #include "xil_cache.h"
 #include "xil_exception.h"
 #include "xstatus.h"
+#include "fsbl_hooks.h"
+#include "xtime_l.h"
 
 #ifdef XPAR_XWDTPS_0_BASEADDR
 #include "xwdtps.h"
@@ -109,23 +113,7 @@
 #include "xuartps_hw.h"
 #endif
 
-#ifdef RSA_SUPPORT
-#include "rsa.h"
-#endif
-
 /************************** Constant Definitions *****************************/
-
-
-/* Reboot status register defines:
- * 0xF0000000 for FSBL fallback mask to notify Boot Rom
- * 0x60000000 for FSBL to mark that FSBL has not handoff yet
- * 0x00FFFFFF for user application to use across soft reset
- */
-#define FSBL_FAIL_MASK		0xF0000000
-#define FSBL_IN_MASK		0x60000000
-
-/* The address that holds the base address for the image Boot ROM found */
-#define BASEADDR_HOLDER		0xFFFFFFF8
 
 #ifdef XPAR_XWDTPS_0_BASEADDR
 #define WDT_DEVICE_ID		XPAR_XWDTPS_0_DEVICE_ID
@@ -141,19 +129,13 @@
 XWdtPs Watchdog;		/* Instance of WatchDog Timer	*/
 #endif
 /************************** Function Prototypes ******************************/
-extern u32 FsblHookBeforeBitstreamDload(void);
-extern u32 FsblHookAfterBitstreamDload(void);
-extern void FsblHandoffExit(u32 FsblStartAddr);
-extern void FsblHandoffJtagExit(void);
 extern int ps7_init();
-extern void EnablePLtoPSLevelShifter(void);
+#ifdef PS7_POST_CONFIG
+extern int ps7_post_config();
+#endif
 #ifdef PEEP_CODE
 extern void init_ddr(void);
 #endif
-u32 FsblHookBeforeHandoff(void);
-void MarkFSBLIn(void);
-void FsblHandoff(u32 FsblStartAddr);
-u32 GetResetReason(void);
 
 static void Update_MultiBootRegister(void);
 /* Exception handlers */
@@ -172,6 +154,10 @@ u32 ConvertTime_WdtCounter(u32 seconds);
 void  CheckWDTReset(void);
 #endif
 
+u32 NextValidImageCheck(void);
+
+u32 DDRInitCheck(void);
+
 /************************** Variable Definitions *****************************/
 /*
  * Base Address for the Read Functionality for Image Processing
@@ -182,26 +168,21 @@ u32 FlashReadBaseAddress = 0;
  */
 u32 Silicon_Version;
 
-extern PartHeader PartitionHeader[MAX_PARTITION_NUMBER];
-extern u32 PartitionCount;
-
-extern ImageMoverType MoveImage;
-extern XDcfg *DcfgInstPtr;
-
-/*
- * Partition information flags
- */
-u8 EncryptedPartitionFlag;
-u8 PLPartitionFlag;
-u8 PSPartitionFlag;
-u8 SignedPartitionFlag;
-
 /*
  * Boot Device flag
  */
 u8 LinearBootDeviceFlag;
 
 u32 PcapCtrlRegVal;
+
+u8 SystemInitFlag;
+
+extern ImageMoverType MoveImage;
+extern XDcfg *DcfgInstPtr;
+extern u8 BitstreamFlag;
+#ifdef XPAR_PS7_QSPI_LINEAR_0_S_AXI_BASEADDR
+extern u32 QspiFlashSize;
+#endif
 /*****************************************************************************/
 /**
 *
@@ -221,24 +202,7 @@ int main(void)
 {
 	u32 BootModeRegister = 0;
 	u32 HandoffAddress = 0;
-	u32 RebootStatusRegister = 0;
-	u32 MultiBootReg = 0;
-	u32 ImageStartAddress = 0;
 	u32 Status = XST_SUCCESS;
-	u32 PartitionNum;
-	u32 PartitionDataLength;
-	u32 PartitionImageLength;
-	u32 PartitionExecAddr;
-	u32 PartitionAttr;
-	u8 ExecAddrFlag = 0;
-	u8 BitstreamFlag;
-	PartHeader *HeaderPtr;
-
-#ifdef RSA_SUPPORT
-	u32 PartitionTotalSize;
-	u32 PartitionLoadAddr;
-	u32 PartitionStartAddr;
-#endif
 
 #ifdef PEEP_CODE
 	/*
@@ -293,6 +257,19 @@ int main(void)
 			__DATE__,__TIME__);
 
 #ifdef XPAR_PS7_DDR_0_S_AXI_BASEADDR
+
+    /*
+     * DDR Read/write test 
+     */
+	Status = DDRInitCheck();
+	if (Status == XST_FAILURE) {
+		fsbl_printf(DEBUG_GENERAL,"DDR_INIT_FAIL \r\n");
+		/* Error Handling here */
+		OutputStatus(DDR_INIT_FAIL);
+		FsblFallback();
+	}
+
+
 	/*
 	 * PCAP initialization
 	 */
@@ -364,6 +341,17 @@ int main(void)
 	 * QSPI BOOT MODE
 	 */
 #ifdef XPAR_PS7_QSPI_LINEAR_0_S_AXI_BASEADDR
+
+#ifdef MMC_SUPPORT
+	/*
+	 * To support MMC boot
+	 * QSPI boot mode detection ignored
+	 */
+	if (BootModeRegister == QSPI_MODE) {
+		BootModeRegister = MMC_MODE;
+	}
+#endif
+
 	if (BootModeRegister == QSPI_MODE) {
 		fsbl_printf(DEBUG_GENERAL,"Boot mode is QSPI\n\r");
 		InitQspi();
@@ -417,6 +405,7 @@ int main(void)
 	 * SD BOOT MODE
 	 */
 #ifdef XPAR_PS7_SD_0_S_AXI_BASEADDR
+
 	if (BootModeRegister == SD_MODE) {
 		fsbl_printf(DEBUG_GENERAL,"Boot mode is SD\r\n");
 
@@ -432,6 +421,23 @@ int main(void)
 		MoveImage = SDAccess;
 		fsbl_printf(DEBUG_INFO,"SD Init Done \r\n");
 	} else
+
+	if (BootModeRegister == MMC_MODE) {
+		fsbl_printf(DEBUG_GENERAL,"Booting Device is MMC\r\n");
+
+		/*
+		 * MMC initialization returns file open error or success
+		 */
+		Status = InitSD("BOOT.BIN");
+		if (Status != XST_SUCCESS) {
+			fsbl_printf(DEBUG_GENERAL,"MMC_INIT_FAIL\r\n");
+			OutputStatus(SD_INIT_FAIL);
+			FsblFallback();
+		}
+		MoveImage = SDAccess;
+		fsbl_printf(DEBUG_INFO,"MMC Init Done \r\n");
+	} else
+
 #endif
 
 	/*
@@ -467,6 +473,9 @@ int main(void)
 
 	fsbl_printf(DEBUG_INFO,"Flash Base Address: 0x%08x\r\n", FlashReadBaseAddress);
 
+	/*
+	 * Check for valid flash address
+	 */
 	if ((FlashReadBaseAddress != XPS_QSPI_LINEAR_BASEADDR) &&
 			(FlashReadBaseAddress != XPS_NAND_BASEADDR) &&
 			(FlashReadBaseAddress != XPS_NOR_BASEADDR) &&
@@ -479,15 +488,10 @@ int main(void)
 	/*
 	 * NOR and QSPI (parallel) are linear boot devices
 	 */
-	if ((FlashReadBaseAddress == XPS_NOR_BASEADDR) ||
-			(FlashReadBaseAddress == XPS_QSPI_LINEAR_BASEADDR)) {
+	if ((FlashReadBaseAddress == XPS_NOR_BASEADDR)) {
 		fsbl_printf(DEBUG_INFO, "Linear Boot Device\r\n");
 		LinearBootDeviceFlag = 1;
 	}
-
-	RebootStatusRegister = Xil_In32(REBOOT_STATUS_REG);
-	fsbl_printf(DEBUG_INFO,
-			"Reboot status register: 0x%08x\r\n",RebootStatusRegister);
 
 #ifdef	XPAR_XWDTPS_0_BASEADDR
 	/*
@@ -496,283 +500,18 @@ int main(void)
 	XWdtPs_RestartWdt(&Watchdog);
 #endif
 
-	if (Silicon_Version == SILICON_VERSION_1) {
-		/*
-		 * Clear out fallback mask from previous run
-		 * We start from the first partition again
-		 */
-		if ((RebootStatusRegister & FSBL_FAIL_MASK) ==
-					FSBL_FAIL_MASK) {
-			fsbl_printf(DEBUG_INFO,
-					"Reboot status shows previous run falls back\r\n");
-			RebootStatusRegister &= ~(FSBL_FAIL_MASK);
-			Xil_Out32(REBOOT_STATUS_REG, RebootStatusRegister);
-		}
-
-		/*
-		 * Read the image start address
-		 */
-		ImageStartAddress = *(u32 *)BASEADDR_HOLDER;
-	} else {
-		/*
-		 * read the multiboot register
-		 */
-		MultiBootReg =  XDcfg_ReadReg(DcfgInstPtr->Config.BaseAddr,
-				XDCFG_MULTIBOOT_ADDR_OFFSET);
-
-		fsbl_printf(DEBUG_INFO,"Multiboot Register: 0x%08x\r\n",MultiBootReg);
-
-		/*
-		 * Compute the image start address
-		 */
-		ImageStartAddress = (MultiBootReg & PCAP_MBOOT_REG_REBOOT_OFFSET_MASK)
-								* GOLDEN_IMAGE_OFFSET;
-	}
-
-	fsbl_printf(DEBUG_INFO,"Image Start Address: 0x%08x\r\n",ImageStartAddress);
+	/*
+	 * This used only in case of E-Fuse encryption
+	 * For image search
+	 */
+	SystemInitFlag = 1;
 
 	/*
-	 * Get partitions header information
+	 * Load boot image
 	 */
-	Status = GetPartitionHeaderInfo(ImageStartAddress);
-	if (Status != XST_SUCCESS) {
-		fsbl_printf(DEBUG_GENERAL, "Partition Header Load Failed\r\n");
-		OutputStatus(GET_HEADER_INFO_FAIL);
-		FsblFallback();
-	}
-
-    /*
-     * First partition header was ignored by FSBL
-     * As it contain FSBL partition information
-     */
-	for (PartitionNum = 1; PartitionNum < PartitionCount; PartitionNum++) {
-
-		fsbl_printf(DEBUG_INFO, "Partition Number: %d\r\n", PartitionNum);
-
-		HeaderPtr = &PartitionHeader[PartitionNum];
-
-		/*
-		 * Print partition header information
-		 */
-        HeaderDump(HeaderPtr);
-
-		/*
-		 * Validate partition header
-		 */
-		Status = ValidateHeader(HeaderPtr);
-		if (Status != XST_SUCCESS) {
-			fsbl_printf(DEBUG_GENERAL, "INVALID_HEADER_FAIL\r\n");
-			OutputStatus(INVALID_HEADER_FAIL);
-			FsblFallback();
-		}
-
-		/*
-		 * Load partition header information in to local variables
-		 */
-		PartitionDataLength = HeaderPtr->DataWordLen;
-		PartitionImageLength = HeaderPtr->ImageWordLen;
-		PartitionExecAddr = HeaderPtr->ExecAddr;
-		PartitionAttr = HeaderPtr->PartitionAttr;
-
-#ifdef RSA_SUPPORT
-		PartitionTotalSize = HeaderPtr->PartitionWordLen;
-		PartitionLoadAddr = HeaderPtr->LoadAddr;
-		PartitionStartAddr = HeaderPtr->PartitionStart;
-#endif
-
-		if (PartitionAttr & ATTRIBUTE_PL_IMAGE_MASK) {
-			fsbl_printf(DEBUG_INFO, "Bitstream\r\n");
-			PLPartitionFlag = 1;
-			PSPartitionFlag = 0;
-			BitstreamFlag = 1;
-		}
-
-		if (PartitionAttr & ATTRIBUTE_PS_IMAGE_MASK) {
-			fsbl_printf(DEBUG_INFO, "Application\r\n");
-			PSPartitionFlag = 1;
-			PLPartitionFlag = 0;
-		}
-
-		/*
-		 * Encrypted partition will have different value
-		 * for Image length and data length
-		 */
-		if (PartitionDataLength != PartitionImageLength) {
-			fsbl_printf(DEBUG_INFO, "Encrypted\r\n");
-			EncryptedPartitionFlag = 1;
-		} else {
-			EncryptedPartitionFlag = 0;
-		}
-
-		/*
-		 * RSA signature check
-		 */
-		if (PartitionAttr & ATTRIBUTE_RSA_PRESENT_MASK) {
-			fsbl_printf(DEBUG_INFO, "RSA Signed\r\n");
-			SignedPartitionFlag = 1;
-		} else {
-			SignedPartitionFlag = 0;
-		}
-
-		/*
-		 * FSBL user hook call before bitstream download
-		 */
-		if (PLPartitionFlag) {
-			Status = FsblHookBeforeBitstreamDload();
-			if (Status != XST_SUCCESS) {
-				fsbl_printf(DEBUG_GENERAL,"FSBL_BEFORE_BSTREAM_HOOK_FAILED\r\n");
-				OutputStatus(FSBL_BEFORE_BSTREAM_HOOK_FAIL);
-				FsblFallback();
-			}
-		}
-
-    	/*
-	 	 * Move partitions from boot device
-	 	 */
-		Status = PartitionMove(ImageStartAddress, HeaderPtr);
-		if (Status != XST_SUCCESS) {
-			fsbl_printf(DEBUG_GENERAL,"PARTITION_MOVE_FAIL\r\n");
-			OutputStatus(PARTITION_MOVE_FAIL);
-			FsblFallback();
-		}
-
-		/*
-		 * FSBL user hook call after bitstream download
-		 */
-		if (PLPartitionFlag) {
-			Status = FsblHookAfterBitstreamDload();
-			if (Status != XST_SUCCESS) {
-				fsbl_printf(DEBUG_GENERAL,"FSBL_AFTER_BSTREAM_HOOK_FAIL\r\n");
-				OutputStatus(FSBL_AFTER_BSTREAM_HOOK_FAIL);
-				FsblFallback();
-			}
-		}
-
-        /*
-         * Load execution address of first PS partition
-         */
-        if (PSPartitionFlag && (!ExecAddrFlag)) {
-        	ExecAddrFlag++;
-        	HandoffAddress = PartitionExecAddr;
-        }
-
-#ifdef RSA_SUPPORT
-		if (SignedPartitionFlag) {
-			if(PLPartitionFlag) {
-				/*
-				 * PL partition loaded in to DDR temporary address
-				 * for authentication
-				 */
-				PartitionStartAddr = DDR_TEMP_START_ADDR;
-			} else {
-				PartitionStartAddr = PartitionLoadAddr;
-			}
-
-			/*
-	 	 	 * Authentication Partition
-	 	 	 */
-			Status = AuthenticateParition((u8*)PartitionStartAddr,
-							(PartitionTotalSize << WORD_LENGTH_SHIFT));
-			if (Status != XST_SUCCESS) {
-				fsbl_printf(DEBUG_GENERAL,"AUTHENTICATION_FAIL\r\n");
-				OutputStatus(AUTHENTICATION_FAIL);
-				FsblFallback();
-			}
-
-			/*
-			 * Decrypt PS partition
-			 */
-			if (EncryptedPartitionFlag && PSPartitionFlag) {
-				Status = DecryptPartition(PartitionStartAddr,
-							PartitionDataLength,
-							PartitionImageLength);
-				if (Status != XST_SUCCESS) {
-					fsbl_printf(DEBUG_GENERAL,"DECRYPTION_FAIL\r\n");
-					OutputStatus(DECRYPTION_FAIL);
-					FsblFallback();
-				}
-			}
-		}
-#endif
-	}
+	HandoffAddress = LoadBootImage();
 
 	fsbl_printf(DEBUG_INFO,"Handoff Address: 0x%08x\r\n",HandoffAddress);
-
-	/*
-	 * Fix for CR #663277
-	 * FSBL does't support DDR remap
-	 * For ELF with execution address below 1M
-	 * FSBL do JTAG exit
-	 */
-	if (HandoffAddress < DDR_1MB_ADDR) {
-		/*
-		 * Stop the Watchdog before JTAG handoff
-		 */
-#ifdef	XPAR_XWDTPS_0_BASEADDR
-		XWdtPs_Stop(&Watchdog);
-#endif
-
-		fsbl_printf(DEBUG_INFO,"No Execution Address JTAG handoff \r\n");
-
-		ClearFSBLIn();
-
-		/*
-		 * Enable level shifter
-		 */
-		if(BitstreamFlag) {
-			EnablePLtoPSLevelShifter();
-		}
-
-		/*
-		 * FSBL user hook call before handoff to the application
-		 */
-		Status = FsblHookBeforeHandoff();
-		if (Status != XST_SUCCESS) {
-			fsbl_printf(DEBUG_GENERAL,"FSBL_HANDOFF_HOOK_FAIL\r\n");
-			OutputStatus(FSBL_HANDOFF_HOOK_FAIL);
-			FsblFallback();
-		}
-
-		/*
-		 * SLCR lock
-		 */
-		SlcrLock();
-
-		/*
-		 * JTAG mode exit
-		 */
-		FsblHandoffJtagExit();
-	}
-
-	/*
-	 * Enable level shifter
-	 */
-	if(BitstreamFlag) {
-		EnablePLtoPSLevelShifter();
-	}
-
-	/*
-	 * FSBL user hook call before handoff to the application
-	 */
-	Status = FsblHookBeforeHandoff();
-	if (Status != XST_SUCCESS) {
-		fsbl_printf(DEBUG_GENERAL,"FSBL_HANDOFF_HOOK_FAIL\r\n");
- 		OutputStatus(FSBL_HANDOFF_HOOK_FAIL);
-		FsblFallback();
-	}
-
-#ifdef XPAR_PS7_SD_0_S_AXI_BASEADDR
-	/*
-	 * If using SD, close the file
-	 */
-	if (BootModeRegister == SD_MODE) {
-		ReleaseSD();
-	}
-#endif
-
-#ifdef XPAR_XWDTPS_0_BASEADDR
-	XWdtPs_Stop(&Watchdog);
-#endif
 
 	/*
 	 * For Performance measurement
@@ -783,12 +522,11 @@ int main(void)
 	FsblMeasurePerfTime(tCur,tEnd);
 #endif
 
-	FsblHandoff(HandoffAddress);
 	/*
-	 * Should not come over here
+	 * FSBL handoff to valid handoff address or
+	 * exit in JTAG
 	 */
-	OutputStatus(ILLEGAL_RETURN);
-	FsblFallback();
+	FsblHandoff(HandoffAddress);
 
 #else
 	OutputStatus(NO_DDR);
@@ -797,7 +535,6 @@ int main(void)
 
 	return Status;
 }
-
 
 /******************************************************************************/
 /**
@@ -814,6 +551,20 @@ int main(void)
 void FsblFallback(void)
 {
 	u32 RebootStatusReg;
+	u32 Status;
+	u32 HandoffAddr;
+
+	/*
+	 * Fallback support check
+	 */
+	if (!((FlashReadBaseAddress == XPS_QSPI_LINEAR_BASEADDR) ||
+			(FlashReadBaseAddress == XPS_NAND_BASEADDR) ||
+			(FlashReadBaseAddress == XPS_NOR_BASEADDR))) {
+		fsbl_printf(DEBUG_INFO,"\r\n"
+				"This Boot Mode Doesn't Support Fallback\r\n");
+		ClearFSBLIn();
+		FsblHookFallback();
+	}
 
 	/*
 	 * update the Multiboot Register for Golden search hunt
@@ -839,6 +590,47 @@ void FsblFallback(void)
 		);
 
 	/*
+	 * Check for AES source key
+	 */
+	if (PcapCtrlRegVal & PCAP_CTRL_PCFG_AES_FUSE_EFUSE_MASK) {
+		/*
+		 * Next valid image search can happen only
+		 * when system initialization done
+		 */
+		if (SystemInitFlag == 1) {
+			/*
+			 * Clean the Fabric
+			 */
+			FabricInit();
+
+			/*
+			 * Search for next valid image
+			 */
+			Status = NextValidImageCheck();
+			if(Status != XST_SUCCESS){
+				fsbl_printf(DEBUG_INFO,"\r\nNo Image Found\r\n");
+				ClearFSBLIn();
+				FsblHookFallback();
+			}
+
+			/*
+			 * Load next valid image
+			 */
+			HandoffAddr = LoadBootImage();
+
+			/*
+			 * Handoff to next image
+			 */
+			FsblHandoff(HandoffAddr);
+		} else {
+			fsbl_printf(DEBUG_INFO,"System Initialization Failed\r\n");
+			fsbl_printf(DEBUG_INFO,"\r\nNo Image Search\r\n");
+			ClearFSBLIn();
+			FsblHookFallback();
+		}
+	}
+
+	/*
 	 * Reset PS, so Boot ROM will restart
 	 */
 	Xil_Out32(PS_RST_CTRL_REG, PS_RST_MASK);
@@ -857,22 +649,81 @@ void FsblFallback(void)
 * @note		This function does not return.
 *
 ****************************************************************************/
-void FsblHandoff(u32 FsblStartAddr) {
-	fsbl_printf(DEBUG_GENERAL,"SUCCESSFUL_HANDOFF\r\n");
+void FsblHandoff(u32 FsblStartAddr)
+{
+	u32 Status;
 
-	OutputStatus(SUCCESSFUL_HANDOFF);
+	/*
+	 * Enable level shifter
+	 */
+	if(BitstreamFlag) {
+		/*
+		 * FSBL will not enable the level shifters for a NON PS instantiated
+		 * Bitstream
+		 * CR# 671028
+		 * This flag can be set during compilation for a NON PS instantiated
+		 * bitstream
+		 */
+#ifndef NON_PS_INSTANTIATED_BITSTREAM
+#ifdef PS7_POST_CONFIG
+		ps7_post_config();
+		/*
+		 * Unlock SLCR for SLCR register write
+		 */
+		SlcrUnlock();
+#else
+	/*
+	 * Set Level Shifters DT618760
+	 */
+	Xil_Out32(PS_LVL_SHFTR_EN, LVL_PL_PS);
+	fsbl_printf(DEBUG_INFO,"Enabling Level Shifters PL to PS "
+			"Address = 0x%x Value = 0x%x \n\r",
+			PS_LVL_SHFTR_EN, Xil_In32(PS_LVL_SHFTR_EN));
+
+	/*
+	 * Enable AXI interface
+	 */
+	Xil_Out32(FPGA_RESET_REG, 0);
+	fsbl_printf(DEBUG_INFO,"AXI Interface enabled \n\r");
+	fsbl_printf(DEBUG_INFO, "FPGA Reset Register "
+			"Address = 0x%x , Value = 0x%x \r\n",
+			FPGA_RESET_REG ,Xil_In32(FPGA_RESET_REG));
+#endif
+#endif
+	}
+
+	/*
+	 * FSBL user hook call before handoff to the application
+	 */
+	Status = FsblHookBeforeHandoff();
+	if (Status != XST_SUCCESS) {
+		fsbl_printf(DEBUG_GENERAL,"FSBL_HANDOFF_HOOK_FAIL\r\n");
+ 		OutputStatus(FSBL_HANDOFF_HOOK_FAIL);
+		FsblFallback();
+	}
+
+#ifdef XPAR_XWDTPS_0_BASEADDR
+	XWdtPs_Stop(&Watchdog);
+#endif
 
 	/*
 	 * Clear our mark in reboot status register
 	 */
 	ClearFSBLIn();
 
-	/*
-	 * SLCR lock
-	 */
-	SlcrLock();
+	if(FsblStartAddr == 0) {
+		/*
+		 * SLCR lock
+		 */
+		SlcrLock();
 
-	FsblHandoffExit(FsblStartAddr);
+		fsbl_printf(DEBUG_INFO,"No Execution Address JTAG handoff \r\n");
+		FsblHandoffJtagExit();
+	} else {
+		fsbl_printf(DEBUG_GENERAL,"SUCCESSFUL_HANDOFF\r\n");
+		OutputStatus(SUCCESSFUL_HANDOFF);
+		FsblHandoffExit(FsblStartAddr);
+	}
 
 	OutputStatus(ILLEGAL_RETURN);
 
@@ -1379,11 +1230,11 @@ u32 ConvertTime_WdtCounter(u32 seconds)
 
 /******************************************************************************
 *
-* This function Gets the Silicon Version
+* This function Gets the Silicon Version stores in global variable
 *
 * @param	None
 *
-* @return 	Silicon_Version
+* @return 	None
 *
 * @note		None
 *
@@ -1395,10 +1246,222 @@ void GetSiliconVersion(void)
 	 */
 	Silicon_Version = XDcfg_GetPsVersion(DcfgInstPtr);
 	if(Silicon_Version == SILICON_VERSION_3_1) {
-		fsbl_printf( DEBUG_GENERAL,"Silicon Version 3.1\r\n");
+		fsbl_printf(DEBUG_GENERAL,"Silicon Version 3.1\r\n");
 	} else {
-		fsbl_printf( DEBUG_GENERAL,"Silicon Version %d.0\r\n", Silicon_Version + 1);
+		fsbl_printf(DEBUG_GENERAL,"Silicon Version %d.0\r\n",
+				Silicon_Version + 1);
 	}
 }
 
 
+/******************************************************************************
+*
+* This function HeaderChecksum will calculates the header checksum and
+* compares with checksum read from flash
+*
+* @param 	FlashOffsetAddress Flash offset address
+*
+* @return
+*		- XST_SUCCESS if ID matches
+*		- XST_FAILURE if ID mismatches
+*
+* @note		None
+*
+*******************************************************************************/
+u32 HeaderChecksum(u32 FlashOffsetAddress){
+	u32 Checksum = 0;
+	u32 Count;
+	u32 TempValue = 0;
+
+	for (Count = 0; Count < IMAGE_HEADER_CHECKSUM_COUNT; Count++) {
+		/*
+		 * Read the word from the header
+		 */
+		MoveImage(FlashOffsetAddress + IMAGE_WIDTH_CHECK_OFFSET + (Count*4), (u32)&TempValue, 4);
+
+		/*
+		 * Update checksum
+		 */
+		Checksum += TempValue;
+	}
+
+	/*
+	 * Invert checksum, last bit of error checking
+	 */
+	Checksum ^= 0xFFFFFFFF;
+	MoveImage(FlashOffsetAddress + IMAGE_CHECKSUM_OFFSET, (u32)&TempValue, 4);
+
+	/*
+	 * Validate the checksum
+	 */
+	if (TempValue != Checksum){
+		fsbl_printf(DEBUG_INFO, "Checksum = %8.8x\r\n", Checksum);
+		return XST_FAILURE;
+	}
+
+	return XST_SUCCESS;
+}
+
+
+/******************************************************************************
+*
+* This function ImageCheckID will do check for XLNX pattern
+*
+* @param	FlashOffsetAddress Flash offset address
+*
+* @return
+*		- XST_SUCCESS if ID matches
+*		- XST_FAILURE if ID mismatches
+*
+* @note		None
+*
+*******************************************************************************/
+u32 ImageCheckID(u32 FlashOffsetAddress){
+	u32 ID;
+
+	/*
+	 * Read in the header info
+	 */
+	MoveImage(FlashOffsetAddress + IMAGE_IDENT_OFFSET, (u32)&ID, 4);
+
+	/*
+	 * Check the ID, make sure image is XLNX format
+	 */
+	if (ID != IMAGE_IDENT){
+		return XST_FAILURE;
+	}
+
+	return XST_SUCCESS;
+}
+
+
+/******************************************************************************
+*
+* This function NextValidImageCheck search for valid boot image
+*
+* @param	None
+*
+* @return
+*		- XST_SUCCESS if valid image found
+*		- XST_FAILURE if no image found
+*
+* @note		None
+*
+*******************************************************************************/
+u32 NextValidImageCheck(void)
+{
+	u32 ImageBaseAddr;
+	u32 MultiBootReg;
+	u32 BootDevMaxSize=0;
+
+	fsbl_printf(DEBUG_GENERAL, "Searching For Next Valid Image");
+	
+	/*
+	 * Setting variable with maximum flash size based on boot mode
+	 */
+#ifdef XPAR_PS7_QSPI_LINEAR_0_S_AXI_BASEADDR
+	if (FlashReadBaseAddress == XPS_QSPI_LINEAR_BASEADDR) {
+		BootDevMaxSize = QspiFlashSize;
+	}
+#endif
+
+	if (FlashReadBaseAddress == XPS_NAND_BASEADDR) {
+		BootDevMaxSize  = NAND_FLASH_SIZE;
+	}
+
+	if (FlashReadBaseAddress == XPS_NOR_BASEADDR) {
+		BootDevMaxSize  = NOR_FLASH_SIZE;
+	}
+
+	/*
+	 * Read the multiboot register
+	 */
+	MultiBootReg =  XDcfg_ReadReg(DcfgInstPtr->Config.BaseAddr,
+			XDCFG_MULTIBOOT_ADDR_OFFSET);
+
+	/*
+	 * Compute the image start address
+	 */
+	ImageBaseAddr = (MultiBootReg & PCAP_MBOOT_REG_REBOOT_OFFSET_MASK)
+								* GOLDEN_IMAGE_OFFSET;
+	
+	/*
+	 * Valid image search continue till end of the flash
+	 * With increment 32KB in each iteration
+	 */
+	while (ImageBaseAddr < BootDevMaxSize) {
+
+		fsbl_printf(DEBUG_INFO,".");
+
+		/*
+		 * Valid image search using XLNX pattern at fixed offset
+		 * and header checksum
+		 */
+		if ((ImageCheckID(ImageBaseAddr) == XST_SUCCESS) &&
+				(HeaderChecksum(ImageBaseAddr) == XST_SUCCESS)) {
+
+			fsbl_printf(DEBUG_GENERAL, "\r\nImage found, offset: 0x%.8x\r\n",
+					ImageBaseAddr);
+			/*
+			 * Update multiboot register
+			 */
+			XDcfg_WriteReg(DcfgInstPtr->Config.BaseAddr,
+					XDCFG_MULTIBOOT_ADDR_OFFSET,
+					MultiBootReg);
+
+			return XST_SUCCESS;
+		}
+
+		/*
+		 * Increment mulitboot count
+		 */
+		MultiBootReg++;
+
+		/*
+		 * Compute the image start address
+		 */
+		ImageBaseAddr = (MultiBootReg & PCAP_MBOOT_REG_REBOOT_OFFSET_MASK)
+							* GOLDEN_IMAGE_OFFSET;
+	}
+
+	return XST_FAILURE;
+}
+
+/******************************************************************************/
+/**
+*
+* This function Checks for the ddr initialization completion
+*
+* @param	None.
+*
+* @return
+*		- XST_SUCCESS if the initialization is successful
+*		- XST_FAILURE if the  initialization is NOT successful
+*
+* @note		None.
+*
+****************************************************************************/
+u32 DDRInitCheck(void)
+{
+	u32 ReadVal;
+
+	/*
+	 * Write and Read from the DDR location for sanity checks
+	 */
+	Xil_Out32(DDR_START_ADDR, DDR_TEST_PATTERN);
+	ReadVal = Xil_In32(DDR_START_ADDR);
+	if (ReadVal != DDR_TEST_PATTERN) {
+		return XST_FAILURE;
+	}
+
+	/*
+	 * Write and Read from the DDR location for sanity checks
+	 */
+	Xil_Out32(DDR_START_ADDR + DDR_TEST_OFFSET, DDR_TEST_PATTERN);
+	ReadVal = Xil_In32(DDR_START_ADDR + DDR_TEST_OFFSET);
+	if (ReadVal != DDR_TEST_PATTERN) {
+		return XST_FAILURE;
+	}
+
+	return XST_SUCCESS;
+}

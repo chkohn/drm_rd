@@ -111,7 +111,10 @@ typedef struct StructPartHeader {
 	u32 PartitionStart;	/* 0x14 */
 	u32 PartitionAttr;	/* 0x18 */
 	u32 SectionCount;	/* 0x1C */
-	u32 Pads[7];
+	u32 CheckSumOffset;	/* 0x20 */
+	u32 Pads1[1];
+	u32 ACOffset;	/* 0x28 */
+	u32 Pads2[4];
 	u32 CheckSum;		/* 0x3C */
 }PartHeader;
 
@@ -125,6 +128,7 @@ struct HeaderArray {
 #define MoverOut32		Xil_Out32
 
 /************************** Function Prototypes ******************************/
+u32 LoadBootImage(void);
 u32 GetPartitionHeaderInfo(u32 ImageBaseAddress);
 u32 PartitionMove(u32 ImageBaseAddress, PartHeader *Header);
 u32 ValidatePartitionHeaderChecksum(struct HeaderArray *H);
