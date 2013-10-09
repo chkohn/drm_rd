@@ -62,11 +62,8 @@
 // Frame Buffer Base Addresses
 #define FB0_ADDR 0x30000000
 #define FB1_ADDR 0x307E9000
-#define TMP_ADDR 0x30FD2000
-
-// OSD Layers
-#define CPU_LAYER 0
-#define TPG_LAYER 1
+#define FB2_ADDR 0x30FD2000
+#define TMP_ADDR 0x317BB000
 
 
 // Drivers
@@ -78,6 +75,7 @@ ADV7511 *ADV7511_0;
 XAxiVdma *XAxiVdma_0;
 XAxiVdma *XAxiVdma_1;
 XAxiVdma *XAxiVdma_2;
+XAxiVdma *XAxiVdma_3;
 XVtc *XVtc_0;
 XOSD *XOSD_0;
 XSobel_filter* XSobel_filter_0;
@@ -85,6 +83,7 @@ XSobel_filter* XSobel_filter_0;
 // Video Formats
 const VideoFormat *FormatOUT0;
 const VideoFormat *FormatOUT1;
+const VideoFormat *FormatOUT2;
 const VideoFormat *FormatM2M;
 const VideoFormat *FormatCAP;
 
@@ -151,11 +150,12 @@ void FB_Initialize(u32 BaseAddr, const VideoTiming *Timing, const VideoFormat *F
 void VideoPipe_Configure(const enum VideoTimingId Id)
 {
 	u32 tpg_addr = FB1_ADDR;
+	u32 layer;
 	const VideoTiming *Timing = LookupVideoTiming_ById(Id);
 
 	debug_printf("Video Output Resolution: %ux%u @ 60fps\r\n", Timing->LineWidth, Timing->Field0Height);
 
-#if defined(USE_OUT0) || defined(USE_OUT1)
+#if defined(USE_OUT0) || defined(USE_OUT1) || defined(USE_OUT2)
 	// Configure Clock Synthesizer
 	SI570_Configure(SI570_0, Timing);
 
@@ -173,12 +173,13 @@ void VideoPipe_Configure(const enum VideoTimingId Id)
 	FB_Initialize(FB0_ADDR, Timing, FormatOUT0, XAxiVdma_0->MaxNumFrames);
 
 	// Configure Layer 0
+	layer = 0;
 	XOSD_RegUpdateDisable(XOSD_0);
-	XOSD_DisableLayer(XOSD_0, CPU_LAYER);
-	XOSD_SetLayerAlpha(XOSD_0, CPU_LAYER, 1, 0xff);
-	XOSD_SetLayerPriority(XOSD_0, CPU_LAYER, XOSD_LAYER_PRIORITY_0);
-	XOSD_SetLayerDimension(XOSD_0, CPU_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
-	XOSD_EnableLayer(XOSD_0, CPU_LAYER);
+	XOSD_DisableLayer(XOSD_0, layer);
+	XOSD_SetLayerAlpha(XOSD_0, layer, 1, 0xff);
+	XOSD_SetLayerPriority(XOSD_0, layer, XOSD_LAYER_PRIORITY_0);
+	XOSD_SetLayerDimension(XOSD_0, layer, 0, 0, Timing->LineWidth, Timing->Field0Height);
+	XOSD_EnableLayer(XOSD_0, layer);
 	XOSD_RegUpdateEnable(XOSD_0);
 
 	// Configure and Start Chroma Resampler
@@ -201,17 +202,39 @@ void VideoPipe_Configure(const enum VideoTimingId Id)
 #endif
 
 	// Configure Layer 1
+	layer = 1;
 	XOSD_RegUpdateDisable(XOSD_0);
-	XOSD_DisableLayer(XOSD_0, TPG_LAYER);
-	XOSD_SetLayerAlpha(XOSD_0, TPG_LAYER, 1, 0x80);
-	XOSD_SetLayerPriority(XOSD_0, TPG_LAYER, XOSD_LAYER_PRIORITY_1);
-	XOSD_SetLayerDimension(XOSD_0, TPG_LAYER, 0, 0, Timing->LineWidth, Timing->Field0Height);
-	XOSD_EnableLayer(XOSD_0, TPG_LAYER);
+	XOSD_DisableLayer(XOSD_0, layer);
+	XOSD_SetLayerAlpha(XOSD_0, layer, 1, 0x80);
+	XOSD_SetLayerPriority(XOSD_0, layer, XOSD_LAYER_PRIORITY_1);
+	XOSD_SetLayerDimension(XOSD_0, layer, 0, 0, Timing->LineWidth, Timing->Field0Height);
+	XOSD_EnableLayer(XOSD_0, layer);
 	XOSD_RegUpdateEnable(XOSD_0);
 
 	// Configure and Start VDMA1 MM2S
 	XAxiVdma_SetupReadChannel(XAxiVdma_1, Timing, FormatOUT1, FB1_ADDR, 1, 1);
 	XAxiVdma_DmaStart(XAxiVdma_1, XAXIVDMA_READ);
+#endif
+
+#ifdef USE_OUT2
+#if !defined(USE_SCALER)
+	// Write pattern to FB0
+	FB_Initialize(FB2_ADDR, Timing, FormatOUT2, XAxiVdma_3->MaxNumFrames);
+#endif
+
+	// Configure Layer 2
+	layer = 2;
+	XOSD_RegUpdateDisable(XOSD_0);
+	XOSD_DisableLayer(XOSD_0, layer);
+	XOSD_SetLayerAlpha(XOSD_0, layer, 1, 0x40);
+	XOSD_SetLayerPriority(XOSD_0, layer, XOSD_LAYER_PRIORITY_2);
+	XOSD_SetLayerDimension(XOSD_0, layer, 0, 0, Timing->LineWidth, Timing->Field0Height);
+	XOSD_EnableLayer(XOSD_0, layer);
+	XOSD_RegUpdateEnable(XOSD_0);
+
+	// Configure and Start VDMA1 MM2S
+	XAxiVdma_SetupReadChannel(XAxiVdma_3, Timing, FormatOUT2, FB2_ADDR, 1, 1);
+	XAxiVdma_DmaStart(XAxiVdma_3, XAXIVDMA_READ);
 #endif
 
 #ifdef USE_M2M
@@ -256,6 +279,7 @@ int main()
 	// Set Video Formats
 	FormatOUT0 = LookupVideoFormat_ById(V_ARGB32);
 	FormatOUT1 = LookupVideoFormat_ById(V_VYUY);
+	FormatOUT2 = LookupVideoFormat_ById(V_VYUY);
 	FormatM2M = LookupVideoFormat_ById(V_VYUY);
 	FormatCAP = LookupVideoFormat_ById(V_VYUY);
 
@@ -280,6 +304,9 @@ int main()
 
 	// Initialize VDMA_2
 	XAxiVdma_2 = XAxiVdma_Initialize(XPAR_VIDEO_PROCESSING_AXI_VDMA_M2M_DEVICE_ID);
+
+	// Initialize VDMA_3
+	XAxiVdma_3 = XAxiVdma_Initialize(XPAR_VIDEO_DISPLAY_AXI_VDMA_3_DEVICE_ID);
 
 	// Initialize Sobel Filter
 	XSobel_filter_0 = XSobel_Initialize(XPAR_VIDEO_PROCESSING_SOBEL_FILTER_1_DEVICE_ID);
