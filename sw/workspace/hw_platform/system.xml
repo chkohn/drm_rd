@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Mon Oct  7 22:02:26 2013" VIVADOVERSION="2013.2">
+<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Fri Oct 11 15:08:21 2013" VIVADOVERSION="2013.2">
 
-  <SYSTEMINFO ARCH="zynq" DEVICE="7z020" PACKAGE="clg484" SPEEDGRADE="-1"/>
+  <SYSTEMINFO ARCH="zynq" DEVICE="7z045" PACKAGE="ffg900" SPEEDGRADE="-2"/>
 
   <EXTERNALPORTS>
     <PORT DIR="IO" NAME="DDR_cas_n" SIGIS="undef"/>
@@ -95,7 +95,7 @@
         <PARAMETER CHANGEDBY="default" NAME="BUSER_WIDTH" VALUE="0"/>
         <PARAMETER CHANGEDBY="propagated" NAME="ACLK_ASYNC" VALUE="0"/>
         <PARAMETER CHANGEDBY="propagated" NAME="ACLK_RATIO" VALUE="1:2"/>
-        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_cc_9"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_cc_1"/>
         <PARAMETER NAME="EDK_IPTYPE" VALUE="BUS"/>
       </PARAMETERS>
       <PORTS>
@@ -333,7 +333,7 @@
         <PARAMETER CHANGEDBY="constant" NAME="RUSER_WIDTH" VALUE="0"/>
         <PARAMETER CHANGEDBY="constant" NAME="WUSER_WIDTH" VALUE="0"/>
         <PARAMETER CHANGEDBY="constant" NAME="BUSER_WIDTH" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_pc_30"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_pc_5"/>
         <PARAMETER NAME="EDK_IPTYPE" VALUE="BUS"/>
       </PARAMETERS>
       <PORTS>
@@ -2598,7 +2598,7 @@
         <PARAMETER CHANGEDBY="undefined" NAME="RUSER_WIDTH" VALUE="0"/>
         <PARAMETER CHANGEDBY="undefined" NAME="WUSER_WIDTH" VALUE="0"/>
         <PARAMETER CHANGEDBY="undefined" NAME="BUSER_WIDTH" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_pc_28"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_pc_3"/>
         <PARAMETER NAME="EDK_IPTYPE" VALUE="BUS"/>
       </PARAMETERS>
       <PORTS>
@@ -4662,7 +4662,7 @@
         <PARAMETER CHANGEDBY="undefined" NAME="RUSER_WIDTH" VALUE="0"/>
         <PARAMETER CHANGEDBY="undefined" NAME="WUSER_WIDTH" VALUE="0"/>
         <PARAMETER CHANGEDBY="undefined" NAME="BUSER_WIDTH" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_pc_29"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_pc_4"/>
         <PARAMETER NAME="EDK_IPTYPE" VALUE="BUS"/>
       </PARAMETERS>
       <PORTS>
@@ -7168,7 +7168,7 @@
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_4" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_5" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_6" VALUE="0"/>
-        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="0"/>
+        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="1"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_8" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_9" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_10" VALUE="0"/>
@@ -7176,7 +7176,7 @@
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_12" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_13" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_14" VALUE="0"/>
-        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_15" VALUE="0"/>
+        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_15" VALUE="1"/>
         <PARAMETER NAME="C_FAMILY" VALUE="zynq"/>
         <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_axi_vdma_1_0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_m_axi_mm2s_data_width" VALUE="64"/>
@@ -7218,7 +7218,7 @@
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_4" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_5" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_6" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_7" VALUE="0"/>
+        <PARAMETER CHANGEDBY="user" NAME="c_enable_debug_info_7" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_8" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_9" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_10" VALUE="0"/>
@@ -7226,7 +7226,7 @@
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_12" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_13" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_14" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_15" VALUE="0"/>
+        <PARAMETER CHANGEDBY="user" NAME="c_enable_debug_info_15" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_include_mm2s_dre" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_flush_on_fsync" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_s2mm_genlock_repeat_en" VALUE="1"/>
@@ -8447,7 +8447,7 @@
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_4" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_5" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_6" VALUE="0"/>
-        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="0"/>
+        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="1"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_8" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_9" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_10" VALUE="0"/>
@@ -8497,7 +8497,7 @@
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_4" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_5" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_6" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_7" VALUE="0"/>
+        <PARAMETER CHANGEDBY="user" NAME="c_enable_debug_info_7" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_8" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_9" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_10" VALUE="0"/>
@@ -8785,7 +8785,7 @@
         <PARAMETER NAME="C_MM2S_GENLOCK_REPEAT_EN" VALUE="0"/>
         <PARAMETER NAME="C_INCLUDE_MM2S_DRE" VALUE="0"/>
         <PARAMETER NAME="C_INCLUDE_MM2S_SF" VALUE="0"/>
-        <PARAMETER NAME="C_MM2S_LINEBUFFER_DEPTH" VALUE="512"/>
+        <PARAMETER NAME="C_MM2S_LINEBUFFER_DEPTH" VALUE="4096"/>
         <PARAMETER NAME="C_MM2S_LINEBUFFER_THRESH" VALUE="4"/>
         <PARAMETER NAME="C_MM2S_MAX_BURST_LENGTH" VALUE="16"/>
         <PARAMETER NAME="C_M_AXI_MM2S_ADDR_WIDTH" VALUE="32"/>
@@ -8813,7 +8813,7 @@
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_4" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_5" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_6" VALUE="0"/>
-        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="0"/>
+        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="1"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_8" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_9" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_10" VALUE="0"/>
@@ -8823,7 +8823,7 @@
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_14" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_15" VALUE="0"/>
         <PARAMETER NAME="C_FAMILY" VALUE="zynq"/>
-        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_axi_vdma_2_3"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_axi_vdma_3_3"/>
         <PARAMETER CHANGEDBY="default" NAME="c_m_axi_mm2s_data_width" VALUE="64"/>
         <PARAMETER CHANGEDBY="user" NAME="c_m_axis_mm2s_tdata_width" VALUE="16"/>
         <PARAMETER CHANGEDBY="default" NAME="c_m_axi_s2mm_data_width" VALUE="64"/>
@@ -8843,7 +8843,7 @@
         <PARAMETER CHANGEDBY="default" NAME="c_mm2s_genlock_num_masters" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_s2mm_genlock_mode" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_s2mm_genlock_num_masters" VALUE="1"/>
-        <PARAMETER CHANGEDBY="user" NAME="c_mm2s_linebuffer_depth" VALUE="512"/>
+        <PARAMETER CHANGEDBY="user" NAME="c_mm2s_linebuffer_depth" VALUE="4096"/>
         <PARAMETER CHANGEDBY="default" NAME="c_mm2s_linebuffer_thresh" VALUE="4"/>
         <PARAMETER CHANGEDBY="user" NAME="c_s2mm_linebuffer_depth" VALUE="512"/>
         <PARAMETER CHANGEDBY="default" NAME="c_s2mm_linebuffer_thresh" VALUE="4"/>
@@ -8863,7 +8863,7 @@
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_4" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_5" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_6" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_7" VALUE="0"/>
+        <PARAMETER CHANGEDBY="user" NAME="c_enable_debug_info_7" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_8" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_9" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_10" VALUE="0"/>
@@ -10909,7 +10909,7 @@
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_4" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_5" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_6" VALUE="0"/>
-        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="0"/>
+        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="1"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_8" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_9" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_10" VALUE="0"/>
@@ -10917,7 +10917,7 @@
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_12" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_13" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_14" VALUE="0"/>
-        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_15" VALUE="0"/>
+        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_15" VALUE="1"/>
         <PARAMETER NAME="C_FAMILY" VALUE="zynq"/>
         <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_axi_vdma_m2m_1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_m_axi_mm2s_data_width" VALUE="64"/>
@@ -10959,7 +10959,7 @@
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_4" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_5" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_6" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_7" VALUE="0"/>
+        <PARAMETER CHANGEDBY="user" NAME="c_enable_debug_info_7" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_8" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_9" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_10" VALUE="0"/>
@@ -10967,7 +10967,7 @@
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_12" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_13" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_14" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_15" VALUE="0"/>
+        <PARAMETER CHANGEDBY="user" NAME="c_enable_debug_info_15" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_include_mm2s_dre" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_flush_on_fsync" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_s2mm_genlock_repeat_en" VALUE="1"/>
@@ -11720,7 +11720,7 @@
         <PARAMETER NAME="C_FB_CLK" VALUE="1"/>
         <PARAMETER NAME="C_INTERCONNECT_S_AXI_MASTERS" VALUE="ps7_cortexa9_0.M_AXI_DP &amp; ps7_cortexa9_1.M_AXI_DP"/>
         <PARAMETER NAME="C_QSPI_CLK_FREQ_HZ" VALUE="190476196"/>
-        <PARAMETER NAME="C_QSPI_MODE" VALUE="0"/>
+        <PARAMETER NAME="C_QSPI_MODE" VALUE="2"/>
         <PARAMETER NAME="C_S_AXI_BASEADDR" VALUE="0xE000D000"/>
         <PARAMETER NAME="C_S_AXI_HIGHADDR" VALUE="0xE000DFFF"/>
       </PARAMETERS>
@@ -11985,7 +11985,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_ACLK"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_ACLK"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_ACLK"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_ACLK"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_ACLK"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_ACLK"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_ACLK"/>
@@ -12014,7 +12013,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_ARADDR"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_ARADDR"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_ARADDR"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_ARADDR"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_ARADDR"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_ARADDR"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_ARADDR"/>
@@ -12043,7 +12041,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_ARESETN"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_ARESETN"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_ARESETN"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_ARESETN"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_ARESETN"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_ARESETN"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_ARESETN"/>
@@ -12072,7 +12069,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_ARREADY"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_ARREADY"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_ARREADY"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_ARREADY"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_ARREADY"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_ARREADY"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_ARREADY"/>
@@ -12101,7 +12097,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_ARVALID"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_ARVALID"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_ARVALID"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_ARVALID"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_ARVALID"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_ARVALID"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_ARVALID"/>
@@ -12130,7 +12125,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_AWADDR"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_AWADDR"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_AWADDR"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_AWADDR"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_AWADDR"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_AWADDR"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_AWADDR"/>
@@ -12159,7 +12153,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_AWREADY"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_AWREADY"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_AWREADY"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_AWREADY"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_AWREADY"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_AWREADY"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_AWREADY"/>
@@ -12188,7 +12181,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_AWVALID"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_AWVALID"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_AWVALID"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_AWVALID"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_AWVALID"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_AWVALID"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_AWVALID"/>
@@ -12217,7 +12209,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_BREADY"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_BREADY"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_BREADY"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_BREADY"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_BREADY"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_BREADY"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_BREADY"/>
@@ -12246,7 +12237,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_BRESP"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_BRESP"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_BRESP"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_BRESP"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_BRESP"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_BRESP"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_BRESP"/>
@@ -12275,7 +12265,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_BVALID"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_BVALID"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_BVALID"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_BVALID"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_BVALID"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_BVALID"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_BVALID"/>
@@ -12304,7 +12293,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_RDATA"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_RDATA"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_RDATA"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_RDATA"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_RDATA"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_RDATA"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_RDATA"/>
@@ -12333,7 +12321,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_RREADY"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_RREADY"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_RREADY"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_RREADY"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_RREADY"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_RREADY"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_RREADY"/>
@@ -12362,7 +12349,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_RRESP"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_RRESP"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_RRESP"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_RRESP"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_RRESP"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_RRESP"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_RRESP"/>
@@ -12391,7 +12377,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_RVALID"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_RVALID"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_RVALID"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_RVALID"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_RVALID"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_RVALID"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_RVALID"/>
@@ -12420,7 +12405,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_WDATA"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_WDATA"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_WDATA"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_WDATA"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_WDATA"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_WDATA"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_WDATA"/>
@@ -12449,7 +12433,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_WREADY"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_WREADY"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_WREADY"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_WREADY"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_WREADY"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_WREADY"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_WREADY"/>
@@ -12478,7 +12461,6 @@
             <CONNECTION INSTANCE="ps7_qspi_0" PORT="S_AXI_WSTRB"/>
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_WSTRB"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_WSTRB"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_WSTRB"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_WSTRB"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_WSTRB"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_WSTRB"/>
@@ -12508,7 +12490,6 @@
             <CONNECTION INSTANCE="ps7_qspi_linear_0" PORT="S_AXI_WVALID"/>
             <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="S_AXI_WVALID"/>
             <CONNECTION INSTANCE="ps7_usb_0" PORT="S_AXI_WVALID"/>
-            <CONNECTION INSTANCE="ps7_can_0" PORT="S_AXI_WVALID"/>
             <CONNECTION INSTANCE="ps7_gpio_0" PORT="S_AXI_WVALID"/>
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_WVALID"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_WVALID"/>
@@ -12981,7 +12962,6 @@
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xF8009000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xF8009FFF" INSTANCE="ps7_afi_1" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xF800A000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xF800AFFF" INSTANCE="ps7_afi_2" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xF800B000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xF800BFFF" INSTANCE="ps7_afi_3" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
-        <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE0008000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE0008FFF" INSTANCE="ps7_can_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0x00100000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0x3FFFFFFF" INSTANCE="ps7_ddr_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="MEMORY"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xF8006000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xF8006FFF" INSTANCE="ps7_ddrc_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xF8007000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xF8007FFF" INSTANCE="ps7_dev_cfg_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
@@ -13019,7 +12999,6 @@
         <PERIPHERAL INSTANCE="ps7_afi_1"/>
         <PERIPHERAL INSTANCE="ps7_afi_2"/>
         <PERIPHERAL INSTANCE="ps7_afi_3"/>
-        <PERIPHERAL INSTANCE="ps7_can_0"/>
         <PERIPHERAL INSTANCE="ps7_ddr_0"/>
         <PERIPHERAL INSTANCE="ps7_ddrc_0"/>
         <PERIPHERAL INSTANCE="ps7_dev_cfg_0"/>
@@ -13206,7 +13185,6 @@
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xF8009000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xF8009FFF" INSTANCE="ps7_afi_1" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xF800A000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xF800AFFF" INSTANCE="ps7_afi_2" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xF800B000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xF800BFFF" INSTANCE="ps7_afi_3" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
-        <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE0008000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE0008FFF" INSTANCE="ps7_can_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0x00100000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0x3FFFFFFF" INSTANCE="ps7_ddr_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="MEMORY"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xF8006000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xF8006FFF" INSTANCE="ps7_ddrc_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xF8007000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xF8007FFF" INSTANCE="ps7_dev_cfg_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
@@ -13244,7 +13222,6 @@
         <PERIPHERAL INSTANCE="ps7_afi_1"/>
         <PERIPHERAL INSTANCE="ps7_afi_2"/>
         <PERIPHERAL INSTANCE="ps7_afi_3"/>
-        <PERIPHERAL INSTANCE="ps7_can_0"/>
         <PERIPHERAL INSTANCE="ps7_ddr_0"/>
         <PERIPHERAL INSTANCE="ps7_ddrc_0"/>
         <PERIPHERAL INSTANCE="ps7_dev_cfg_0"/>
@@ -13418,7 +13395,7 @@
     <MODULE HWVERSION="1.00.a" INSTANCE="ps7_ethernet_0" IPTYPE="PERIPHERAL" MODCLASS="PERIPHERAL" MODTYPE="ps7_ethernet">
       <PARAMETERS>
         <PARAMETER NAME="C_ENET_CLK_FREQ_HZ" VALUE="25000000"/>
-        <PARAMETER NAME="C_ENET_RESET" VALUE="MIO 11"/>
+        <PARAMETER NAME="C_ENET_RESET" VALUE="MIO 47"/>
         <PARAMETER NAME="C_ENET_SLCR_1000Mbps_DIV0" VALUE="8"/>
         <PARAMETER NAME="C_ENET_SLCR_1000Mbps_DIV1" VALUE="1"/>
         <PARAMETER NAME="C_ENET_SLCR_100Mbps_DIV0" VALUE="8"/>
@@ -13821,140 +13798,10 @@
       <PARAMETERS>
         <PARAMETER NAME="C_HAS_INTERRUPT" VALUE="0"/>
         <PARAMETER NAME="C_I2C_CLK_FREQ_HZ" VALUE="111111115"/>
-        <PARAMETER NAME="C_I2C_RESET" VALUE="MIO 13"/>
+        <PARAMETER NAME="C_I2C_RESET" VALUE="MIO 46"/>
         <PARAMETER NAME="C_INTERCONNECT_S_AXI_MASTERS" VALUE="ps7_cortexa9_0.M_AXI_DP &amp; ps7_cortexa9_1.M_AXI_DP"/>
         <PARAMETER NAME="C_S_AXI_BASEADDR" VALUE="0xE0004000"/>
         <PARAMETER NAME="C_S_AXI_HIGHADDR" VALUE="0xE0004FFF"/>
-      </PARAMETERS>
-      <PORTS>
-        <PORT DIR="I" NAME="S_AXI_ACLK" SIGIS="CLK" SIGNAME="ps7_axi_interconnect_0_M_AXI_ACLK">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_ACLK"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="I" NAME="S_AXI_ARADDR" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_ARADDR">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_ARADDR"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="I" NAME="S_AXI_ARESETN" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_ARESETN">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_ARESETN"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="O" NAME="S_AXI_ARREADY" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_ARREADY">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_ARREADY"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="I" NAME="S_AXI_ARVALID" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_ARVALID">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_ARVALID"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="I" NAME="S_AXI_AWADDR" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_AWADDR">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_AWADDR"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="O" NAME="S_AXI_AWREADY" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_AWREADY">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_AWREADY"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="I" NAME="S_AXI_AWVALID" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_AWVALID">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_AWVALID"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="I" NAME="S_AXI_BREADY" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_BREADY">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_BREADY"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="O" NAME="S_AXI_BRESP" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_BRESP">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_BRESP"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="O" NAME="S_AXI_BVALID" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_BVALID">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_BVALID"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="O" NAME="S_AXI_RDATA" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_RDATA">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_RDATA"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="I" NAME="S_AXI_RREADY" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_RREADY">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_RREADY"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="O" NAME="S_AXI_RRESP" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_RRESP">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_RRESP"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="O" NAME="S_AXI_RVALID" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_RVALID">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_RVALID"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="I" NAME="S_AXI_WDATA" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_WDATA">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_WDATA"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="O" NAME="S_AXI_WREADY" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_WREADY">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_WREADY"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="I" NAME="S_AXI_WSTRB" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_WSTRB">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_WSTRB"/>
-          </CONNECTIONS>
-        </PORT>
-        <PORT DIR="I" NAME="S_AXI_WVALID" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_WVALID">
-          <CONNECTIONS>
-            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_WVALID"/>
-          </CONNECTIONS>
-        </PORT>
-      </PORTS>
-      <BUSINTERFACES>
-        <BUSINTERFACE BUSNAME="ps7_axi_interconnect_0" NAME="S_AXI" TYPE="SLAVE">
-          <PORTMAPS>
-            <PORTMAP PHYSICAL="S_AXI_ACLK"/>
-            <PORTMAP PHYSICAL="S_AXI_ARESETN"/>
-            <PORTMAP PHYSICAL="S_AXI_AWADDR"/>
-            <PORTMAP PHYSICAL="S_AXI_AWVALID"/>
-            <PORTMAP PHYSICAL="S_AXI_AWREADY"/>
-            <PORTMAP PHYSICAL="S_AXI_WDATA"/>
-            <PORTMAP PHYSICAL="S_AXI_WSTRB"/>
-            <PORTMAP PHYSICAL="S_AXI_WVALID"/>
-            <PORTMAP PHYSICAL="S_AXI_WREADY"/>
-            <PORTMAP PHYSICAL="S_AXI_BRESP"/>
-            <PORTMAP PHYSICAL="S_AXI_BVALID"/>
-            <PORTMAP PHYSICAL="S_AXI_BREADY"/>
-            <PORTMAP PHYSICAL="S_AXI_ARADDR"/>
-            <PORTMAP PHYSICAL="S_AXI_ARVALID"/>
-            <PORTMAP PHYSICAL="S_AXI_ARREADY"/>
-            <PORTMAP PHYSICAL="S_AXI_RDATA"/>
-            <PORTMAP PHYSICAL="S_AXI_RRESP"/>
-            <PORTMAP PHYSICAL="S_AXI_RVALID"/>
-            <PORTMAP PHYSICAL="S_AXI_RREADY"/>
-          </PORTMAPS>
-        </BUSINTERFACE>
-      </BUSINTERFACES>
-    </MODULE>
-    <MODULE HWVERSION="1.00.a" INSTANCE="ps7_can_0" IPTYPE="PERIPHERAL" MODCLASS="PERIPHERAL" MODTYPE="ps7_can">
-      <PARAMETERS>
-        <PARAMETER NAME="C_CAN_CLK_FREQ_HZ" VALUE="23809523"/>
-        <PARAMETER NAME="C_INTERCONNECT_S_AXI_MASTERS" VALUE="ps7_cortexa9_0.M_AXI_DP &amp; ps7_cortexa9_1.M_AXI_DP"/>
-        <PARAMETER NAME="C_S_AXI_BASEADDR" VALUE="0xE0008000"/>
-        <PARAMETER NAME="C_S_AXI_HIGHADDR" VALUE="0xE0008FFF"/>
       </PARAMETERS>
       <PORTS>
         <PORT DIR="I" NAME="S_AXI_ACLK" SIGIS="CLK" SIGNAME="ps7_axi_interconnect_0_M_AXI_ACLK">
@@ -16171,6 +16018,6 @@
     <FILE FULLNAME="ps7_init.html" TYPE="html"/>
     <FILE FULLNAME="ps7_init.tcl" TYPE="tcl"/>
     <FILE FULLNAME="ps7_summary.html" TYPE="html"/>
-  </FILES>
+    <FILE FULLNAME="system_top_wrapper.bit" TYPE="bit"/></FILES>
 
 </EDKSYSTEM>
