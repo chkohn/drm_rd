@@ -38,59 +38,55 @@
 * AT ALL TIMES.
 ******************************************************************************/
 
-#include "ctpg.h"
+#include "gpio.h"
+#include "sleep.h"
 
 
-void TPG_SetPattern(const enum TPG_Pattern Pattern, int EnableBox)
+extern GpioPin VMux_SELECT;
+extern GpioPin IicMux_0_RST_B;
+extern GpioPin IicMux_1_RST_B;
+extern GpioPin ADV7611_HDMII_RST_B;
+extern GpioPin ADV7611_HDMII_HPD_CTRL;
+extern GpioPin ADV7511_HDMIO_HPD;
+extern GpioPin ADV7511_HDMIO_PD;
+
+
+void VMux_Select(int Data)
 {
-	debug_printf("Set Pattern of Test Pattern Generator\r\n");
-
-	TPG_RegUpdateDisable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
-
-	// select Pattern
-	if (Pattern == V_TPG_ColorBar) {
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, 0x9);
-	} else if (Pattern == V_TPG_ZonePlate) {
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, 0xA);
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_ZPLATE_HOR_CONTROL, (0x0<<16 | 0x90));
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_ZPLATE_VER_CONTROL, (0x0<<16 | 0x3));
-	} else if (Pattern == V_TPG_ExtVideo) {
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, 0x0);
-	} else {
-		xil_printf("Error: Invalid pattern selected\r\n");
-	}
-
-	// enable Box
-	if (EnableBox) {
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, \
-					(TPG_ReadReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL) | 0x1020));
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_BOX_COLOR, ARGB32_RED);
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_BOX_SIZE, 0x50);
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_MOTION_SPEED, 0xA);
-	}
-
-    TPG_RegUpdateEnable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
+	if (Data) // Data == VMUX_SELECT_EXT
+		Gpio_Set(&VMux_SELECT);
+	else // Data == VMUX_SELECT_TPG
+		Gpio_Reset(&VMux_SELECT);
+	usleep(SLEEP_10MS);
 }
 
-void TPG_Configure(const VideoTiming *Timing)
+void IicMux_0_ToggleReset()
 {
-	debug_printf("Configure Test Pattern Generator\r\n");
-
-	TPG_RegUpdateDisable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
-	TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_ACTIVE_SIZE, (Timing->Field0Height<<16 | Timing->LineWidth));
-    TPG_RegUpdateEnable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
+	Gpio_Reset(&IicMux_0_RST_B);
+	usleep(SLEEP_10MS);
+	Gpio_Set(&IicMux_0_RST_B);
 }
 
-void TPG_Start()
+void IicMux_1_ToggleReset()
 {
-	debug_printf("Start Test Pattern Generator\r\n");
-
-	TPG_Enable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
+	Gpio_Reset(&IicMux_1_RST_B);
+	usleep(SLEEP_10MS);
+	Gpio_Set(&IicMux_1_RST_B);
 }
 
-void TPG_Stop()
+void ADV7611_Hpd(int Data)
 {
-	debug_printf("Stop Test Pattern Generator\r\n");
+	if (Data)
+		Gpio_Set(&ADV7611_HDMII_HPD_CTRL);
+	else
+		Gpio_Reset(&ADV7611_HDMII_HPD_CTRL);
+}
 
-	TPG_Disable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
+void ADV7611_Reset(int Data)
+{
+	//active low
+	if (Data)
+		Gpio_Reset(&ADV7611_HDMII_RST_B);
+	else
+		Gpio_Set(&ADV7611_HDMII_RST_B);
 }

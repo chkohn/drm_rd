@@ -51,12 +51,17 @@
 #include "crgb2ycrcb.h"
 #include "ctpg.h"
 #include "sobel.h"
+#include "gpio.h"
 #include "xiicps_adapter.h"
+#include "xgpiops_adapter.h"
 
 #include "xparameters_zc702.h"
 #include "drivers/pca954x/pca954x.h"
 #include "drivers/si570/si570.h"
 #include "drivers/adv7511/adv7511.h"
+#include "drivers/fmc_ipmi/fmc_ipmi.h"
+#include "drivers/pca953x/pca953x.h"
+#include "drivers/adv7611/adv7611.h"
 
 
 // Frame Buffer Base Addresses
@@ -69,16 +74,35 @@
 // Drivers
 XIicPs *XIicPs_0;
 IicAdapter *IicAdapter_XIicPs_0;
+XGpioPs *XGpioPs_0;
+GpioAdapter *XGpioPs_Adapter_0;
 PCA954X *IicMux_0;
 SI570 *SI570_0;
 ADV7511 *ADV7511_0;
+XIicPs *XIicPs_1;
+IicAdapter *IicAdapter_XIicPs_1;
+PCA954X *IicMux_1;
+PCA953X *PCA953X_0;
+GpioAdapter *PCA953X_Adapter_0;
+ADV7611 *ADV7611_0;
+FMC_IPMI *FMC_IPMI_1;
 XAxiVdma *XAxiVdma_0;
 XAxiVdma *XAxiVdma_1;
 XAxiVdma *XAxiVdma_2;
 XAxiVdma *XAxiVdma_3;
 XVtc *XVtc_0;
+XVtc *XVtc_1;
 XOSD *XOSD_0;
 XSobel_filter* XSobel_filter_0;
+
+// GPIO Pins
+GpioPin VMux_SELECT;
+GpioPin IicMux_0_RST_B;
+GpioPin IicMux_1_RST_B;
+GpioPin ADV7611_HDMII_RST_B;
+GpioPin ADV7611_HDMII_HPD_CTRL;
+GpioPin ADV7511_HDMIO_HPD;
+GpioPin ADV7511_HDMIO_PD;
 
 // Video Formats
 const VideoFormat *FormatOUT0;
@@ -147,6 +171,43 @@ void FB_Initialize(u32 BaseAddr, const VideoTiming *Timing, const VideoFormat *F
 }
 
 
+// Program and initialize ADV7611
+void ADV7611_Setup(ADV7611 *Instance)
+{
+	// hide HDMI receiver till EDID is written
+	ADV7611_Hpd(0);
+	usleep(SLEEP_100MS);
+
+	// release reset
+	ADV7611_Reset(0);
+	usleep(SLEEP_100MS);
+
+	// program IIC addresses
+	ADV7611_ProgramIicAddresses(Instance);
+
+	// write EDID
+	ADV7611_WriteEDID(Instance);
+
+	// allow HDMI source to detect the HDMI receiver
+	ADV7611_Hpd(1);
+	usleep(SLEEP_100MS);
+
+	// write HDMI config
+	ADV7611_WriteConfig(Instance);
+}
+
+
+// Read video timing parameters from ADV7611
+const VideoTiming *ADV7611_GetVideoTiming(ADV7611 *Instance)
+{
+	ADV7611_VideoData VideoDataIn;
+	ADV7611_GetTiming(Instance, &VideoDataIn);
+
+	return LookupVideoTiming_ByDimensions(VideoDataIn.LineWidth, VideoDataIn.Field0Height);
+}
+
+
+// Configure video pipeline
 void VideoPipe_Configure(const enum VideoTimingId Id)
 {
 	u32 tpg_addr = FB1_ADDR;
@@ -259,8 +320,22 @@ void VideoPipe_Configure(const enum VideoTimingId Id)
 #endif
 
 #ifdef USE_CAP
+	int sel = VMUX_SELECT_EXT;
+	enum TPG_Pattern pattern = V_TPG_ZonePlate;
+
+	// Set Video Mux
+	VMux_Select(sel);
+	if (sel == VMUX_SELECT_EXT) {
+//		XVtc_GetTiming(XVtc_0);
+		pattern = V_TPG_ExtVideo;
+	}
+
+	// Configure and Start Video Timing Controller
+	XVtc_Configure(XVtc_1, Timing);
+	XVtc_Start(XVtc_1);
+
 	// Configure and Start Test Pattern Generator
-	TPG_SetPattern(V_TPG_ZonePlate, 1);
+	TPG_SetPattern(pattern, 1);
 	TPG_Configure(Timing);
 	TPG_Start();
 
@@ -275,6 +350,7 @@ void VideoPipe_Configure(const enum VideoTimingId Id)
 int main()
 {
 	int Status;
+//	int ExtVideoEnable = 0;
 
 	// Set Video Formats
 	FormatOUT0 = LookupVideoFormat_ById(V_ARGB32);
@@ -283,12 +359,20 @@ int main()
 	FormatM2M = LookupVideoFormat_ById(V_VYUY);
 	FormatCAP = LookupVideoFormat_ById(V_VYUY);
 
+    // Initialize PS GPIO Adapter
+    XGpioPs_0 = XGpioPs_Initialize(XPAR_XGPIOPS_0_DEVICE_ID);
+    XGpioPs_Adapter_0 = XGpioPs_RegisterAdapter((void *) XGpioPs_0);
+    Gpio_Connect(&IicMux_0_RST_B, XGpioPs_Adapter_0, 13, GPIO_DIR_OUT);
+    Gpio_Connect(&IicMux_1_RST_B, XGpioPs_Adapter_0, 54, GPIO_DIR_OUT);
+    Gpio_Connect(&VMux_SELECT, XGpioPs_Adapter_0, 55, GPIO_DIR_OUT);
+
     // Initialize PS I2C0 Adapter
     XIicPs_0 = XIicPs_Initialize(XPAR_XIICPS_0_DEVICE_ID, 100000);
     IicAdapter_XIicPs_0 = XIicPs_RegisterAdapter((void *) XIicPs_0);
 
     // Initialize I2C Mux
     IicMux_0 = PCA954X_Initialize(XPAR_PCA954X_0_DEVICE_ID, IicAdapter_XIicPs_0);
+    IicMux_0_ToggleReset();
 
     // Initialize Clock Synthesizer
     SI570_0 = SI570_Initialize(XPAR_SI570_0_DEVICE_ID, IicMux_0->VirtAdapter[0]);
@@ -296,22 +380,54 @@ int main()
     // Initialize HDMI Output
 	ADV7511_0 = ADV7511_Initialize(XPAR_ADV7511_0_DEVICE_ID, IicMux_0->VirtAdapter[1]);
 
+	// Initialize External Video Input on FMC (if present)
+	FMC_IPMI_1 = FMC_IPMI_Initialize(XPAR_FMC_IPMI_1_DEVICE_ID, IicMux_0->VirtAdapter[6]);
+
+	if (FMC_IPMI_1 == NULL) {
+		xil_printf("INFO : No FMC card detected on FMC2... disabling external video input!\n\r\n\r");
+	} else {
+		FRU_Board *BoardInfo = (FRU_Board *) &FMC_IPMI_1->BoardInfo;
+
+		if (strcmp((char *) BoardInfo->Mfg, "Avnet") == 0 && strcmp((char *) BoardInfo->Prod, "FMC-IMAGEON") == 0) {
+			xil_printf("INFO : %s %s detected on FMC2... enabling external video input!\n\r\n\r", BoardInfo->Mfg, BoardInfo->Prod);
+
+			// Initialize PS IIC1 Adapter
+			XIicPs_1 = XIicPs_Initialize(XPAR_XIICPS_1_DEVICE_ID, 100000);
+			IicAdapter_XIicPs_1 = XIicPs_RegisterAdapter((void *) XIicPs_1);
+
+			// Initialize FMC IIC Mux
+			IicMux_1 = PCA954X_Initialize(XPAR_PCA954X_1_DEVICE_ID, IicAdapter_XIicPs_1);
+			IicMux_1_ToggleReset();
+
+			// Initialize FMC GPIO Adapter
+			PCA953X_0 = PCA953X_Initialize(XPAR_PCA953X_0_DEVICE_ID, IicMux_1->VirtAdapter[3]);
+			PCA953X_Adapter_0 = PCA953X_RegisterAdapter((void *) PCA953X_0);
+			Gpio_Connect(&ADV7611_HDMII_RST_B, PCA953X_Adapter_0, 0, GPIO_DIR_OUT);
+			Gpio_Connect(&ADV7611_HDMII_HPD_CTRL, PCA953X_Adapter_0, 2, GPIO_DIR_OUT);
+			Gpio_Connect(&ADV7511_HDMIO_HPD, PCA953X_Adapter_0, 3, GPIO_DIR_IN);
+			Gpio_Connect(&ADV7511_HDMIO_PD, PCA953X_Adapter_0, 4, GPIO_DIR_OUT);
+
+			// Initialize FMC HDMI Input
+			ADV7611_0 = ADV7611_Initialize(XPAR_ADV7611_0_DEVICE_ID, IicMux_1->VirtAdapter[2]);
+			ADV7611_Setup(ADV7611_0);
+
+//			ExtVideoEnable = 1;
+		}
+		else {
+			xil_printf("INFO : Unknown FMC card detected on FMC2 (%s %s)... disabling external video input!\n\r\n\r", BoardInfo->Mfg, BoardInfo->Prod);
+		}
+	}
+
 	// Initialize VDMA_0
 	XAxiVdma_0 = XAxiVdma_Initialize(XPAR_VIDEO_DISPLAY_AXI_VDMA_2_DEVICE_ID);
 
 	// Initialize VDMA_1
 	XAxiVdma_1 = XAxiVdma_Initialize(XPAR_AXI_VDMA_1_DEVICE_ID);
 
-	// Initialize VDMA_2
-	XAxiVdma_2 = XAxiVdma_Initialize(XPAR_VIDEO_PROCESSING_AXI_VDMA_M2M_DEVICE_ID);
-
 	// Initialize VDMA_3
 	XAxiVdma_3 = XAxiVdma_Initialize(XPAR_VIDEO_DISPLAY_AXI_VDMA_3_DEVICE_ID);
 
-	// Initialize Sobel Filter
-	XSobel_filter_0 = XSobel_Initialize(XPAR_VIDEO_PROCESSING_SOBEL_FILTER_1_DEVICE_ID);
-
-	// Initialize VTC
+	// Initialize Display VTC
 	XVtc_0 = XVtc_Initialize(XPAR_VIDEO_DISPLAY_V_TC_1_DEVICE_ID);
 
 	// Initialize OSD
@@ -323,6 +439,15 @@ int main()
 		xil_printf("ERROR : No monitor detected on HDMI output!\r\n");
 		exit(XST_FAILURE);
 	}
+
+	// Initialize Capture VTC
+	XVtc_1 = XVtc_Initialize(XPAR_VIDEO_CAPTURE_V_TC_1_DEVICE_ID);
+
+	// Initialize VDMA_2
+	XAxiVdma_2 = XAxiVdma_Initialize(XPAR_VIDEO_PROCESSING_AXI_VDMA_M2M_DEVICE_ID);
+
+	// Initialize Sobel Filter
+	XSobel_filter_0 = XSobel_Initialize(XPAR_VIDEO_PROCESSING_SOBEL_FILTER_1_DEVICE_ID);
 
     // Configure Video Pipeline
 	VideoPipe_Configure(V_1080p);

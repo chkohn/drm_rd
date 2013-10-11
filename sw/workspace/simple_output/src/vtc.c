@@ -99,6 +99,40 @@ XVtc *XVtc_Initialize(u16 DeviceId)
 	return Instance;
 }
 
+const VideoTiming *XVtc_GetTiming(XVtc *Instance)
+{
+	XVtc_Signal Signal;
+	u32 DetStatus;
+//	u32 Status, Error;
+	u32 XVTC_DTSTAT_DET_LOCKED_MASK = 0x1;
+
+	// TODO add timeout
+	DetStatus = XVtc_GetDetectionStatus(Instance);
+	while (!(DetStatus & XVTC_DTSTAT_DET_LOCKED_MASK))
+		DetStatus = XVtc_GetDetectionStatus(Instance);
+
+//	Status = XVtc_ReadReg(Instance->Config.BaseAddress, XVTC_STATS);
+//	Error = XVtc_ReadReg(Instance->Config.BaseAddress, XVTC_ERROR);
+	XVtc_GetDetector(Instance, &Signal);
+
+//	xil_printf("Status %d\r\n", Status);
+//	xil_printf("Error %d\r\n", Error);
+	xil_printf("DetStatus %d\r\n", DetStatus);
+	xil_printf("HActiveStart %d\r\n", Signal.HActiveStart);
+	xil_printf("HFrontPorchStart %d\r\n", Signal.HFrontPorchStart);
+	xil_printf("HSyncStart %d\r\n", Signal.HSyncStart);
+	xil_printf("HBackPorchStart %d\r\n", Signal.HBackPorchStart);
+	xil_printf("HTotal %d\r\n", Signal.HTotal);
+	xil_printf("V0ActiveStart %d\r\n", Signal.V0ActiveStart);
+	xil_printf("V0FrontPorchStart %d\r\n", Signal.V0FrontPorchStart);
+	xil_printf("V0SyncStart %d\r\n", Signal.V0SyncStart);
+	xil_printf("V0BackPorchStart %d\r\n", Signal.V0BackPorchStart);
+	xil_printf("V0Total %d\r\n", Signal.V0Total);
+	xil_printf("V0ChromaStart %d\r\n", Signal.V0ChromaStart);
+
+	return LookupVideoTiming_ByDimensions(Signal.HFrontPorchStart, Signal.V0FrontPorchStart);
+}
+
 void XVtc_Configure(XVtc *Instance, const VideoTiming *Timing)
 {
 	debug_printf("Configure Video Timing Controller\r\n");

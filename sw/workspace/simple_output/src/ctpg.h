@@ -46,7 +46,8 @@
 
 enum TPG_Pattern {
 	V_TPG_ColorBar,
-	V_TPG_ZonePlate
+	V_TPG_ZonePlate,
+	V_TPG_ExtVideo
 };
 
 void TPG_SetPattern(const enum TPG_Pattern Pattern, int EnableBox);

@@ -38,59 +38,22 @@
 * AT ALL TIMES.
 ******************************************************************************/
 
-#include "ctpg.h"
+#ifndef GPIO_H_
+#define GPIO_H_
 
 
-void TPG_SetPattern(const enum TPG_Pattern Pattern, int EnableBox)
-{
-	debug_printf("Set Pattern of Test Pattern Generator\r\n");
+#include "xgpio_adapter.h"
 
-	TPG_RegUpdateDisable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
 
-	// select Pattern
-	if (Pattern == V_TPG_ColorBar) {
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, 0x9);
-	} else if (Pattern == V_TPG_ZonePlate) {
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, 0xA);
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_ZPLATE_HOR_CONTROL, (0x0<<16 | 0x90));
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_ZPLATE_VER_CONTROL, (0x0<<16 | 0x3));
-	} else if (Pattern == V_TPG_ExtVideo) {
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, 0x0);
-	} else {
-		xil_printf("Error: Invalid pattern selected\r\n");
-	}
+#define VMUX_SELECT_TPG  0
+#define VMUX_SELECT_EXT  1
 
-	// enable Box
-	if (EnableBox) {
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, \
-					(TPG_ReadReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL) | 0x1020));
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_BOX_COLOR, ARGB32_RED);
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_BOX_SIZE, 0x50);
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_MOTION_SPEED, 0xA);
-	}
 
-    TPG_RegUpdateEnable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
-}
+void VMux_Select(int Data);
+void IicMux_0_ToggleReset();
+void IicMux_1_ToggleReset();
+void ADV7611_Hpd(int Data);
+void ADV7611_Reset(int Data);
 
-void TPG_Configure(const VideoTiming *Timing)
-{
-	debug_printf("Configure Test Pattern Generator\r\n");
 
-	TPG_RegUpdateDisable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
-	TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_ACTIVE_SIZE, (Timing->Field0Height<<16 | Timing->LineWidth));
-    TPG_RegUpdateEnable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
-}
-
-void TPG_Start()
-{
-	debug_printf("Start Test Pattern Generator\r\n");
-
-	TPG_Enable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
-}
-
-void TPG_Stop()
-{
-	debug_printf("Stop Test Pattern Generator\r\n");
-
-	TPG_Disable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
-}
+#endif /* GPIO_H_ */

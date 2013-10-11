@@ -46,6 +46,7 @@
 
 XVtc *XVtc_Initialize(u16 DeviceId);
 void XVtc_Configure(XVtc *Instance, const VideoTiming *Timing);
+const VideoTiming *XVtc_GetTiming(XVtc *Instance);
 void XVtc_Start(XVtc *Instance);
 void XVtc_Stop(XVtc *Instance);
 
