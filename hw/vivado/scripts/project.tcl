@@ -7,8 +7,8 @@ set ui_dir "srcs/ui"
 set constrs_dir "constrs"
 set scripts_dir "scripts"
 set bd_name "system_top"
-set part "xc7z020clg484-1"
-set board "xilinx.com:zynq:zc702:3.0"
+set part "xc7z045ffg900-2"
+set board "xilinx.com:zynq:zc706:1.1"
 
 # set up project
 create_project $project_name $project_dir -part $part -force
