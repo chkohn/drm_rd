@@ -95,8 +95,8 @@ IicMsg ADV7511_HdmiRGB444[ADV7511_HDMI_RGB444_LEN] =
 	{0x2D, 0x2D}, 	//    R0x2D[7:0] = CSC coefficient C3[ 7:0]
 	{0x2E, 0x19}, 	//    R0x2E[4:0] = CSC coefficient C4[12:8]
 	{0x2F, 0x14}, 	//    R0x2F[7:0] = CSC coefficient C4[ 7:0]
-	{0x48, 0x08}, 	// Video Input Justification
-					//    R0x48[4:3] = Video Input Justification = 01 (right justified)
+	{0x48, 0x00}, 	// Video Input Justification
+					//    R0x48[4:3] = Video Input Justification = 00 (evenly distributed)
 	{0x55, 0x00}, 	// Set RGB in AVinfo Frame
 					//    R0x55[6:5] = Output Format = 00 (RGB)
 	{0x56, 0x28}, 	// Aspect Ratio
@@ -139,8 +139,8 @@ IicMsg ADV7511_HdmiYCbCr422[ADV7511_HDMI_YCBCR422_LEN] =
 					//    R0x16[3:2] = Input Video Style = 10 (style 1)
 					//    R0x16[  1] = DDR Input Edge = 0 (falling edge)
 					//    R0x16[  0] = Output Color Space = 1 (YCbCr)
-	{0x48, 0x08}, 	// Video Input Justification
-					//    R0x48[4:3] = Video Input Justification = 01 (right justified)
+	{0x48, 0x00}, 	// Video Input Justification
+					//    R0x48[4:3] = Video Input Justification = 00 (evenly distributed)
 	{0x55, 0x20}, 	// Set RGB in AVinfo Frame
 					//    R0x55[6:5] = Output Format = 01 (YCbCr)
 	{0x56, 0x28},	// Aspect Ratio
