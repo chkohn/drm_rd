@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Mon Oct  7 22:02:26 2013" VIVADOVERSION="2013.2">
+<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Wed Oct  9 18:34:19 2013" VIVADOVERSION="2013.2">
 
   <SYSTEMINFO ARCH="zynq" DEVICE="7z020" PACKAGE="clg484" SPEEDGRADE="-1"/>
 
@@ -55,6 +55,7 @@
         <CONNECTION INSTANCE="External_Ports" PORT="hdmio_clk"/>
         <CONNECTION INSTANCE="video_display_v_axi4s_vid_out_1" PORT="vid_io_out_clk"/>
         <CONNECTION INSTANCE="video_display_v_tc_1" PORT="clk"/>
+        <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="video_clk_2"/>
       </CONNECTIONS>
     </PORT>
     <PORT DIR="O" NAME="hdmio_clk" SIGIS="undef" SIGNAME="External_Ports_video_clk">
@@ -62,9 +63,77 @@
         <CONNECTION INSTANCE="External_Ports" PORT="video_clk"/>
       </CONNECTIONS>
     </PORT>
+    <PORT DIR="I" NAME="fmc_imageon_hdmii_data" SIGIS="undef" SIGNAME="External_Ports_fmc_imageon_hdmii_data">
+      <CONNECTIONS>
+        <CONNECTION INSTANCE="video_capture_fmc_imageon_hdmi_in_1" PORT="io_hdmii_video"/>
+      </CONNECTIONS>
+    </PORT>
+    <PORT CLKFREQUENCY="148500000" DIR="I" NAME="fmc_imageon_hdmii_clk" SIGIS="clk" SIGNAME="External_Ports_fmc_imageon_hdmii_clk">
+      <CONNECTIONS>
+        <CONNECTION INSTANCE="video_capture_fmc_imageon_hdmi_in_1" PORT="clk"/>
+        <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="video_clk_1"/>
+      </CONNECTIONS>
+    </PORT>
+    <PORT DIR="O" NAME="fmc_imageon_iic_rst_b" SIGIS="undef" SIGNAME="EMIO_GPIO_xlslice_1_Dout">
+      <CONNECTIONS>
+        <CONNECTION INSTANCE="EMIO_GPIO_xlslice_1" PORT="Dout"/>
+      </CONNECTIONS>
+    </PORT>
+    <PORT DIR="I" NAME="fmc_imageon_iic_sda_i" SIGIS="undef"/>
+    <PORT DIR="O" NAME="fmc_imageon_iic_sda_o" SIGIS="undef"/>
+    <PORT DIR="O" NAME="fmc_imageon_iic_sda_t" SIGIS="undef"/>
+    <PORT DIR="I" NAME="fmc_imageon_iic_scl_i" SIGIS="undef"/>
+    <PORT DIR="O" NAME="fmc_imageon_iic_scl_o" SIGIS="undef"/>
+    <PORT DIR="O" NAME="fmc_imageon_iic_scl_t" SIGIS="undef"/>
   </EXTERNALPORTS>
 
   <MODULES>
+    <MODULE FULLNAME="/EMIO_GPIO/xlslice_1" HWVERSION="1.0" INSTANCE="EMIO_GPIO_xlslice_1" IPTYPE="PERIPHERAL" MODCLASS="PERIPHERAL" MODTYPE="xlslice">
+      <PARAMETERS>
+        <PARAMETER NAME="DIN_WIDTH" VALUE="2"/>
+        <PARAMETER NAME="DIN_FROM" VALUE="0"/>
+        <PARAMETER NAME="DIN_TO" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="DOUT_WIDTH" VALUE="1"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_xlslice_1_0"/>
+        <PARAMETER NAME="EDK_IPTYPE" VALUE="PERIPHERAL"/>
+      </PARAMETERS>
+      <PORTS>
+        <PORT DIR="I" NAME="Din" SIGIS="undef" SIGNAME="processing_system7_1_GPIO_O">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="processing_system7_1" PORT="GPIO_O"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="Dout" SIGIS="undef" SIGNAME="EMIO_GPIO_xlslice_1_Dout">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="External_Ports" PORT="fmc_imageon_iic_rst_b"/>
+          </CONNECTIONS>
+        </PORT>
+      </PORTS>
+      <BUSINTERFACES/>
+    </MODULE>
+    <MODULE FULLNAME="/EMIO_GPIO/xlslice_2" HWVERSION="1.0" INSTANCE="EMIO_GPIO_xlslice_2" IPTYPE="PERIPHERAL" MODCLASS="PERIPHERAL" MODTYPE="xlslice">
+      <PARAMETERS>
+        <PARAMETER NAME="DIN_WIDTH" VALUE="2"/>
+        <PARAMETER NAME="DIN_FROM" VALUE="1"/>
+        <PARAMETER NAME="DIN_TO" VALUE="1"/>
+        <PARAMETER CHANGEDBY="default" NAME="DOUT_WIDTH" VALUE="1"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_xlslice_1_1"/>
+        <PARAMETER NAME="EDK_IPTYPE" VALUE="PERIPHERAL"/>
+      </PARAMETERS>
+      <PORTS>
+        <PORT DIR="I" NAME="Din" SIGIS="undef" SIGNAME="processing_system7_1_GPIO_O">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="processing_system7_1" PORT="GPIO_O"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="Dout" SIGIS="undef" SIGNAME="EMIO_GPIO_xlslice_2_Dout">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="video_sel"/>
+          </CONNECTIONS>
+        </PORT>
+      </PORTS>
+      <BUSINTERFACES/>
+    </MODULE>
     <MODULE FULLNAME="/axi_interconnect_gp0/m03_couplers/auto_cc" HWVERSION="2.0" INSTANCE="axi_interconnect_gp0_m03_couplers_auto_cc" IPTYPE="BUS" MODCLASS="BUS" MODTYPE="axi_clock_converter">
       <PARAMETERS>
         <PARAMETER NAME="C_FAMILY" VALUE="zynq"/>
@@ -95,7 +164,7 @@
         <PARAMETER CHANGEDBY="default" NAME="BUSER_WIDTH" VALUE="0"/>
         <PARAMETER CHANGEDBY="propagated" NAME="ACLK_ASYNC" VALUE="0"/>
         <PARAMETER CHANGEDBY="propagated" NAME="ACLK_RATIO" VALUE="1:2"/>
-        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_cc_9"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_cc_8"/>
         <PARAMETER NAME="EDK_IPTYPE" VALUE="BUS"/>
       </PARAMETERS>
       <PORTS>
@@ -333,7 +402,7 @@
         <PARAMETER CHANGEDBY="constant" NAME="RUSER_WIDTH" VALUE="0"/>
         <PARAMETER CHANGEDBY="constant" NAME="WUSER_WIDTH" VALUE="0"/>
         <PARAMETER CHANGEDBY="constant" NAME="BUSER_WIDTH" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_pc_30"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_pc_26"/>
         <PARAMETER NAME="EDK_IPTYPE" VALUE="BUS"/>
       </PARAMETERS>
       <PORTS>
@@ -638,14 +707,14 @@
       <PARAMETERS>
         <PARAMETER NAME="C_FAMILY" VALUE="zynq"/>
         <PARAMETER NAME="C_NUM_SLAVE_SLOTS" VALUE="1"/>
-        <PARAMETER NAME="C_NUM_MASTER_SLOTS" VALUE="11"/>
+        <PARAMETER NAME="C_NUM_MASTER_SLOTS" VALUE="12"/>
         <PARAMETER NAME="C_AXI_ID_WIDTH" VALUE="1"/>
         <PARAMETER NAME="C_AXI_ADDR_WIDTH" VALUE="32"/>
         <PARAMETER NAME="C_AXI_DATA_WIDTH" VALUE="32"/>
         <PARAMETER NAME="C_AXI_PROTOCOL" VALUE="2"/>
         <PARAMETER NAME="C_NUM_ADDR_RANGES" VALUE="1"/>
-        <PARAMETER NAME="C_M_AXI_BASE_ADDR" VALUE="0x00000000400a00000000000040090000000000004001000000000000400200000000000040030000000000004004000000000000400000000000000040080000000000004007000000000000400500000000000040060000"/>
-        <PARAMETER NAME="C_M_AXI_ADDR_WIDTH" VALUE="0x0000001000000010000000100000001000000010000000100000001000000010000000100000001000000010"/>
+        <PARAMETER NAME="C_M_AXI_BASE_ADDR" VALUE="0x00000000400b000000000000400a00000000000040090000000000004001000000000000400200000000000040030000000000004004000000000000400000000000000040080000000000004007000000000000400500000000000040060000"/>
+        <PARAMETER NAME="C_M_AXI_ADDR_WIDTH" VALUE="0x000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010"/>
         <PARAMETER NAME="C_S_AXI_BASE_ID" VALUE="0x00000000"/>
         <PARAMETER NAME="C_S_AXI_THREAD_ID_WIDTH" VALUE="0x00000000"/>
         <PARAMETER NAME="C_AXI_SUPPORTS_USER_SIGNALS" VALUE="0"/>
@@ -654,20 +723,20 @@
         <PARAMETER NAME="C_AXI_WUSER_WIDTH" VALUE="1"/>
         <PARAMETER NAME="C_AXI_RUSER_WIDTH" VALUE="1"/>
         <PARAMETER NAME="C_AXI_BUSER_WIDTH" VALUE="1"/>
-        <PARAMETER NAME="C_M_AXI_WRITE_CONNECTIVITY" VALUE="0x0000000100000001000000010000000100000001000000010000000100000001000000010000000100000001"/>
-        <PARAMETER NAME="C_M_AXI_READ_CONNECTIVITY" VALUE="0x0000000100000001000000010000000100000001000000010000000100000001000000010000000100000001"/>
+        <PARAMETER NAME="C_M_AXI_WRITE_CONNECTIVITY" VALUE="0x000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001"/>
+        <PARAMETER NAME="C_M_AXI_READ_CONNECTIVITY" VALUE="0x000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001"/>
         <PARAMETER NAME="C_R_REGISTER" VALUE="1"/>
         <PARAMETER NAME="C_S_AXI_SINGLE_THREAD" VALUE="0x00000001"/>
         <PARAMETER NAME="C_S_AXI_WRITE_ACCEPTANCE" VALUE="0x00000001"/>
         <PARAMETER NAME="C_S_AXI_READ_ACCEPTANCE" VALUE="0x00000001"/>
-        <PARAMETER NAME="C_M_AXI_WRITE_ISSUING" VALUE="0x0000000100000001000000010000000100000001000000010000000100000001000000010000000100000001"/>
-        <PARAMETER NAME="C_M_AXI_READ_ISSUING" VALUE="0x0000000100000001000000010000000100000001000000010000000100000001000000010000000100000001"/>
+        <PARAMETER NAME="C_M_AXI_WRITE_ISSUING" VALUE="0x000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001"/>
+        <PARAMETER NAME="C_M_AXI_READ_ISSUING" VALUE="0x000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001"/>
         <PARAMETER NAME="C_S_AXI_ARB_PRIORITY" VALUE="0x00000000"/>
-        <PARAMETER NAME="C_M_AXI_SECURE" VALUE="0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"/>
+        <PARAMETER NAME="C_M_AXI_SECURE" VALUE="0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"/>
         <PARAMETER NAME="C_CONNECTIVITY_MODE" VALUE="0"/>
         <PARAMETER CHANGEDBY="propagated" NAME="ADDR_RANGES" VALUE="1"/>
         <PARAMETER CHANGEDBY="propagated" NAME="NUM_SI" VALUE="1"/>
-        <PARAMETER CHANGEDBY="propagated" NAME="NUM_MI" VALUE="11"/>
+        <PARAMETER CHANGEDBY="propagated" NAME="NUM_MI" VALUE="12"/>
         <PARAMETER CHANGEDBY="propagated" NAME="ADDR_WIDTH" VALUE="32"/>
         <PARAMETER CHANGEDBY="user" NAME="STRATEGY" VALUE="0"/>
         <PARAMETER CHANGEDBY="propagated" NAME="PROTOCOL" VALUE="AXI4LITE"/>
@@ -856,7 +925,7 @@
         <PARAMETER CHANGEDBY="default" NAME="M10_S13_READ_CONNECTIVITY" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="M10_S14_READ_CONNECTIVITY" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="M10_S15_READ_CONNECTIVITY" VALUE="1"/>
-        <PARAMETER CHANGEDBY="default" NAME="M11_S00_READ_CONNECTIVITY" VALUE="1"/>
+        <PARAMETER CHANGEDBY="propagated" NAME="M11_S00_READ_CONNECTIVITY" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="M11_S01_READ_CONNECTIVITY" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="M11_S02_READ_CONNECTIVITY" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="M11_S03_READ_CONNECTIVITY" VALUE="1"/>
@@ -1112,7 +1181,7 @@
         <PARAMETER CHANGEDBY="default" NAME="M10_S13_WRITE_CONNECTIVITY" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="M10_S14_WRITE_CONNECTIVITY" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="M10_S15_WRITE_CONNECTIVITY" VALUE="1"/>
-        <PARAMETER CHANGEDBY="default" NAME="M11_S00_WRITE_CONNECTIVITY" VALUE="1"/>
+        <PARAMETER CHANGEDBY="propagated" NAME="M11_S00_WRITE_CONNECTIVITY" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="M11_S01_WRITE_CONNECTIVITY" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="M11_S02_WRITE_CONNECTIVITY" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="M11_S03_WRITE_CONNECTIVITY" VALUE="1"/>
@@ -1528,7 +1597,7 @@
         <PARAMETER CHANGEDBY="default" NAME="M10_A13_BASE_ADDR" VALUE="0x000000000da00000"/>
         <PARAMETER CHANGEDBY="default" NAME="M10_A14_BASE_ADDR" VALUE="0x000000000ea00000"/>
         <PARAMETER CHANGEDBY="default" NAME="M10_A15_BASE_ADDR" VALUE="0x000000000fa00000"/>
-        <PARAMETER CHANGEDBY="default" NAME="M11_A00_BASE_ADDR" VALUE="0x0000000000b00000"/>
+        <PARAMETER CHANGEDBY="propagated" NAME="M11_A00_BASE_ADDR" VALUE="0x00000000400b0000"/>
         <PARAMETER CHANGEDBY="default" NAME="M11_A01_BASE_ADDR" VALUE="0x0000000001b00000"/>
         <PARAMETER CHANGEDBY="default" NAME="M11_A02_BASE_ADDR" VALUE="0x0000000002b00000"/>
         <PARAMETER CHANGEDBY="default" NAME="M11_A03_BASE_ADDR" VALUE="0x0000000003b00000"/>
@@ -1784,7 +1853,7 @@
         <PARAMETER CHANGEDBY="default" NAME="M10_A13_ADDR_WIDTH" VALUE="12"/>
         <PARAMETER CHANGEDBY="default" NAME="M10_A14_ADDR_WIDTH" VALUE="12"/>
         <PARAMETER CHANGEDBY="default" NAME="M10_A15_ADDR_WIDTH" VALUE="12"/>
-        <PARAMETER CHANGEDBY="default" NAME="M11_A00_ADDR_WIDTH" VALUE="12"/>
+        <PARAMETER CHANGEDBY="propagated" NAME="M11_A00_ADDR_WIDTH" VALUE="16"/>
         <PARAMETER CHANGEDBY="default" NAME="M11_A01_ADDR_WIDTH" VALUE="12"/>
         <PARAMETER CHANGEDBY="default" NAME="M11_A02_ADDR_WIDTH" VALUE="12"/>
         <PARAMETER CHANGEDBY="default" NAME="M11_A03_ADDR_WIDTH" VALUE="12"/>
@@ -2007,6 +2076,9 @@
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_awaddr"/>
           </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_awaddr"/>
+          </CONNECTIONS>
         </PORT>
         <PORT DIR="O" NAME="m_axi_awprot" SIGIS="undef" SIGNAME="axi_interconnect_gp0_m03_couplers_auto_cc_s_axi_awprot">
           <CONNECTIONS>
@@ -2047,6 +2119,9 @@
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_awvalid"/>
           </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_awvalid"/>
+          </CONNECTIONS>
         </PORT>
         <PORT DIR="I" NAME="m_axi_awready" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_awready">
           <CONNECTIONS>
@@ -2081,6 +2156,9 @@
           </CONNECTIONS>
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_awready"/>
+          </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_awready"/>
           </CONNECTIONS>
         </PORT>
         <PORT DIR="O" NAME="m_axi_wdata" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_wdata">
@@ -2117,6 +2195,9 @@
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_wdata"/>
           </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_wdata"/>
+          </CONNECTIONS>
         </PORT>
         <PORT DIR="O" NAME="m_axi_wstrb" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_wstrb">
           <CONNECTIONS>
@@ -2139,6 +2220,9 @@
           </CONNECTIONS>
           <CONNECTIONS>
             <CONNECTION INSTANCE="axi_perf_mon_1" PORT="s_axi_wstrb"/>
+          </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_wstrb"/>
           </CONNECTIONS>
         </PORT>
         <PORT DIR="O" NAME="m_axi_wvalid" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_wvalid">
@@ -2175,6 +2259,9 @@
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_wvalid"/>
           </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_wvalid"/>
+          </CONNECTIONS>
         </PORT>
         <PORT DIR="I" NAME="m_axi_wready" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_wready">
           <CONNECTIONS>
@@ -2209,6 +2296,9 @@
           </CONNECTIONS>
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_wready"/>
+          </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_wready"/>
           </CONNECTIONS>
         </PORT>
         <PORT DIR="I" NAME="m_axi_bresp" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_bresp">
@@ -2245,6 +2335,9 @@
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_bresp"/>
           </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_bresp"/>
+          </CONNECTIONS>
         </PORT>
         <PORT DIR="I" NAME="m_axi_bvalid" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_bvalid">
           <CONNECTIONS>
@@ -2279,6 +2372,9 @@
           </CONNECTIONS>
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_bvalid"/>
+          </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_bvalid"/>
           </CONNECTIONS>
         </PORT>
         <PORT DIR="O" NAME="m_axi_bready" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_bready">
@@ -2315,6 +2411,9 @@
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_bready"/>
           </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_bready"/>
+          </CONNECTIONS>
         </PORT>
         <PORT DIR="O" NAME="m_axi_araddr" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_araddr">
           <CONNECTIONS>
@@ -2349,6 +2448,9 @@
           </CONNECTIONS>
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_araddr"/>
+          </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_araddr"/>
           </CONNECTIONS>
         </PORT>
         <PORT DIR="O" NAME="m_axi_arprot" SIGIS="undef" SIGNAME="axi_interconnect_gp0_m03_couplers_auto_cc_s_axi_arprot">
@@ -2390,6 +2492,9 @@
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_arvalid"/>
           </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_arvalid"/>
+          </CONNECTIONS>
         </PORT>
         <PORT DIR="I" NAME="m_axi_arready" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_arready">
           <CONNECTIONS>
@@ -2424,6 +2529,9 @@
           </CONNECTIONS>
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_arready"/>
+          </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_arready"/>
           </CONNECTIONS>
         </PORT>
         <PORT DIR="I" NAME="m_axi_rdata" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_rdata">
@@ -2460,6 +2568,9 @@
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_rdata"/>
           </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_rdata"/>
+          </CONNECTIONS>
         </PORT>
         <PORT DIR="I" NAME="m_axi_rresp" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_rresp">
           <CONNECTIONS>
@@ -2494,6 +2605,9 @@
           </CONNECTIONS>
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_rresp"/>
+          </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_rresp"/>
           </CONNECTIONS>
         </PORT>
         <PORT DIR="I" NAME="m_axi_rvalid" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_rvalid">
@@ -2530,6 +2644,9 @@
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_rvalid"/>
           </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_rvalid"/>
+          </CONNECTIONS>
         </PORT>
         <PORT DIR="O" NAME="m_axi_rready" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_rready">
           <CONNECTIONS>
@@ -2565,6 +2682,9 @@
           <CONNECTIONS>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_rready"/>
           </CONNECTIONS>
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_rready"/>
+          </CONNECTIONS>
         </PORT>
       </PORTS>
     </MODULE>
@@ -2598,7 +2718,7 @@
         <PARAMETER CHANGEDBY="undefined" NAME="RUSER_WIDTH" VALUE="0"/>
         <PARAMETER CHANGEDBY="undefined" NAME="WUSER_WIDTH" VALUE="0"/>
         <PARAMETER CHANGEDBY="undefined" NAME="BUSER_WIDTH" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_pc_28"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_pc_24"/>
         <PARAMETER NAME="EDK_IPTYPE" VALUE="BUS"/>
       </PARAMETERS>
       <PORTS>
@@ -4662,7 +4782,7 @@
         <PARAMETER CHANGEDBY="undefined" NAME="RUSER_WIDTH" VALUE="0"/>
         <PARAMETER CHANGEDBY="undefined" NAME="WUSER_WIDTH" VALUE="0"/>
         <PARAMETER CHANGEDBY="undefined" NAME="BUSER_WIDTH" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_pc_29"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_auto_pc_25"/>
         <PARAMETER NAME="EDK_IPTYPE" VALUE="BUS"/>
       </PARAMETERS>
       <PORTS>
@@ -7168,7 +7288,7 @@
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_4" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_5" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_6" VALUE="0"/>
-        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="0"/>
+        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="1"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_8" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_9" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_10" VALUE="0"/>
@@ -7176,7 +7296,7 @@
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_12" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_13" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_14" VALUE="0"/>
-        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_15" VALUE="0"/>
+        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_15" VALUE="1"/>
         <PARAMETER NAME="C_FAMILY" VALUE="zynq"/>
         <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_axi_vdma_1_0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_m_axi_mm2s_data_width" VALUE="64"/>
@@ -7218,7 +7338,7 @@
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_4" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_5" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_6" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_7" VALUE="0"/>
+        <PARAMETER CHANGEDBY="user" NAME="c_enable_debug_info_7" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_8" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_9" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_10" VALUE="0"/>
@@ -7226,7 +7346,7 @@
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_12" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_13" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_14" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_15" VALUE="0"/>
+        <PARAMETER CHANGEDBY="user" NAME="c_enable_debug_info_15" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_include_mm2s_dre" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_flush_on_fsync" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_s2mm_genlock_repeat_en" VALUE="1"/>
@@ -8083,6 +8203,7 @@
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="s_axi_lite_aclk"/>
             <CONNECTION INSTANCE="video_display_v_tc_1" PORT="s_axi_aclk"/>
             <CONNECTION INSTANCE="video_capture_v_tpg_1" PORT="s_axi_aclk"/>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="s_axi_aclk"/>
             <CONNECTION INSTANCE="proc_sys_reset_1" PORT="slowest_sync_clk"/>
             <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="aclk"/>
             <CONNECTION INSTANCE="axi_interconnect_gp0_m03_couplers_auto_cc" PORT="s_axi_aclk"/>
@@ -8117,6 +8238,7 @@
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="m_axi_mm2s_aclk"/>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="m_axis_mm2s_aclk"/>
             <CONNECTION INSTANCE="video_capture_v_tpg_1" PORT="aclk"/>
+            <CONNECTION INSTANCE="video_capture_v_vid_in_axi4s_1" PORT="aclk"/>
             <CONNECTION INSTANCE="axi_interconnect_gp0_m03_couplers_auto_cc" PORT="m_axi_aclk"/>
             <CONNECTION INSTANCE="axi_perf_mon_1" PORT="slot_0_axi_aclk"/>
             <CONNECTION INSTANCE="axi_perf_mon_1" PORT="core_aclk"/>
@@ -8189,6 +8311,404 @@
       </PORTS>
       <BUSINTERFACES/>
     </MODULE>
+    <MODULE FULLNAME="/video_capture/fmc_imageon_hdmi_in_1" HWVERSION="2.01.a" INSTANCE="video_capture_fmc_imageon_hdmi_in_1" IPTYPE="PERIPHERAL" MODCLASS="PERIPHERAL" MODTYPE="fmc_imageon_hdmi_in">
+      <PARAMETERS>
+        <PARAMETER NAME="C_DATA_WIDTH" VALUE="16"/>
+        <PARAMETER NAME="C_FAMILY" VALUE="virtex6"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_fmc_imageon_hdmi_in_1_0"/>
+        <PARAMETER NAME="EDK_IPTYPE" VALUE="PERIPHERAL"/>
+      </PARAMETERS>
+      <PORTS>
+        <PORT CLKFREQUENCY="148500000" DIR="I" NAME="clk" SIGIS="clk" SIGNAME="External_Ports_fmc_imageon_hdmii_clk">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="External_Ports" PORT="fmc_imageon_hdmii_clk"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="io_hdmii_spdif" SIGIS="undef"/>
+        <PORT DIR="I" NAME="io_hdmii_video" SIGIS="undef" SIGNAME="External_Ports_fmc_imageon_hdmii_data">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="External_Ports" PORT="fmc_imageon_hdmii_data"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="audio_spdif" SIGIS="undef"/>
+        <PORT DIR="O" NAME="video_vblank" SIGIS="undef" SIGNAME="video_capture_fmc_imageon_hdmi_in_1_video_vblank">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="vblank_in"/>
+            <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="vsync_2"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="video_hblank" SIGIS="undef" SIGNAME="video_capture_fmc_imageon_hdmi_in_1_video_hblank">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="hblank_in"/>
+            <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="hsync_2"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="video_de" SIGIS="undef" SIGNAME="video_capture_fmc_imageon_hdmi_in_1_video_de">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="active_video_in"/>
+            <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="de_2"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="video_data" SIGIS="undef" SIGNAME="video_capture_fmc_imageon_hdmi_in_1_video_data">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_vid_in_axi4s_1" PORT="vid_data"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="debug_o" SIGIS="undef"/>
+      </PORTS>
+      <BUSINTERFACES>
+        <BUSINTERFACE BUSNAME="__NOC__" NAME="HDMI_IN" TYPE="TARGET">
+          <PORTMAPS>
+            <PORTMAP PHYSICAL="io_hdmii_video"/>
+          </PORTMAPS>
+        </BUSINTERFACE>
+        <BUSINTERFACE BUSNAME="__NOC__" NAME="VID_IO_OUT" TYPE="INITIATOR">
+          <PORTMAPS>
+            <PORTMAP PHYSICAL="video_hblank"/>
+            <PORTMAP PHYSICAL="video_data"/>
+            <PORTMAP PHYSICAL="video_vblank"/>
+            <PORTMAP PHYSICAL="video_de"/>
+          </PORTMAPS>
+        </BUSINTERFACE>
+      </BUSINTERFACES>
+    </MODULE>
+    <MODULE FULLNAME="/video_capture/v_tc_1" HWVERSION="6.0" INSTANCE="video_capture_v_tc_1" IPTYPE="PERIPHERAL" MODCLASS="PERIPHERAL" MODTYPE="v_tc">
+      <PARAMETERS>
+        <PARAMETER NAME="C_HAS_AXI4_LITE" VALUE="1"/>
+        <PARAMETER NAME="C_HAS_INTC_IF" VALUE="0"/>
+        <PARAMETER NAME="C_GEN_HACTIVE_SIZE" VALUE="1920"/>
+        <PARAMETER NAME="C_GEN_VACTIVE_SIZE" VALUE="1080"/>
+        <PARAMETER NAME="C_GEN_CPARITY" VALUE="0"/>
+        <PARAMETER NAME="C_GEN_VBLANK_POLARITY" VALUE="1"/>
+        <PARAMETER NAME="C_GEN_HBLANK_POLARITY" VALUE="1"/>
+        <PARAMETER NAME="C_GEN_VSYNC_POLARITY" VALUE="1"/>
+        <PARAMETER NAME="C_GEN_HSYNC_POLARITY" VALUE="1"/>
+        <PARAMETER NAME="C_GEN_AVIDEO_POLARITY" VALUE="1"/>
+        <PARAMETER NAME="C_GEN_ACHROMA_POLARITY" VALUE="1"/>
+        <PARAMETER NAME="C_GEN_VIDEO_FORMAT" VALUE="2"/>
+        <PARAMETER NAME="C_GEN_HFRAME_SIZE" VALUE="2200"/>
+        <PARAMETER NAME="C_GEN_F0_VFRAME_SIZE" VALUE="1125"/>
+        <PARAMETER NAME="C_GEN_HSYNC_START" VALUE="2008"/>
+        <PARAMETER NAME="C_GEN_HSYNC_END" VALUE="2052"/>
+        <PARAMETER NAME="C_GEN_F0_VBLANK_HSTART" VALUE="1920"/>
+        <PARAMETER NAME="C_GEN_F0_VBLANK_HEND" VALUE="1920"/>
+        <PARAMETER NAME="C_GEN_F0_VSYNC_VSTART" VALUE="1083"/>
+        <PARAMETER NAME="C_GEN_F0_VSYNC_VEND" VALUE="1088"/>
+        <PARAMETER NAME="C_GEN_F0_VSYNC_HSTART" VALUE="1920"/>
+        <PARAMETER NAME="C_GEN_F0_VSYNC_HEND" VALUE="1920"/>
+        <PARAMETER NAME="C_FSYNC_HSTART0" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART0" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_HSTART1" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART1" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_HSTART2" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART2" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_HSTART3" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART3" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_HSTART4" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART4" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_HSTART5" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART5" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_HSTART6" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART6" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_HSTART7" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART7" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_HSTART8" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART8" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_HSTART9" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART9" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_HSTART10" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART10" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_HSTART11" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART11" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_HSTART12" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART12" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_HSTART13" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART13" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_HSTART14" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART14" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_HSTART15" VALUE="0"/>
+        <PARAMETER NAME="C_FSYNC_VSTART15" VALUE="0"/>
+        <PARAMETER NAME="C_MAX_PIXELS" VALUE="4096"/>
+        <PARAMETER NAME="C_MAX_LINES" VALUE="4096"/>
+        <PARAMETER NAME="C_NUM_FSYNCS" VALUE="1"/>
+        <PARAMETER NAME="C_GEN_AUTO_SWITCH" VALUE="0"/>
+        <PARAMETER NAME="C_DETECT_EN" VALUE="1"/>
+        <PARAMETER NAME="C_SYNC_EN" VALUE="0"/>
+        <PARAMETER NAME="C_GENERATE_EN" VALUE="1"/>
+        <PARAMETER NAME="C_DET_HSYNC_EN" VALUE="0"/>
+        <PARAMETER NAME="C_DET_VSYNC_EN" VALUE="0"/>
+        <PARAMETER NAME="C_DET_HBLANK_EN" VALUE="1"/>
+        <PARAMETER NAME="C_DET_VBLANK_EN" VALUE="1"/>
+        <PARAMETER NAME="C_DET_AVIDEO_EN" VALUE="1"/>
+        <PARAMETER NAME="C_DET_ACHROMA_EN" VALUE="0"/>
+        <PARAMETER NAME="C_GEN_HSYNC_EN" VALUE="1"/>
+        <PARAMETER NAME="C_GEN_VSYNC_EN" VALUE="1"/>
+        <PARAMETER NAME="C_GEN_HBLANK_EN" VALUE="1"/>
+        <PARAMETER NAME="C_GEN_VBLANK_EN" VALUE="1"/>
+        <PARAMETER NAME="C_GEN_AVIDEO_EN" VALUE="1"/>
+        <PARAMETER NAME="C_GEN_ACHROMA_EN" VALUE="0"/>
+        <PARAMETER NAME="C_FAMILY" VALUE="zynq"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_v_tc_1_1"/>
+        <PARAMETER CHANGEDBY="default" NAME="HAS_AXI4_LITE" VALUE="true"/>
+        <PARAMETER CHANGEDBY="default" NAME="HAS_INTC_IF" VALUE="false"/>
+        <PARAMETER CHANGEDBY="default" NAME="SYNC_EN" VALUE="false"/>
+        <PARAMETER CHANGEDBY="user" NAME="VIDEO_MODE" VALUE="1080p"/>
+        <PARAMETER CHANGEDBY="default" NAME="max_clocks_per_line" VALUE="4096"/>
+        <PARAMETER CHANGEDBY="default" NAME="max_lines_per_frame" VALUE="4096"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART0" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART0" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART1" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART1" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART2" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART2" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART3" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART3" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART4" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART4" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART5" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART5" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART6" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART6" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART7" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART7" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART8" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART8" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART9" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART9" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART10" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART10" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART11" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART11" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART12" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART12" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART13" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART13" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART14" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART14" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_HSTART15" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="FSYNC_VSTART15" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_F0_VSYNC_VSTART" VALUE="1083"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_HACTIVE_SIZE" VALUE="1920"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_HSYNC_END" VALUE="2052"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_HFRAME_SIZE" VALUE="2200"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_F0_VSYNC_HSTART" VALUE="1920"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_F0_VSYNC_HEND" VALUE="1920"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_F0_VFRAME_SIZE" VALUE="1125"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_F0_VSYNC_VEND" VALUE="1088"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_F0_VBLANK_HEND" VALUE="1920"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_HSYNC_START" VALUE="2008"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_VACTIVE_SIZE" VALUE="1080"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_F0_VBLANK_HSTART" VALUE="1920"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_ACHROMA_POLARITY" VALUE="High"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_HSYNC_POLARITY" VALUE="High"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_VSYNC_POLARITY" VALUE="High"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_HBLANK_POLARITY" VALUE="High"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_AVIDEO_POLARITY" VALUE="High"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_VBLANK_POLARITY" VALUE="High"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_CPARITY" VALUE="0"/>
+        <PARAMETER CHANGEDBY="default" NAME="GEN_VIDEO_FORMAT" VALUE="RGB"/>
+        <PARAMETER CHANGEDBY="default" NAME="horizontal_sync_generation" VALUE="true"/>
+        <PARAMETER CHANGEDBY="user" NAME="enable_detection" VALUE="true"/>
+        <PARAMETER CHANGEDBY="default" NAME="vertical_blank_generation" VALUE="true"/>
+        <PARAMETER CHANGEDBY="default" NAME="horizontal_blank_detection" VALUE="true"/>
+        <PARAMETER CHANGEDBY="default" NAME="active_chroma_detection" VALUE="false"/>
+        <PARAMETER CHANGEDBY="user" NAME="horizontal_sync_detection" VALUE="false"/>
+        <PARAMETER CHANGEDBY="default" NAME="enable_generation" VALUE="true"/>
+        <PARAMETER CHANGEDBY="user" NAME="auto_generation_mode" VALUE="false"/>
+        <PARAMETER CHANGEDBY="default" NAME="vertical_sync_generation" VALUE="true"/>
+        <PARAMETER CHANGEDBY="default" NAME="active_chroma_generation" VALUE="false"/>
+        <PARAMETER CHANGEDBY="default" NAME="vertical_blank_detection" VALUE="true"/>
+        <PARAMETER CHANGEDBY="default" NAME="active_video_generation" VALUE="true"/>
+        <PARAMETER CHANGEDBY="user" NAME="vertical_sync_detection" VALUE="false"/>
+        <PARAMETER CHANGEDBY="default" NAME="horizontal_blank_generation" VALUE="true"/>
+        <PARAMETER CHANGEDBY="default" NAME="active_video_detection" VALUE="true"/>
+        <PARAMETER CHANGEDBY="default" NAME="frame_syncs" VALUE="1"/>
+        <PARAMETER NAME="EDK_IPTYPE" VALUE="PERIPHERAL"/>
+        <PARAMETER NAME="C_BASEADDR" VALUE="0x400B0000"/>
+        <PARAMETER NAME="C_HIGHADDR" VALUE="0x400BFFFF"/>
+      </PARAMETERS>
+      <PORTS>
+        <PORT CLKFREQUENCY="100000000" DIR="I" NAME="clk" SIGIS="clk" SIGNAME="video_capture_vsrc_sel_1_video_clk">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="video_clk"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="clken" SIGIS="ce"/>
+        <PORT CLKFREQUENCY="75000000" DIR="I" NAME="s_axi_aclk" SIGIS="clk" SIGNAME="clk_wiz_1_clk_out1">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="clk_wiz_1" PORT="clk_out1"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="s_axi_aclken" SIGIS="ce"/>
+        <PORT DIR="I" NAME="det_clken" SIGIS="undef"/>
+        <PORT DIR="I" NAME="gen_clken" SIGIS="undef"/>
+        <PORT DIR="I" NAME="hblank_in" SIGIS="undef" SIGNAME="video_capture_fmc_imageon_hdmi_in_1_video_hblank">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_fmc_imageon_hdmi_in_1" PORT="video_hblank"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="vblank_in" SIGIS="undef" SIGNAME="video_capture_fmc_imageon_hdmi_in_1_video_vblank">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_fmc_imageon_hdmi_in_1" PORT="video_vblank"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="active_video_in" SIGIS="undef" SIGNAME="video_capture_fmc_imageon_hdmi_in_1_video_de">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_fmc_imageon_hdmi_in_1" PORT="video_de"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="hsync_out" SIGIS="undef" SIGNAME="video_capture_v_tc_1_hsync_out">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="hsync_1"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="hblank_out" SIGIS="undef"/>
+        <PORT DIR="O" NAME="vsync_out" SIGIS="undef" SIGNAME="video_capture_v_tc_1_vsync_out">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="vsync_1"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="vblank_out" SIGIS="undef"/>
+        <PORT DIR="O" NAME="active_video_out" SIGIS="undef" SIGNAME="video_capture_v_tc_1_active_video_out">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="de_1"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="resetn" SIGIS="rst"/>
+        <PORT DIR="I" NAME="s_axi_aresetn" SIGIS="rst"/>
+        <PORT DIR="I" NAME="s_axi_awaddr" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_awaddr">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_awaddr"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="s_axi_awvalid" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_awvalid">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_awvalid"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="s_axi_awready" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_awready">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_awready"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="s_axi_wdata" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_wdata">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_wdata"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="s_axi_wstrb" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_wstrb">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_wstrb"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="s_axi_wvalid" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_wvalid">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_wvalid"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="s_axi_wready" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_wready">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_wready"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="s_axi_bresp" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_bresp">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_bresp"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="s_axi_bvalid" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_bvalid">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_bvalid"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="s_axi_bready" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_bready">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_bready"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="s_axi_araddr" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_araddr">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_araddr"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="s_axi_arvalid" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_arvalid">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_arvalid"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="s_axi_arready" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_arready">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_arready"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="s_axi_rdata" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_rdata">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_rdata"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="s_axi_rresp" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_rresp">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_rresp"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="s_axi_rvalid" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_rvalid">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_rvalid"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="s_axi_rready" SIGIS="undef" SIGNAME="axi_interconnect_gp0_xbar_m_axi_rready">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_interconnect_gp0_xbar" PORT="m_axi_rready"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="irq" SIGIS="undef" SIGNAME="video_capture_v_tc_1_irq">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_scugic_0" PORT="IRQ_F2P"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="fsync_in" SIGIS="undef"/>
+        <PORT DIR="O" NAME="fsync_out" SIGIS="undef"/>
+      </PORTS>
+      <BUSINTERFACES>
+        <BUSINTERFACE BUSNAME="axi_interconnect_gp0_xbar" NAME="ctrl" TYPE="SLAVE">
+          <PORTMAPS>
+            <PORTMAP PHYSICAL="s_axi_arready"/>
+            <PORTMAP PHYSICAL="s_axi_awvalid"/>
+            <PORTMAP PHYSICAL="s_axi_wdata"/>
+            <PORTMAP PHYSICAL="s_axi_rdata"/>
+            <PORTMAP PHYSICAL="s_axi_awready"/>
+            <PORTMAP PHYSICAL="s_axi_bready"/>
+            <PORTMAP PHYSICAL="s_axi_awaddr"/>
+            <PORTMAP PHYSICAL="s_axi_araddr"/>
+            <PORTMAP PHYSICAL="s_axi_bvalid"/>
+            <PORTMAP PHYSICAL="s_axi_rresp"/>
+            <PORTMAP PHYSICAL="s_axi_wstrb"/>
+            <PORTMAP PHYSICAL="s_axi_bresp"/>
+            <PORTMAP PHYSICAL="s_axi_wvalid"/>
+            <PORTMAP PHYSICAL="s_axi_arvalid"/>
+            <PORTMAP PHYSICAL="s_axi_rvalid"/>
+            <PORTMAP PHYSICAL="s_axi_wready"/>
+            <PORTMAP PHYSICAL="s_axi_rready"/>
+          </PORTMAPS>
+        </BUSINTERFACE>
+        <BUSINTERFACE BUSNAME="__NOC__" NAME="vtiming_in" TYPE="TARGET">
+          <PORTMAPS>
+            <PORTMAP PHYSICAL="vblank_in"/>
+            <PORTMAP PHYSICAL="hblank_in"/>
+            <PORTMAP PHYSICAL="active_video_in"/>
+          </PORTMAPS>
+        </BUSINTERFACE>
+        <BUSINTERFACE BUSNAME="__NOC__" NAME="vtiming_out" TYPE="INITIATOR">
+          <PORTMAPS>
+            <PORTMAP PHYSICAL="vblank_out"/>
+            <PORTMAP PHYSICAL="hblank_out"/>
+            <PORTMAP PHYSICAL="vsync_out"/>
+            <PORTMAP PHYSICAL="hsync_out"/>
+            <PORTMAP PHYSICAL="active_video_out"/>
+          </PORTMAPS>
+        </BUSINTERFACE>
+      </BUSINTERFACES>
+    </MODULE>
     <MODULE FULLNAME="/video_capture/v_tpg_1" HWVERSION="5.0" INSTANCE="video_capture_v_tpg_1" IPTYPE="PERIPHERAL" MODCLASS="PERIPHERAL" MODTYPE="v_tpg">
       <PARAMETERS>
         <PARAMETER NAME="C_S_AXIS_VIDEO_DATA_WIDTH" VALUE="8"/>
@@ -8197,7 +8717,7 @@
         <PARAMETER NAME="C_M_AXIS_VIDEO_TDATA_WIDTH" VALUE="16"/>
         <PARAMETER NAME="C_S_AXIS_VIDEO_FORMAT" VALUE="0"/>
         <PARAMETER NAME="C_M_AXIS_VIDEO_FORMAT" VALUE="0"/>
-        <PARAMETER NAME="C_S_AXIS_VIDEO_TUSER_WIDTH" VALUE="0"/>
+        <PARAMETER NAME="C_S_AXIS_VIDEO_TUSER_WIDTH" VALUE="1"/>
         <PARAMETER NAME="C_M_AXIS_VIDEO_TUSER_WIDTH" VALUE="1"/>
         <PARAMETER NAME="C_S_AXI_ADDR_WIDTH" VALUE="9"/>
         <PARAMETER NAME="C_S_AXI_DATA_WIDTH" VALUE="32"/>
@@ -8219,13 +8739,13 @@
         <PARAMETER NAME="C_FAMILY" VALUE="zynq"/>
         <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_v_tpg_1_0"/>
         <PARAMETER CHANGEDBY="default" NAME="has_axi4_lite" VALUE="true"/>
-        <PARAMETER CHANGEDBY="user" NAME="has_axi4s_slave" VALUE="false"/>
+        <PARAMETER CHANGEDBY="user" NAME="has_axi4s_slave" VALUE="true"/>
         <PARAMETER CHANGEDBY="default" NAME="has_intc_if" VALUE="false"/>
-        <PARAMETER CHANGEDBY="default" NAME="data_width" VALUE="8"/>
+        <PARAMETER CHANGEDBY="propagated" NAME="data_width" VALUE="8"/>
         <PARAMETER CHANGEDBY="user" NAME="pattern_control" VALUE="9"/>
         <PARAMETER CHANGEDBY="default" NAME="active_cols" VALUE="1920"/>
         <PARAMETER CHANGEDBY="default" NAME="active_rows" VALUE="1080"/>
-        <PARAMETER CHANGEDBY="default" NAME="s_video_format" VALUE="0"/>
+        <PARAMETER CHANGEDBY="propagated" NAME="s_video_format" VALUE="0"/>
         <PARAMETER CHANGEDBY="propagated" NAME="m_video_format" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="bayer_phase" VALUE="4"/>
         <PARAMETER CHANGEDBY="user" NAME="enable_motion" VALUE="true"/>
@@ -8243,6 +8763,31 @@
         <PORT DIR="I" NAME="aclken" SIGIS="ce"/>
         <PORT DIR="I" NAME="aresetn" SIGIS="rst"/>
         <PORT DIR="O" NAME="irq" SIGIS="undef"/>
+        <PORT DIR="I" NAME="s_axis_video_tdata" SIGIS="undef" SIGNAME="video_capture_v_tpg_1_s_axis_video_tdata">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_vid_in_axi4s_1" PORT="m_axis_video_tdata"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="s_axis_video_tready" SIGIS="undef" SIGNAME="video_capture_v_tpg_1_s_axis_video_tready">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_vid_in_axi4s_1" PORT="m_axis_video_tready"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="s_axis_video_tvalid" SIGIS="undef" SIGNAME="video_capture_v_tpg_1_s_axis_video_tvalid">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_vid_in_axi4s_1" PORT="m_axis_video_tvalid"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="s_axis_video_tlast" SIGIS="undef" SIGNAME="video_capture_v_tpg_1_s_axis_video_tlast">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_vid_in_axi4s_1" PORT="m_axis_video_tlast"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="s_axis_video_tuser" SIGIS="undef" SIGNAME="video_capture_v_tpg_1_s_axis_video_tuser">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_vid_in_axi4s_1" PORT="m_axis_video_tuser"/>
+          </CONNECTIONS>
+        </PORT>
         <PORT DIR="O" NAME="m_axis_video_tdata" SIGIS="undef" SIGNAME="axi_vdma_1_s_axis_s2mm_tdata">
           <CONNECTIONS>
             <CONNECTION INSTANCE="axi_vdma_1" PORT="s_axis_s2mm_tdata"/>
@@ -8392,7 +8937,220 @@
             <PORTMAP PHYSICAL="m_axis_video_tvalid"/>
           </PORTMAPS>
         </BUSINTERFACE>
+        <BUSINTERFACE BUSNAME="video_capture_v_tpg_1_video_in" NAME="video_in" TYPE="TARGET">
+          <PORTMAPS>
+            <PORTMAP PHYSICAL="s_axis_video_tdata"/>
+            <PORTMAP PHYSICAL="s_axis_video_tlast"/>
+            <PORTMAP PHYSICAL="s_axis_video_tready"/>
+            <PORTMAP PHYSICAL="s_axis_video_tuser"/>
+            <PORTMAP PHYSICAL="s_axis_video_tvalid"/>
+          </PORTMAPS>
+        </BUSINTERFACE>
       </BUSINTERFACES>
+    </MODULE>
+    <MODULE FULLNAME="/video_capture/v_vid_in_axi4s_1" HWVERSION="3.0" INSTANCE="video_capture_v_vid_in_axi4s_1" IPTYPE="PERIPHERAL" MODCLASS="PERIPHERAL" MODTYPE="v_vid_in_axi4s">
+      <PARAMETERS>
+        <PARAMETER NAME="C_M_AXIS_VIDEO_DATA_WIDTH" VALUE="8"/>
+        <PARAMETER NAME="C_M_AXIS_VIDEO_FORMAT" VALUE="0"/>
+        <PARAMETER NAME="VID_IN_DATA_WIDTH" VALUE="16"/>
+        <PARAMETER NAME="C_M_AXIS_VIDEO_TDATA_WIDTH" VALUE="16"/>
+        <PARAMETER NAME="RAM_ADDR_BITS" VALUE="10"/>
+        <PARAMETER NAME="HYSTERESIS_LEVEL" VALUE="12"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_v_vid_in_axi4s_1_0"/>
+        <PARAMETER NAME="EDK_IPTYPE" VALUE="PERIPHERAL"/>
+      </PARAMETERS>
+      <PORTS>
+        <PORT CLKFREQUENCY="100000000" DIR="I" NAME="vid_io_in_clk" SIGIS="clk" SIGNAME="video_capture_vsrc_sel_1_video_clk">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="video_clk"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="rst" SIGIS="rst"/>
+        <PORT DIR="I" NAME="vid_io_in_ce" SIGIS="ce"/>
+        <PORT DIR="I" NAME="vid_active_video" SIGIS="undef" SIGNAME="video_capture_vsrc_sel_1_de">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="de"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="vid_vblank" SIGIS="undef" SIGNAME="video_capture_vsrc_sel_1_vsync">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="vsync"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="vid_hblank" SIGIS="undef" SIGNAME="video_capture_vsrc_sel_1_hsync">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="hsync"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="vid_vsync" SIGIS="undef" SIGNAME="video_capture_vsrc_sel_1_vsync">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="vsync"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="vid_hsync" SIGIS="undef" SIGNAME="video_capture_vsrc_sel_1_hsync">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_vsrc_sel_1" PORT="hsync"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="vid_field_id" SIGIS="undef"/>
+        <PORT DIR="I" NAME="vid_data" SIGIS="undef" SIGNAME="video_capture_fmc_imageon_hdmi_in_1_video_data">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_fmc_imageon_hdmi_in_1" PORT="video_data"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT CLKFREQUENCY="150000000" DIR="I" NAME="aclk" SIGIS="clk" SIGNAME="clk_wiz_1_clk_out2">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="clk_wiz_1" PORT="clk_out2"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="aclken" SIGIS="ce"/>
+        <PORT DIR="I" NAME="aresetn" SIGIS="rst"/>
+        <PORT DIR="O" NAME="m_axis_video_tdata" SIGIS="undef" SIGNAME="video_capture_v_tpg_1_s_axis_video_tdata">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tpg_1" PORT="s_axis_video_tdata"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="m_axis_video_tvalid" SIGIS="undef" SIGNAME="video_capture_v_tpg_1_s_axis_video_tvalid">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tpg_1" PORT="s_axis_video_tvalid"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="m_axis_video_tready" SIGIS="undef" SIGNAME="video_capture_v_tpg_1_s_axis_video_tready">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tpg_1" PORT="s_axis_video_tready"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="m_axis_video_tuser" SIGIS="undef" SIGNAME="video_capture_v_tpg_1_s_axis_video_tuser">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tpg_1" PORT="s_axis_video_tuser"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="m_axis_video_tlast" SIGIS="undef" SIGNAME="video_capture_v_tpg_1_s_axis_video_tlast">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tpg_1" PORT="s_axis_video_tlast"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="fid" SIGIS="undef"/>
+        <PORT DIR="O" NAME="vtd_active_video" SIGIS="undef"/>
+        <PORT DIR="O" NAME="vtd_vblank" SIGIS="undef"/>
+        <PORT DIR="O" NAME="vtd_hblank" SIGIS="undef"/>
+        <PORT DIR="O" NAME="vtd_vsync" SIGIS="undef"/>
+        <PORT DIR="O" NAME="vtd_hsync" SIGIS="undef"/>
+        <PORT DIR="O" NAME="vtd_field_id" SIGIS="undef"/>
+        <PORT DIR="O" NAME="wr_error" SIGIS="undef"/>
+        <PORT DIR="O" NAME="empty" SIGIS="undef"/>
+        <PORT DIR="I" NAME="axis_enable" SIGIS="undef"/>
+      </PORTS>
+      <BUSINTERFACES>
+        <BUSINTERFACE BUSNAME="video_capture_v_tpg_1_video_in" NAME="video_out" TYPE="INITIATOR">
+          <PORTMAPS>
+            <PORTMAP PHYSICAL="m_axis_video_tlast"/>
+            <PORTMAP PHYSICAL="m_axis_video_tuser"/>
+            <PORTMAP PHYSICAL="m_axis_video_tdata"/>
+            <PORTMAP PHYSICAL="m_axis_video_tvalid"/>
+            <PORTMAP PHYSICAL="m_axis_video_tready"/>
+          </PORTMAPS>
+        </BUSINTERFACE>
+        <BUSINTERFACE BUSNAME="__NOC__" NAME="vtiming_out" TYPE="INITIATOR">
+          <PORTMAPS>
+            <PORTMAP PHYSICAL="vtd_vblank"/>
+            <PORTMAP PHYSICAL="vtd_hblank"/>
+            <PORTMAP PHYSICAL="vtd_vsync"/>
+            <PORTMAP PHYSICAL="vtd_hsync"/>
+            <PORTMAP PHYSICAL="vtd_active_video"/>
+            <PORTMAP PHYSICAL="vtd_field_id"/>
+          </PORTMAPS>
+        </BUSINTERFACE>
+        <BUSINTERFACE BUSNAME="__NOC__" NAME="vid_io_in" TYPE="TARGET">
+          <PORTMAPS>
+            <PORTMAP PHYSICAL="vid_hsync"/>
+            <PORTMAP PHYSICAL="vid_field_id"/>
+            <PORTMAP PHYSICAL="vid_active_video"/>
+            <PORTMAP PHYSICAL="vid_vblank"/>
+            <PORTMAP PHYSICAL="vid_vsync"/>
+            <PORTMAP PHYSICAL="vid_data"/>
+            <PORTMAP PHYSICAL="vid_hblank"/>
+          </PORTMAPS>
+        </BUSINTERFACE>
+      </BUSINTERFACES>
+    </MODULE>
+    <MODULE FULLNAME="/video_capture/vsrc_sel_1" HWVERSION="1.0" INSTANCE="video_capture_vsrc_sel_1" IPTYPE="PERIPHERAL" MODCLASS="PERIPHERAL" MODTYPE="vsrc_sel">
+      <PARAMETERS>
+        <PARAMETER NAME="C_NUM_CHANNELS" VALUE="1"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_vsrc_sel_1_0"/>
+        <PARAMETER NAME="EDK_IPTYPE" VALUE="PERIPHERAL"/>
+      </PARAMETERS>
+      <PORTS>
+        <PORT DIR="I" NAME="video_clk_1" SIGIS="undef" SIGNAME="External_Ports_fmc_imageon_hdmii_clk">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="External_Ports" PORT="fmc_imageon_hdmii_clk"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="video_clk_2" SIGIS="undef" SIGNAME="External_Ports_video_clk">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="External_Ports" PORT="video_clk"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="hsync_1" SIGIS="undef" SIGNAME="video_capture_v_tc_1_hsync_out">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="hsync_out"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="hsync_2" SIGIS="undef" SIGNAME="video_capture_fmc_imageon_hdmi_in_1_video_hblank">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_fmc_imageon_hdmi_in_1" PORT="video_hblank"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="vsync_1" SIGIS="undef" SIGNAME="video_capture_v_tc_1_vsync_out">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="vsync_out"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="vsync_2" SIGIS="undef" SIGNAME="video_capture_fmc_imageon_hdmi_in_1_video_vblank">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_fmc_imageon_hdmi_in_1" PORT="video_vblank"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="de_1" SIGIS="undef" SIGNAME="video_capture_v_tc_1_active_video_out">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="active_video_out"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="de_2" SIGIS="undef" SIGNAME="video_capture_fmc_imageon_hdmi_in_1_video_de">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_fmc_imageon_hdmi_in_1" PORT="video_de"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="video_clk" SIGIS="undef" SIGNAME="video_capture_vsrc_sel_1_video_clk">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_vid_in_axi4s_1" PORT="vid_io_in_clk"/>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="clk"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="hsync" SIGIS="undef" SIGNAME="video_capture_vsrc_sel_1_hsync">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_vid_in_axi4s_1" PORT="vid_hsync"/>
+            <CONNECTION INSTANCE="video_capture_v_vid_in_axi4s_1" PORT="vid_hblank"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="vsync" SIGIS="undef" SIGNAME="video_capture_vsrc_sel_1_vsync">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_vid_in_axi4s_1" PORT="vid_vsync"/>
+            <CONNECTION INSTANCE="video_capture_v_vid_in_axi4s_1" PORT="vid_vblank"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="de" SIGIS="undef" SIGNAME="video_capture_vsrc_sel_1_de">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="video_capture_v_vid_in_axi4s_1" PORT="vid_active_video"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="video_sel" SIGIS="undef" SIGNAME="EMIO_GPIO_xlslice_2_Dout">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="EMIO_GPIO_xlslice_2" PORT="Dout"/>
+          </CONNECTIONS>
+        </PORT>
+      </PORTS>
+      <BUSINTERFACES/>
     </MODULE>
     <MODULE FULLNAME="/video_display/axi_vdma_2" HWVERSION="6.0" INSTANCE="video_display_axi_vdma_2" IPTYPE="PERIPHERAL" MODCLASS="PERIPHERAL" MODTYPE="axi_vdma">
       <PARAMETERS>
@@ -8447,7 +9205,7 @@
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_4" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_5" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_6" VALUE="0"/>
-        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="0"/>
+        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="1"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_8" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_9" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_10" VALUE="0"/>
@@ -8497,7 +9255,7 @@
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_4" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_5" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_6" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_7" VALUE="0"/>
+        <PARAMETER CHANGEDBY="user" NAME="c_enable_debug_info_7" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_8" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_9" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_10" VALUE="0"/>
@@ -8785,7 +9543,7 @@
         <PARAMETER NAME="C_MM2S_GENLOCK_REPEAT_EN" VALUE="0"/>
         <PARAMETER NAME="C_INCLUDE_MM2S_DRE" VALUE="0"/>
         <PARAMETER NAME="C_INCLUDE_MM2S_SF" VALUE="0"/>
-        <PARAMETER NAME="C_MM2S_LINEBUFFER_DEPTH" VALUE="512"/>
+        <PARAMETER NAME="C_MM2S_LINEBUFFER_DEPTH" VALUE="4096"/>
         <PARAMETER NAME="C_MM2S_LINEBUFFER_THRESH" VALUE="4"/>
         <PARAMETER NAME="C_MM2S_MAX_BURST_LENGTH" VALUE="16"/>
         <PARAMETER NAME="C_M_AXI_MM2S_ADDR_WIDTH" VALUE="32"/>
@@ -8813,7 +9571,7 @@
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_4" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_5" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_6" VALUE="0"/>
-        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="0"/>
+        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="1"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_8" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_9" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_10" VALUE="0"/>
@@ -8823,7 +9581,7 @@
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_14" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_15" VALUE="0"/>
         <PARAMETER NAME="C_FAMILY" VALUE="zynq"/>
-        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_axi_vdma_2_3"/>
+        <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_axi_vdma_3_3"/>
         <PARAMETER CHANGEDBY="default" NAME="c_m_axi_mm2s_data_width" VALUE="64"/>
         <PARAMETER CHANGEDBY="user" NAME="c_m_axis_mm2s_tdata_width" VALUE="16"/>
         <PARAMETER CHANGEDBY="default" NAME="c_m_axi_s2mm_data_width" VALUE="64"/>
@@ -8843,7 +9601,7 @@
         <PARAMETER CHANGEDBY="default" NAME="c_mm2s_genlock_num_masters" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_s2mm_genlock_mode" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_s2mm_genlock_num_masters" VALUE="1"/>
-        <PARAMETER CHANGEDBY="user" NAME="c_mm2s_linebuffer_depth" VALUE="512"/>
+        <PARAMETER CHANGEDBY="user" NAME="c_mm2s_linebuffer_depth" VALUE="4096"/>
         <PARAMETER CHANGEDBY="default" NAME="c_mm2s_linebuffer_thresh" VALUE="4"/>
         <PARAMETER CHANGEDBY="user" NAME="c_s2mm_linebuffer_depth" VALUE="512"/>
         <PARAMETER CHANGEDBY="default" NAME="c_s2mm_linebuffer_thresh" VALUE="4"/>
@@ -8863,7 +9621,7 @@
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_4" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_5" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_6" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_7" VALUE="0"/>
+        <PARAMETER CHANGEDBY="user" NAME="c_enable_debug_info_7" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_8" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_9" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_10" VALUE="0"/>
@@ -9813,7 +10571,7 @@
         <PARAMETER CHANGEDBY="default" NAME="LAYER5_TYPE" VALUE="External_AXIS"/>
         <PARAMETER CHANGEDBY="default" NAME="LAYER6_TYPE" VALUE="External_AXIS"/>
         <PARAMETER CHANGEDBY="default" NAME="LAYER7_TYPE" VALUE="External_AXIS"/>
-        <PARAMETER CHANGEDBY="user" NAME="S_AXIS_VIDEO_FORMAT" VALUE="YUV_422"/>
+        <PARAMETER CHANGEDBY="propagated" NAME="S_AXIS_VIDEO_FORMAT" VALUE="YUV_422"/>
         <PARAMETER CHANGEDBY="user" NAME="M_AXIS_VIDEO_WIDTH" VALUE="1920"/>
         <PARAMETER CHANGEDBY="user" NAME="M_AXIS_VIDEO_HEIGHT" VALUE="1080"/>
         <PARAMETER CHANGEDBY="propagated" NAME="Data_Channel_Width" VALUE="8"/>
@@ -10909,7 +11667,7 @@
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_4" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_5" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_6" VALUE="0"/>
-        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="0"/>
+        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_7" VALUE="1"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_8" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_9" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_10" VALUE="0"/>
@@ -10917,7 +11675,7 @@
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_12" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_13" VALUE="0"/>
         <PARAMETER NAME="C_ENABLE_DEBUG_INFO_14" VALUE="0"/>
-        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_15" VALUE="0"/>
+        <PARAMETER NAME="C_ENABLE_DEBUG_INFO_15" VALUE="1"/>
         <PARAMETER NAME="C_FAMILY" VALUE="zynq"/>
         <PARAMETER CHANGEDBY="default" NAME="Component_Name" VALUE="system_top_axi_vdma_m2m_1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_m_axi_mm2s_data_width" VALUE="64"/>
@@ -10959,7 +11717,7 @@
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_4" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_5" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_6" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_7" VALUE="0"/>
+        <PARAMETER CHANGEDBY="user" NAME="c_enable_debug_info_7" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_8" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_9" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_10" VALUE="0"/>
@@ -10967,7 +11725,7 @@
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_12" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_13" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_14" VALUE="0"/>
-        <PARAMETER CHANGEDBY="default" NAME="c_enable_debug_info_15" VALUE="0"/>
+        <PARAMETER CHANGEDBY="user" NAME="c_enable_debug_info_15" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_include_mm2s_dre" VALUE="0"/>
         <PARAMETER CHANGEDBY="default" NAME="c_flush_on_fsync" VALUE="1"/>
         <PARAMETER CHANGEDBY="default" NAME="c_s2mm_genlock_repeat_en" VALUE="1"/>
@@ -11990,6 +12748,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_ACLK"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_ACLK"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_ACLK"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_ACLK"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_ACLK"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_ACLK"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_ACLK"/>
@@ -12019,6 +12778,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_ARADDR"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_ARADDR"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_ARADDR"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_ARADDR"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_ARADDR"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_ARADDR"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_ARADDR"/>
@@ -12048,6 +12808,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_ARESETN"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_ARESETN"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_ARESETN"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_ARESETN"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_ARESETN"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_ARESETN"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_ARESETN"/>
@@ -12077,6 +12838,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_ARREADY"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_ARREADY"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_ARREADY"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_ARREADY"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_ARREADY"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_ARREADY"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_ARREADY"/>
@@ -12106,6 +12868,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_ARVALID"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_ARVALID"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_ARVALID"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_ARVALID"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_ARVALID"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_ARVALID"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_ARVALID"/>
@@ -12135,6 +12898,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_AWADDR"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_AWADDR"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_AWADDR"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_AWADDR"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_AWADDR"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_AWADDR"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_AWADDR"/>
@@ -12164,6 +12928,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_AWREADY"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_AWREADY"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_AWREADY"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_AWREADY"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_AWREADY"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_AWREADY"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_AWREADY"/>
@@ -12193,6 +12958,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_AWVALID"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_AWVALID"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_AWVALID"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_AWVALID"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_AWVALID"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_AWVALID"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_AWVALID"/>
@@ -12222,6 +12988,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_BREADY"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_BREADY"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_BREADY"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_BREADY"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_BREADY"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_BREADY"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_BREADY"/>
@@ -12251,6 +13018,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_BRESP"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_BRESP"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_BRESP"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_BRESP"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_BRESP"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_BRESP"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_BRESP"/>
@@ -12280,6 +13048,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_BVALID"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_BVALID"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_BVALID"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_BVALID"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_BVALID"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_BVALID"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_BVALID"/>
@@ -12309,6 +13078,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_RDATA"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_RDATA"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_RDATA"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_RDATA"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_RDATA"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_RDATA"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_RDATA"/>
@@ -12338,6 +13108,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_RREADY"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_RREADY"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_RREADY"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_RREADY"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_RREADY"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_RREADY"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_RREADY"/>
@@ -12367,6 +13138,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_RRESP"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_RRESP"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_RRESP"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_RRESP"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_RRESP"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_RRESP"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_RRESP"/>
@@ -12396,6 +13168,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_RVALID"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_RVALID"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_RVALID"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_RVALID"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_RVALID"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_RVALID"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_RVALID"/>
@@ -12425,6 +13198,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_WDATA"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_WDATA"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_WDATA"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_WDATA"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_WDATA"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_WDATA"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_WDATA"/>
@@ -12454,6 +13228,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_WREADY"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_WREADY"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_WREADY"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_WREADY"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_WREADY"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_WREADY"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_WREADY"/>
@@ -12483,6 +13258,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_WSTRB"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_WSTRB"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_WSTRB"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_WSTRB"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_WSTRB"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_WSTRB"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_WSTRB"/>
@@ -12513,6 +13289,7 @@
             <CONNECTION INSTANCE="ps7_ethernet_0" PORT="S_AXI_WVALID"/>
             <CONNECTION INSTANCE="ps7_sd_0" PORT="S_AXI_WVALID"/>
             <CONNECTION INSTANCE="ps7_i2c_0" PORT="S_AXI_WVALID"/>
+            <CONNECTION INSTANCE="ps7_i2c_1" PORT="S_AXI_WVALID"/>
             <CONNECTION INSTANCE="ps7_afi_0" PORT="S_AXI_WVALID"/>
             <CONNECTION INSTANCE="ps7_afi_1" PORT="S_AXI_WVALID"/>
             <CONNECTION INSTANCE="ps7_afi_2" PORT="S_AXI_WVALID"/>
@@ -12990,6 +13767,7 @@
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE000B000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE000BFFF" INSTANCE="ps7_ethernet_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE000A000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE000AFFF" INSTANCE="ps7_gpio_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE0004000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE0004FFF" INSTANCE="ps7_i2c_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
+        <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE0005000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE0005FFF" INSTANCE="ps7_i2c_1" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE0200000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE0200FFF" INSTANCE="ps7_iop_bus_config_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE000D000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE000DFFF" INSTANCE="ps7_qspi_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xFC000000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xFCFFFFFF" INSTANCE="ps7_qspi_linear_0" IS_DATA="FALSE" IS_INSTRUCTION="FALSE" MEMTYPE="MEMORY"/>
@@ -13002,6 +13780,7 @@
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xF8000000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xF8000FFF" INSTANCE="ps7_slcr_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE0001000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE0001FFF" INSTANCE="ps7_uart_1" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE0002000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE0002FFF" INSTANCE="ps7_usb_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
+        <MEMRANGE BASENAME="C_BASEADDR" BASEVALUE="0x400B0000" HIGHNAME="C_HIGHADDR" HIGHVALUE="0x400BFFFF" INSTANCE="video_capture_v_tc_1" IS_DATA="TRUE" IS_INSTRUCTION="FALSE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_BASEADDR" BASEVALUE="0x400A0000" HIGHNAME="C_HIGHADDR" HIGHVALUE="0x400AFFFF" INSTANCE="video_display_axi_vdma_3" IS_DATA="TRUE" IS_INSTRUCTION="FALSE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_BASEADDR" BASEVALUE="0x40090000" HIGHNAME="C_HIGHADDR" HIGHVALUE="0x4009FFFF" INSTANCE="axi_perf_mon_1" IS_DATA="TRUE" IS_INSTRUCTION="FALSE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_CONTROL_BUS_BASEADDR" BASEVALUE="0x40080000" HIGHNAME="C_S_AXI_CONTROL_BUS_HIGHADDR" HIGHVALUE="0x4008FFFF" INSTANCE="video_processing_sobel_filter_1" IS_DATA="TRUE" IS_INSTRUCTION="FALSE" MEMTYPE="REGISTER"/>
@@ -13028,6 +13807,7 @@
         <PERIPHERAL INSTANCE="ps7_ethernet_0"/>
         <PERIPHERAL INSTANCE="ps7_gpio_0"/>
         <PERIPHERAL INSTANCE="ps7_i2c_0"/>
+        <PERIPHERAL INSTANCE="ps7_i2c_1"/>
         <PERIPHERAL INSTANCE="ps7_iop_bus_config_0"/>
         <PERIPHERAL INSTANCE="ps7_qspi_0"/>
         <PERIPHERAL INSTANCE="ps7_qspi_linear_0"/>
@@ -13040,6 +13820,7 @@
         <PERIPHERAL INSTANCE="ps7_slcr_0"/>
         <PERIPHERAL INSTANCE="ps7_uart_1"/>
         <PERIPHERAL INSTANCE="ps7_usb_0"/>
+        <PERIPHERAL INSTANCE="video_capture_v_tc_1"/>
         <PERIPHERAL INSTANCE="video_display_axi_vdma_3"/>
         <PERIPHERAL INSTANCE="axi_perf_mon_1"/>
         <PERIPHERAL INSTANCE="video_processing_sobel_filter_1"/>
@@ -13215,6 +13996,7 @@
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE000B000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE000BFFF" INSTANCE="ps7_ethernet_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE000A000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE000AFFF" INSTANCE="ps7_gpio_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE0004000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE0004FFF" INSTANCE="ps7_i2c_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
+        <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE0005000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE0005FFF" INSTANCE="ps7_i2c_1" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE0200000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE0200FFF" INSTANCE="ps7_iop_bus_config_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE000D000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE000DFFF" INSTANCE="ps7_qspi_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xFC000000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xFCFFFFFF" INSTANCE="ps7_qspi_linear_0" IS_DATA="FALSE" IS_INSTRUCTION="FALSE" MEMTYPE="MEMORY"/>
@@ -13227,6 +14009,7 @@
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xF8000000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xF8000FFF" INSTANCE="ps7_slcr_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE0001000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE0001FFF" INSTANCE="ps7_uart_1" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_BASEADDR" BASEVALUE="0xE0002000" HIGHNAME="C_S_AXI_HIGHADDR" HIGHVALUE="0xE0002FFF" INSTANCE="ps7_usb_0" IS_DATA="TRUE" IS_INSTRUCTION="TRUE" MEMTYPE="REGISTER"/>
+        <MEMRANGE BASENAME="C_BASEADDR" BASEVALUE="0x400B0000" HIGHNAME="C_HIGHADDR" HIGHVALUE="0x400BFFFF" INSTANCE="video_capture_v_tc_1" IS_DATA="TRUE" IS_INSTRUCTION="FALSE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_BASEADDR" BASEVALUE="0x400A0000" HIGHNAME="C_HIGHADDR" HIGHVALUE="0x400AFFFF" INSTANCE="video_display_axi_vdma_3" IS_DATA="TRUE" IS_INSTRUCTION="FALSE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_BASEADDR" BASEVALUE="0x40090000" HIGHNAME="C_HIGHADDR" HIGHVALUE="0x4009FFFF" INSTANCE="axi_perf_mon_1" IS_DATA="TRUE" IS_INSTRUCTION="FALSE" MEMTYPE="REGISTER"/>
         <MEMRANGE BASENAME="C_S_AXI_CONTROL_BUS_BASEADDR" BASEVALUE="0x40080000" HIGHNAME="C_S_AXI_CONTROL_BUS_HIGHADDR" HIGHVALUE="0x4008FFFF" INSTANCE="video_processing_sobel_filter_1" IS_DATA="TRUE" IS_INSTRUCTION="FALSE" MEMTYPE="REGISTER"/>
@@ -13253,6 +14036,7 @@
         <PERIPHERAL INSTANCE="ps7_ethernet_0"/>
         <PERIPHERAL INSTANCE="ps7_gpio_0"/>
         <PERIPHERAL INSTANCE="ps7_i2c_0"/>
+        <PERIPHERAL INSTANCE="ps7_i2c_1"/>
         <PERIPHERAL INSTANCE="ps7_iop_bus_config_0"/>
         <PERIPHERAL INSTANCE="ps7_qspi_0"/>
         <PERIPHERAL INSTANCE="ps7_qspi_linear_0"/>
@@ -13265,6 +14049,7 @@
         <PERIPHERAL INSTANCE="ps7_slcr_0"/>
         <PERIPHERAL INSTANCE="ps7_uart_1"/>
         <PERIPHERAL INSTANCE="ps7_usb_0"/>
+        <PERIPHERAL INSTANCE="video_capture_v_tc_1"/>
         <PERIPHERAL INSTANCE="video_display_axi_vdma_3"/>
         <PERIPHERAL INSTANCE="axi_perf_mon_1"/>
         <PERIPHERAL INSTANCE="video_processing_sobel_filter_1"/>
@@ -13949,6 +14734,138 @@
         </BUSINTERFACE>
       </BUSINTERFACES>
     </MODULE>
+    <MODULE HWVERSION="1.00.a" INSTANCE="ps7_i2c_1" IPTYPE="PERIPHERAL" MODCLASS="PERIPHERAL" MODTYPE="ps7_i2c">
+      <PARAMETERS>
+        <PARAMETER NAME="C_HAS_INTERRUPT" VALUE="1"/>
+        <PARAMETER NAME="C_I2C_CLK_FREQ_HZ" VALUE="111111115"/>
+        <PARAMETER NAME="C_I2C_RESET" VALUE="&lt;Select>"/>
+        <PARAMETER NAME="C_INTERCONNECT_S_AXI_MASTERS" VALUE="ps7_cortexa9_0.M_AXI_DP &amp; ps7_cortexa9_1.M_AXI_DP"/>
+        <PARAMETER NAME="C_S_AXI_BASEADDR" VALUE="0xE0005000"/>
+        <PARAMETER NAME="C_S_AXI_HIGHADDR" VALUE="0xE0005FFF"/>
+      </PARAMETERS>
+      <PORTS>
+        <PORT DIR="I" NAME="S_AXI_ACLK" SIGIS="CLK" SIGNAME="ps7_axi_interconnect_0_M_AXI_ACLK">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_ACLK"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="S_AXI_ARADDR" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_ARADDR">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_ARADDR"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="S_AXI_ARESETN" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_ARESETN">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_ARESETN"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="S_AXI_ARREADY" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_ARREADY">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_ARREADY"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="S_AXI_ARVALID" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_ARVALID">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_ARVALID"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="S_AXI_AWADDR" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_AWADDR">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_AWADDR"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="S_AXI_AWREADY" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_AWREADY">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_AWREADY"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="S_AXI_AWVALID" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_AWVALID">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_AWVALID"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="S_AXI_BREADY" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_BREADY">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_BREADY"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="S_AXI_BRESP" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_BRESP">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_BRESP"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="S_AXI_BVALID" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_BVALID">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_BVALID"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="S_AXI_RDATA" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_RDATA">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_RDATA"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="S_AXI_RREADY" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_RREADY">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_RREADY"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="S_AXI_RRESP" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_RRESP">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_RRESP"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="S_AXI_RVALID" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_RVALID">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_RVALID"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="S_AXI_WDATA" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_WDATA">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_WDATA"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" NAME="S_AXI_WREADY" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_WREADY">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_WREADY"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="S_AXI_WSTRB" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_WSTRB">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_WSTRB"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" NAME="S_AXI_WVALID" SIGIS="undef" SIGNAME="ps7_axi_interconnect_0_M_AXI_WVALID">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_axi_interconnect_0" PORT="M_AXI_WVALID"/>
+          </CONNECTIONS>
+        </PORT>
+      </PORTS>
+      <BUSINTERFACES>
+        <BUSINTERFACE BUSNAME="ps7_axi_interconnect_0" NAME="S_AXI" TYPE="SLAVE">
+          <PORTMAPS>
+            <PORTMAP PHYSICAL="S_AXI_ACLK"/>
+            <PORTMAP PHYSICAL="S_AXI_ARESETN"/>
+            <PORTMAP PHYSICAL="S_AXI_AWADDR"/>
+            <PORTMAP PHYSICAL="S_AXI_AWVALID"/>
+            <PORTMAP PHYSICAL="S_AXI_AWREADY"/>
+            <PORTMAP PHYSICAL="S_AXI_WDATA"/>
+            <PORTMAP PHYSICAL="S_AXI_WSTRB"/>
+            <PORTMAP PHYSICAL="S_AXI_WVALID"/>
+            <PORTMAP PHYSICAL="S_AXI_WREADY"/>
+            <PORTMAP PHYSICAL="S_AXI_BRESP"/>
+            <PORTMAP PHYSICAL="S_AXI_BVALID"/>
+            <PORTMAP PHYSICAL="S_AXI_BREADY"/>
+            <PORTMAP PHYSICAL="S_AXI_ARADDR"/>
+            <PORTMAP PHYSICAL="S_AXI_ARVALID"/>
+            <PORTMAP PHYSICAL="S_AXI_ARREADY"/>
+            <PORTMAP PHYSICAL="S_AXI_RDATA"/>
+            <PORTMAP PHYSICAL="S_AXI_RRESP"/>
+            <PORTMAP PHYSICAL="S_AXI_RVALID"/>
+            <PORTMAP PHYSICAL="S_AXI_RREADY"/>
+          </PORTMAPS>
+        </BUSINTERFACE>
+      </BUSINTERFACES>
+    </MODULE>
     <MODULE HWVERSION="1.00.a" INSTANCE="ps7_can_0" IPTYPE="PERIPHERAL" MODCLASS="PERIPHERAL" MODTYPE="ps7_can">
       <PARAMETERS>
         <PARAMETER NAME="C_CAN_CLK_FREQ_HZ" VALUE="23809523"/>
@@ -14081,7 +14998,7 @@
     </MODULE>
     <MODULE HWVERSION="1.00.a" INSTANCE="ps7_gpio_0" IPTYPE="PERIPHERAL" MODCLASS="PERIPHERAL" MODTYPE="ps7_gpio">
       <PARAMETERS>
-        <PARAMETER NAME="C_EMIO_GPIO_WIDTH" VALUE="64"/>
+        <PARAMETER NAME="C_EMIO_GPIO_WIDTH" VALUE="2"/>
         <PARAMETER NAME="C_INTERCONNECT_S_AXI_MASTERS" VALUE="ps7_cortexa9_0.M_AXI_DP &amp; ps7_cortexa9_1.M_AXI_DP"/>
         <PARAMETER NAME="C_MIO_GPIO_MASK" VALUE="0x5600"/>
         <PARAMETER NAME="C_S_AXI_BASEADDR" VALUE="0xE000A000"/>
@@ -14996,7 +15913,7 @@
         <PORT DIR="I" NAME="Core0_nIRQ" SIGIS="INTERRUPT"/>
         <PORT DIR="I" NAME="Core1_nFIQ" SIGIS="INTERRUPT"/>
         <PORT DIR="I" NAME="Core1_nIRQ" SIGIS="INTERRUPT"/>
-        <PORT DIR="I" NAME="IRQ_F2P" SIGIS="INTERRUPT" SIGNAME="External_Ports_hdmio_int_b &amp; video_display_axi_vdma_2_mm2s_introut &amp; axi_vdma_1_mm2s_introut &amp; axi_vdma_1_s2mm_introut &amp; video_display_v_osd_1_irq &amp; video_display_v_tc_1_irq &amp; video_processing_sobel_filter_1_interrupt &amp; video_processing_axi_vdma_m2m_mm2s_introut &amp; video_processing_axi_vdma_m2m_s2mm_introut &amp; video_display_axi_vdma_3_mm2s_introut">
+        <PORT DIR="I" NAME="IRQ_F2P" SIGIS="INTERRUPT" SIGNAME="External_Ports_hdmio_int_b &amp; video_display_axi_vdma_2_mm2s_introut &amp; axi_vdma_1_mm2s_introut &amp; axi_vdma_1_s2mm_introut &amp; video_display_v_osd_1_irq &amp; video_display_v_tc_1_irq &amp; video_processing_sobel_filter_1_interrupt &amp; video_processing_axi_vdma_m2m_mm2s_introut &amp; video_processing_axi_vdma_m2m_s2mm_introut &amp; video_display_axi_vdma_3_mm2s_introut &amp; video_capture_v_tc_1_irq">
           <CONNECTIONS>
             <CONNECTION INSTANCE="External_Ports" PORT="hdmio_int_b"/>
             <CONNECTION INSTANCE="video_display_axi_vdma_2" PORT="mm2s_introut"/>
@@ -15008,6 +15925,7 @@
             <CONNECTION INSTANCE="video_processing_axi_vdma_m2m" PORT="mm2s_introut"/>
             <CONNECTION INSTANCE="video_processing_axi_vdma_m2m" PORT="s2mm_introut"/>
             <CONNECTION INSTANCE="video_display_axi_vdma_3" PORT="mm2s_introut"/>
+            <CONNECTION INSTANCE="video_capture_v_tc_1" PORT="irq"/>
           </CONNECTIONS>
         </PORT>
         <PORT DIR="I" NAME="S_AXI_ACLK" SIGIS="CLK" SIGNAME="ps7_axi_interconnect_0_M_AXI_ACLK">
