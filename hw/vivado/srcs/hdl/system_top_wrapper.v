@@ -22,11 +22,16 @@ module system_top_wrapper
     FIXED_IO_ps_clk,
     FIXED_IO_ps_porb,
     FIXED_IO_ps_srstb,
-    hdmio_int_b,
+    fmc_imageon_hdmii_clk,
+    fmc_imageon_hdmii_data,
+    fmc_imageon_iic_rst_b,
+    fmc_imageon_iic_scl_io,
+    fmc_imageon_iic_sda_io,
     hdmio_clk,
     hdmio_data,
     hdmio_de,
     hdmio_hsync,
+    hdmio_int_b,
     hdmio_vsync,
     video_clk_n,
     video_clk_p);
@@ -51,11 +56,16 @@ module system_top_wrapper
   inout FIXED_IO_ps_clk;
   inout FIXED_IO_ps_porb;
   inout FIXED_IO_ps_srstb;
-  input hdmio_int_b;
+  input fmc_imageon_hdmii_clk;
+  input [15:0]fmc_imageon_hdmii_data;
+  output fmc_imageon_iic_rst_b;
+  inout fmc_imageon_iic_scl_io;
+  inout fmc_imageon_iic_sda_io;
   output hdmio_clk;
   output [15:0]hdmio_data;
   output hdmio_de;
   output hdmio_hsync;
+  input hdmio_int_b;
   output hdmio_vsync;
   input video_clk_n;
   input video_clk_p;
@@ -81,24 +91,45 @@ module system_top_wrapper
   wire FIXED_IO_ps_clk;
   wire FIXED_IO_ps_porb;
   wire FIXED_IO_ps_srstb;
-  wire hdmio_int_b;
+  wire fmc_imageon_hdmii_clk;
+  wire [15:0]fmc_imageon_hdmii_data;
+  wire fmc_imageon_iic_rst_b;
+  wire fmc_imageon_iic_scl_i;
+  wire fmc_imageon_iic_scl_io;
+  wire fmc_imageon_iic_scl_o;
+  wire fmc_imageon_iic_scl_t;
+  wire fmc_imageon_iic_sda_i;
+  wire fmc_imageon_iic_sda_io;
+  wire fmc_imageon_iic_sda_o;
+  wire fmc_imageon_iic_sda_t;
   wire hdmio_clk;
   wire [15:0]hdmio_data;
   wire hdmio_de;
   wire hdmio_hsync;
+  wire hdmio_int_b;
   wire hdmio_vsync;
   wire video_clk_n;
   wire video_clk_p;
+  wire video_clk_int;
   wire video_clk;
-  wire video_clk_sys;
 
 IBUFDS ibufds_i
        (.I(video_clk_p),
         .IB(video_clk_n),
-        .O(video_clk));
+        .O(video_clk_int));
 BUFG bufg_i
-       (.I(video_clk),
-        .O(video_clk_sys));
+       (.I(video_clk_int),
+        .O(video_clk));
+IOBUF fmc_imageon_iic_scl_iobuf
+       (.I(fmc_imageon_iic_scl_o),
+        .IO(fmc_imageon_iic_scl_io),
+        .O(fmc_imageon_iic_scl_i),
+        .T(fmc_imageon_iic_scl_t));
+IOBUF fmc_imageon_iic_sda_iobuf
+       (.I(fmc_imageon_iic_sda_o),
+        .IO(fmc_imageon_iic_sda_io),
+        .O(fmc_imageon_iic_sda_i),
+        .T(fmc_imageon_iic_sda_t));
 system_top system_top_i
        (.DDR_addr(DDR_addr),
         .DDR_ba(DDR_ba),
@@ -121,11 +152,20 @@ system_top system_top_i
         .FIXED_IO_ps_clk(FIXED_IO_ps_clk),
         .FIXED_IO_ps_porb(FIXED_IO_ps_porb),
         .FIXED_IO_ps_srstb(FIXED_IO_ps_srstb),
-        .hdmio_int_b(hdmio_int_b),
+        .fmc_imageon_hdmii_clk(fmc_imageon_hdmii_clk),
+        .fmc_imageon_hdmii_data(fmc_imageon_hdmii_data),
+        .fmc_imageon_iic_rst_b(fmc_imageon_iic_rst_b),
+        .fmc_imageon_iic_scl_i(fmc_imageon_iic_scl_i),
+        .fmc_imageon_iic_scl_o(fmc_imageon_iic_scl_o),
+        .fmc_imageon_iic_scl_t(fmc_imageon_iic_scl_t),
+        .fmc_imageon_iic_sda_i(fmc_imageon_iic_sda_i),
+        .fmc_imageon_iic_sda_o(fmc_imageon_iic_sda_o),
+        .fmc_imageon_iic_sda_t(fmc_imageon_iic_sda_t),
         .hdmio_clk(hdmio_clk),
         .hdmio_data(hdmio_data),
         .hdmio_de(hdmio_de),
         .hdmio_hsync(hdmio_hsync),
+        .hdmio_int_b(hdmio_int_b),
         .hdmio_vsync(hdmio_vsync),
-        .video_clk(video_clk_sys));
+        .video_clk(video_clk));
 endmodule
