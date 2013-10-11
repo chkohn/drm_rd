@@ -1,0 +1,10 @@
+OPTION PSF_VERSION = 2.1.0;
+
+BEGIN LIBRARY gpiops_adapter
+
+  OPTION DESC = "GPIOPS Adapter";
+  OPTION SUPPORTED_PERIPHERALS = (gpiops);
+  OPTION DEPENDS = (gpio_adapter_v1_00_a);
+  OPTION COPYFILES = all;
+
+END LIBRARY
