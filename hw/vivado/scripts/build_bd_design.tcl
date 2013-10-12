@@ -147,6 +147,7 @@ proc create_hier_cell_video_capture { parentCell nameHier } {
   connect_bd_intf_net -intf_net v_tpg_1_video_out [get_bd_intf_pins video_out] [get_bd_intf_pins v_tpg_1/video_out]
   connect_bd_intf_net -intf_net axi_interconnect_gp0_m01_axi [get_bd_intf_pins ctrl] [get_bd_intf_pins v_tpg_1/ctrl]
   connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins ctrl1] [get_bd_intf_pins v_tc_1/ctrl]
+  connect_bd_intf_net -intf_net v_vid_in_axi4s_1_vtiming_out [get_bd_intf_pins v_vid_in_axi4s_1/vtiming_out] [get_bd_intf_pins v_tc_1/vtiming_in]
 
   # Create port connections
   connect_bd_net -net processing_system7_1_fclk_clk0 [get_bd_pins s_axi_aclk] [get_bd_pins v_tpg_1/s_axi_aclk] [get_bd_pins v_tc_1/s_axi_aclk]
@@ -159,9 +160,9 @@ proc create_hier_cell_video_capture { parentCell nameHier } {
   connect_bd_net -net vsrc_sel_1_hsync [get_bd_pins vsrc_sel_1/hsync] [get_bd_pins v_vid_in_axi4s_1/vid_hsync] [get_bd_pins v_vid_in_axi4s_1/vid_hblank]
   connect_bd_net -net vsrc_sel_1_vsync [get_bd_pins vsrc_sel_1/vsync] [get_bd_pins v_vid_in_axi4s_1/vid_vsync] [get_bd_pins v_vid_in_axi4s_1/vid_vblank]
   connect_bd_net -net vsrc_sel_1_de [get_bd_pins vsrc_sel_1/de] [get_bd_pins v_vid_in_axi4s_1/vid_active_video]
-  connect_bd_net -net fmc_imageon_hdmi_in_1_video_vblank [get_bd_pins fmc_imageon_hdmi_in_1/video_vblank] [get_bd_pins v_tc_1/vblank_in] [get_bd_pins vsrc_sel_1/vsync_2]
-  connect_bd_net -net fmc_imageon_hdmi_in_1_video_hblank [get_bd_pins fmc_imageon_hdmi_in_1/video_hblank] [get_bd_pins v_tc_1/hblank_in] [get_bd_pins vsrc_sel_1/hsync_2]
-  connect_bd_net -net fmc_imageon_hdmi_in_1_video_de [get_bd_pins fmc_imageon_hdmi_in_1/video_de] [get_bd_pins v_tc_1/active_video_in] [get_bd_pins vsrc_sel_1/de_2]
+  connect_bd_net -net fmc_imageon_hdmi_in_1_video_vblank [get_bd_pins fmc_imageon_hdmi_in_1/video_vblank] [get_bd_pins vsrc_sel_1/vsync_2]
+  connect_bd_net -net fmc_imageon_hdmi_in_1_video_hblank [get_bd_pins fmc_imageon_hdmi_in_1/video_hblank] [get_bd_pins vsrc_sel_1/hsync_2]
+  connect_bd_net -net fmc_imageon_hdmi_in_1_video_de [get_bd_pins fmc_imageon_hdmi_in_1/video_de] [get_bd_pins vsrc_sel_1/de_2]
   connect_bd_net -net video_sel_1 [get_bd_pins video_sel] [get_bd_pins vsrc_sel_1/video_sel]
   connect_bd_net -net io_hdmii_video_1 [get_bd_pins io_hdmii_video] [get_bd_pins fmc_imageon_hdmi_in_1/io_hdmii_video]
   connect_bd_net -net clk_1 [get_bd_pins clk] [get_bd_pins vsrc_sel_1/video_clk_2]
