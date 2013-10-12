@@ -71,15 +71,12 @@ set_property PACKAGE_PIN R19 [get_ports {hdmio_data[13]}]
 set_property PACKAGE_PIN T17 [get_ports {hdmio_data[14]}]
 set_property PACKAGE_PIN T16 [get_ports {hdmio_data[15]}]
 set_property IOSTANDARD LVCMOS25 [get_ports hdmio_*]
-set_property IOB TRUE [get_cells -hierarchical vid_out_formatter_i/in_*_mux_reg*]
 
 # I2C Chain 2 on FMC-IMAGEON
 set_property PACKAGE_PIN AB14 [get_ports fmc_imageon_iic_scl_io]
 set_property PACKAGE_PIN AB15 [get_ports fmc_imageon_iic_sda_io]
 set_property PACKAGE_PIN Y16 [get_ports fmc_imageon_iic_rst_b]
 set_property IOSTANDARD LVCMOS25 [get_ports fmc_imageon_iic_*]
-set_property SLEW SLOW [get_ports fmc_imageon_iic_*]
-set_property DRIVE 8 [get_ports fmc_imageon_iic_*]
 
 # HDMI Input (ADV7611) on FMC-IMAGEON
 set_property PACKAGE_PIN Y6 [get_ports fmc_imageon_hdmii_clk]
