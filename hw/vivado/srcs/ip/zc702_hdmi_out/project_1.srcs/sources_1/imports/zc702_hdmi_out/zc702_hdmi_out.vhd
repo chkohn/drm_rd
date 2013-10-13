@@ -63,19 +63,19 @@ entity zc702_hdmi_out is
       -- Audio Input Port
       audio_spdif         : in  std_logic;
       -- XSVI Input Port
-      xsvi_vblank_i       : in  std_logic;
-      xsvi_hblank_i       : in  std_logic;
-      xsvi_vsync_i        : in  std_logic;
-      xsvi_hsync_i        : in  std_logic;
-      xsvi_active_video_i : in  std_logic;
-      xsvi_video_data_i   : in  std_logic_vector((C_DATA_WIDTH-1) downto 0);
+      vid_vblank          : in  std_logic;
+      vid_hblank          : in  std_logic;
+      vid_vsync           : in  std_logic;
+      vid_hsync           : in  std_logic;
+      vid_de              : in  std_logic;
+      vid_data            : in  std_logic_vector((C_DATA_WIDTH-1) downto 0);
       -- I/O pins
-      io_hdmio_spdif      : out std_logic;
-      io_hdmio_video      : out std_logic_vector(15 downto 0);
-      io_hdmio_vsync      : out std_logic;
-      io_hdmio_hsync      : out std_logic;
-      io_hdmio_de         : out std_logic;
-      io_hdmio_clk        : out std_logic
+      hdmio_spdif         : out std_logic;
+      hdmio_data          : out std_logic_vector(15 downto 0);
+      hdmio_vsync         : out std_logic;
+      hdmio_hsync         : out std_logic;
+      hdmio_de            : out std_logic;
+      hdmio_clk           : out std_logic
    );
 end zc702_hdmi_out;
 
@@ -154,10 +154,10 @@ begin
       xsvi_16bit_iregs_l : process (clk)
       begin
          if Rising_Edge(clk) then
-            video_r <= xsvi_video_data_i(15 downto 0);
-            vsync_r <= xsvi_vsync_i;
-            hsync_r <= xsvi_hsync_i;
-            de_r    <= xsvi_active_video_i;
+            video_r <= vid_data(15 downto 0);
+            vsync_r <= vid_vsync;
+            hsync_r <= vid_hsync;
+            de_r    <= vid_de;
          end if;
       end process;
    end generate XSVI_16BIT_GEN;
@@ -291,7 +291,7 @@ begin
 
    OBUFT_hdmio_spdif : OBUFT
    port map (
-      O => io_hdmio_spdif,
+      O => hdmio_spdif,
       I => hdmio_spdif_o,
       T => hdmio_spdif_t
    );
@@ -299,7 +299,7 @@ begin
    IO1: for I in 0 to 15 generate
       OBUFT_hdmio_video : OBUFT
       port map (
-         O => io_hdmio_video(I),
+         O => hdmio_data(I),
          I => hdmio_video_o(I),
          T => hdmio_video_t(I)
       );
@@ -307,28 +307,28 @@ begin
 
    OBUFT_hdmio_vsync : OBUFT
    port map (
-      O => io_hdmio_vsync,
+      O => hdmio_vsync,
       I => hdmio_vsync_o,
       T => hdmio_vsync_t
    );
    
    OBUFT_hdmio_hsync : OBUFT
    port map (
-      O => io_hdmio_hsync,
+      O => hdmio_hsync,
       I => hdmio_hsync_o,
       T => hdmio_hsync_t
    );
    
    OBUFT_hdmio_de : OBUFT
    port map (
-      O => io_hdmio_de,
+      O => hdmio_de,
       I => hdmio_de_o,
       T => hdmio_de_t
    );
    
    OBUFT_hdmio_clk : OBUFT
    port map (
-      O => io_hdmio_clk,
+      O => hdmio_clk,
       I => hdmio_clk_o,
       T => hdmio_clk_t
    );
