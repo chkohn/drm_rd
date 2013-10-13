@@ -144,10 +144,10 @@ proc create_hier_cell_video_capture { parentCell nameHier } {
 
   # Create interface connections
   connect_bd_intf_net -intf_net v_vid_in_axi4s_1_video_out [get_bd_intf_pins v_vid_in_axi4s_1/video_out] [get_bd_intf_pins v_tpg_1/video_in]
+  connect_bd_intf_net -intf_net v_vid_in_axi4s_1_vtiming_out [get_bd_intf_pins v_vid_in_axi4s_1/vtiming_out] [get_bd_intf_pins v_tc_1/vtiming_in]
   connect_bd_intf_net -intf_net v_tpg_1_video_out [get_bd_intf_pins video_out] [get_bd_intf_pins v_tpg_1/video_out]
   connect_bd_intf_net -intf_net axi_interconnect_gp0_m01_axi [get_bd_intf_pins ctrl] [get_bd_intf_pins v_tpg_1/ctrl]
   connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins ctrl1] [get_bd_intf_pins v_tc_1/ctrl]
-  connect_bd_intf_net -intf_net v_vid_in_axi4s_1_vtiming_out [get_bd_intf_pins v_vid_in_axi4s_1/vtiming_out] [get_bd_intf_pins v_tc_1/vtiming_in]
 
   # Create port connections
   connect_bd_net -net processing_system7_1_fclk_clk0 [get_bd_pins s_axi_aclk] [get_bd_pins v_tpg_1/s_axi_aclk] [get_bd_pins v_tc_1/s_axi_aclk]
@@ -215,6 +215,7 @@ proc create_hier_cell_video_display { parentCell nameHier } {
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 ctrl3
   create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 M_AXI_MM2S1
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 S_AXI_LITE1
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:vid_io_rtl:1.0 hdmio
 
   # Create pins
   create_bd_pin -dir I -type clk s_axi_lite_aclk
@@ -223,10 +224,6 @@ proc create_hier_cell_video_display { parentCell nameHier } {
   create_bd_pin -dir O -type intr mm2s_introut
   create_bd_pin -dir O irq
   create_bd_pin -dir O irq1
-  create_bd_pin -dir O vid_hsync
-  create_bd_pin -dir O vid_active_video
-  create_bd_pin -dir O vid_vsync
-  create_bd_pin -dir O -from 15 -to 0 vid_data
   create_bd_pin -dir O mm2s_introut1
   create_bd_pin -dir O vid_clk
 
@@ -265,12 +262,12 @@ proc create_hier_cell_video_display { parentCell nameHier } {
   set axi_vdma_3 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_vdma:6.0 axi_vdma_3 ]
   set_property -dict [ list CONFIG.c_m_axis_mm2s_tdata_width {16} CONFIG.c_s_axis_s2mm_tdata_width {32} CONFIG.c_num_fstores {1} CONFIG.c_mm2s_linebuffer_depth {4096} CONFIG.c_s2mm_linebuffer_depth {512} CONFIG.c_include_mm2s {1} CONFIG.c_mm2s_max_burst_length {16} CONFIG.c_include_s2mm {0} CONFIG.c_enable_debug_info_7 {1}  ] $axi_vdma_3
 
-  # Create instance: zc702_hdmi_out_1, and set properties
-  set zc702_hdmi_out_1 [ create_bd_cell -type ip -vlnv xilinx.com:user:zc702_hdmi_out:1.3 zc702_hdmi_out_1 ]
-
   # Create instance: gnd, and set properties
   set gnd [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.0 gnd ]
   set_property -dict [ list CONFIG.CONST_VAL {0}  ] $gnd
+
+  # Create instance: zc702_hdmi_out_1, and set properties
+  set zc702_hdmi_out_1 [ create_bd_cell -type ip -vlnv xilinx.com:user:zc702_hdmi_out:1.3 zc702_hdmi_out_1 ]
 
   # Create interface connections
   connect_bd_intf_net -intf_net axi_vdma_2_m_axis_mm2s [get_bd_intf_pins axi_vdma_2/M_AXIS_MM2S] [get_bd_intf_pins axis_subset_converter_1/S_AXIS]
@@ -280,6 +277,7 @@ proc create_hier_cell_video_display { parentCell nameHier } {
   connect_bd_intf_net -intf_net v_cresample_1_video_out [get_bd_intf_pins v_cresample_1/video_out] [get_bd_intf_pins v_osd_1/video_s0_in]
   connect_bd_intf_net -intf_net v_osd_1_video_out [get_bd_intf_pins v_osd_1/video_out] [get_bd_intf_pins v_axi4s_vid_out_1/video_in]
   connect_bd_intf_net -intf_net axi_vdma_3_m_axis_mm2s [get_bd_intf_pins v_osd_1/video_s2_in] [get_bd_intf_pins axi_vdma_3/M_AXIS_MM2S]
+  connect_bd_intf_net -intf_net v_axi4s_vid_out_1_vid_io_out [get_bd_intf_pins v_axi4s_vid_out_1/vid_io_out] [get_bd_intf_pins zc702_hdmi_out_1/vid_io_in]
   connect_bd_intf_net -intf_net s_axis_1 [get_bd_intf_pins S_AXIS] [get_bd_intf_pins v_osd_1/video_s1_in]
   connect_bd_intf_net -intf_net axi_interconnect_gp0_m05_axi [get_bd_intf_pins ctrl] [get_bd_intf_pins v_osd_1/ctrl]
   connect_bd_intf_net -intf_net axi_interconnect_gp0_m06_axi [get_bd_intf_pins ctrl1] [get_bd_intf_pins v_rgb2ycrcb_1/ctrl]
@@ -289,6 +287,7 @@ proc create_hier_cell_video_display { parentCell nameHier } {
   connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins ctrl3] [get_bd_intf_pins v_tc_1/ctrl]
   connect_bd_intf_net -intf_net Conn2 [get_bd_intf_pins M_AXI_MM2S1] [get_bd_intf_pins axi_vdma_3/M_AXI_MM2S]
   connect_bd_intf_net -intf_net Conn3 [get_bd_intf_pins S_AXI_LITE1] [get_bd_intf_pins axi_vdma_3/S_AXI_LITE]
+  connect_bd_intf_net -intf_net zc702_hdmi_out_1_hdmio [get_bd_intf_pins hdmio] [get_bd_intf_pins zc702_hdmi_out_1/hdmio]
 
   # Create port connections
   connect_bd_net -net processing_system7_1_fclk_clk0 [get_bd_pins s_axi_lite_aclk] [get_bd_pins axi_vdma_2/s_axi_lite_aclk] [get_bd_pins v_rgb2ycrcb_1/s_axi_aclk] [get_bd_pins v_cresample_1/s_axi_aclk] [get_bd_pins v_osd_1/s_axi_aclk] [get_bd_pins axi_vdma_3/s_axi_lite_aclk] [get_bd_pins v_tc_1/s_axi_aclk]
@@ -300,18 +299,8 @@ proc create_hier_cell_video_display { parentCell nameHier } {
   connect_bd_net -net v_axi4s_vid_out_1_vtg_ce [get_bd_pins v_axi4s_vid_out_1/vtg_ce] [get_bd_pins v_tc_1/gen_clken]
   connect_bd_net -net xlconstant_1_const [get_bd_pins vcc/const] [get_bd_pins axis_subset_converter_1/aresetn]
   connect_bd_net -net axi_vdma_3_mm2s_introut [get_bd_pins mm2s_introut1] [get_bd_pins axi_vdma_3/mm2s_introut]
-  connect_bd_net -net zc702_hdmi_out_1_io_hdmio_hsync [get_bd_pins vid_hsync] [get_bd_pins zc702_hdmi_out_1/io_hdmio_hsync]
-  connect_bd_net -net zc702_hdmi_out_1_io_hdmio_de [get_bd_pins vid_active_video] [get_bd_pins zc702_hdmi_out_1/io_hdmio_de]
-  connect_bd_net -net zc702_hdmi_out_1_io_hdmio_vsync [get_bd_pins vid_vsync] [get_bd_pins zc702_hdmi_out_1/io_hdmio_vsync]
-  connect_bd_net -net zc702_hdmi_out_1_io_hdmio_video [get_bd_pins vid_data] [get_bd_pins zc702_hdmi_out_1/io_hdmio_video]
-  connect_bd_net -net zc702_hdmi_out_1_io_hdmio_clk [get_bd_pins vid_clk] [get_bd_pins zc702_hdmi_out_1/io_hdmio_clk]
-  connect_bd_net -net v_axi4s_vid_out_1_vid_hsync [get_bd_pins v_axi4s_vid_out_1/vid_hsync] [get_bd_pins zc702_hdmi_out_1/xsvi_hsync_i]
-  connect_bd_net -net v_axi4s_vid_out_1_vid_vblank [get_bd_pins v_axi4s_vid_out_1/vid_vblank] [get_bd_pins zc702_hdmi_out_1/xsvi_vblank_i]
-  connect_bd_net -net v_axi4s_vid_out_1_vid_active_video [get_bd_pins v_axi4s_vid_out_1/vid_active_video] [get_bd_pins zc702_hdmi_out_1/xsvi_active_video_i]
-  connect_bd_net -net v_axi4s_vid_out_1_vid_vsync [get_bd_pins v_axi4s_vid_out_1/vid_vsync] [get_bd_pins zc702_hdmi_out_1/xsvi_vsync_i]
-  connect_bd_net -net v_axi4s_vid_out_1_vid_hblank [get_bd_pins v_axi4s_vid_out_1/vid_hblank] [get_bd_pins zc702_hdmi_out_1/xsvi_hblank_i]
-  connect_bd_net -net v_axi4s_vid_out_1_vid_data [get_bd_pins v_axi4s_vid_out_1/vid_data] [get_bd_pins zc702_hdmi_out_1/xsvi_video_data_i]
   connect_bd_net -net gnd_const [get_bd_pins gnd/const] [get_bd_pins zc702_hdmi_out_1/reset] [get_bd_pins zc702_hdmi_out_1/audio_spdif]
+  connect_bd_net -net zc702_hdmi_out_1_hdmio_clk [get_bd_pins vid_clk] [get_bd_pins zc702_hdmi_out_1/hdmio_clk]
   
   # Restore current instance
   current_bd_instance $oldCurInst
@@ -424,21 +413,18 @@ proc create_root_design { parentCell } {
   set DDR [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:ddrx_rtl:1.0 DDR ]
   set FIXED_IO [ create_bd_intf_port -mode Master -vlnv xilinx.com:display_processing_system7:fixedio_rtl:1.0 FIXED_IO ]
   set fmc_imageon_iic [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:iic_rtl:1.0 fmc_imageon_iic ]
+  set hdmio [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:vid_io_rtl:1.0 hdmio ]
 
   # Create ports
-  set hdmio_hsync [ create_bd_port -dir O hdmio_hsync ]
-  set hdmio_vsync [ create_bd_port -dir O hdmio_vsync ]
-  set hdmio_de [ create_bd_port -dir O hdmio_de ]
-  set hdmio_data [ create_bd_port -dir O -from 15 -to 0 hdmio_data ]
   set hdmio_int_b [ create_bd_port -dir I -type intr hdmio_int_b ]
   set_property -dict [ list CONFIG.SENSITIVITY {LEVEL_HIGH}  ] $hdmio_int_b
   set video_clk [ create_bd_port -dir I -type clk video_clk ]
   set_property -dict [ list CONFIG.FREQ_HZ {148500000} CONFIG.PHASE {0.000} CONFIG.CLK_DOMAIN {system_hdmi_clk}  ] $video_clk
-  set hdmio_clk [ create_bd_port -dir O hdmio_clk ]
   set fmc_imageon_hdmii_data [ create_bd_port -dir I -from 15 -to 0 fmc_imageon_hdmii_data ]
   set fmc_imageon_hdmii_clk [ create_bd_port -dir I -type clk fmc_imageon_hdmii_clk ]
   set_property -dict [ list CONFIG.FREQ_HZ {148500000} CONFIG.PHASE {0.000} CONFIG.CLK_DOMAIN {system_top_fmc_imageon_hdmii_clk}  ] $fmc_imageon_hdmii_clk
   set fmc_imageon_iic_rst_b [ create_bd_port -dir O fmc_imageon_iic_rst_b ]
+  set hdmio_clk [ create_bd_port -dir O hdmio_clk ]
 
   # Create instance: processing_system7_1, and set properties
   set processing_system7_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.2 processing_system7_1 ]
@@ -516,6 +502,7 @@ connect_bd_intf_net -intf_net axi_interconnect_hp1_m00_axi [get_bd_intf_pins axi
   connect_bd_intf_net -intf_net processing_system7_1_ddr [get_bd_intf_ports DDR] [get_bd_intf_pins processing_system7_1/DDR]
   connect_bd_intf_net -intf_net processing_system7_1_fixed_io [get_bd_intf_ports FIXED_IO] [get_bd_intf_pins processing_system7_1/FIXED_IO]
   connect_bd_intf_net -intf_net processing_system7_1_iic_1 [get_bd_intf_ports fmc_imageon_iic] [get_bd_intf_pins processing_system7_1/IIC_1]
+  connect_bd_intf_net -intf_net video_display_io_hdmio [get_bd_intf_ports hdmio] [get_bd_intf_pins video_display/hdmio]
 
   # Create port connections
   connect_bd_net -net processing_system7_1_fclk_clk0 [get_bd_pins clk_wiz_1/clk_out1] [get_bd_pins processing_system7_1/M_AXI_GP0_ACLK] [get_bd_pins axi_vdma_1/s_axi_lite_aclk] [get_bd_pins video_processing/s_axi_lite_aclk] [get_bd_pins video_display/s_axi_lite_aclk] [get_bd_pins video_capture/s_axi_aclk] [get_bd_pins proc_sys_reset_1/slowest_sync_clk] [get_bd_pins axi_interconnect_gp0/ACLK] [get_bd_pins axi_interconnect_gp0/M08_ACLK] [get_bd_pins axi_interconnect_gp0/M07_ACLK] [get_bd_pins axi_interconnect_gp0/M06_ACLK] [get_bd_pins axi_interconnect_gp0/M05_ACLK] [get_bd_pins axi_interconnect_gp0/M04_ACLK] [get_bd_pins axi_interconnect_gp0/M02_ACLK] [get_bd_pins axi_interconnect_gp0/M01_ACLK] [get_bd_pins axi_interconnect_gp0/M00_ACLK] [get_bd_pins axi_interconnect_gp0/S00_ACLK] [get_bd_pins axi_perf_mon_1/s_axi_aclk] [get_bd_pins axi_interconnect_gp0/M09_ACLK] [get_bd_pins axi_interconnect_gp0/M10_ACLK] [get_bd_pins axi_interconnect_gp0/M11_ACLK]
@@ -529,10 +516,6 @@ connect_bd_intf_net -intf_net axi_interconnect_hp1_m00_axi [get_bd_intf_pins axi
   connect_bd_net -net sobel_filter_1_interrupt [get_bd_pins video_processing/interrupt] [get_bd_pins pl_interrupts/In6]
   connect_bd_net -net axi_vdma_2_mm2s_introut [get_bd_pins video_display/mm2s_introut] [get_bd_pins pl_interrupts/In1]
   connect_bd_net -net v_osd_1_irq [get_bd_pins video_display/irq] [get_bd_pins pl_interrupts/In4]
-  connect_bd_net -net v_axi4s_vid_out_1_vid_hsync [get_bd_ports hdmio_hsync] [get_bd_pins video_display/vid_hsync]
-  connect_bd_net -net v_axi4s_vid_out_1_vid_vsync [get_bd_ports hdmio_vsync] [get_bd_pins video_display/vid_vsync]
-  connect_bd_net -net v_axi4s_vid_out_1_vid_active_video [get_bd_ports hdmio_de] [get_bd_pins video_display/vid_active_video]
-  connect_bd_net -net v_axi4s_vid_out_1_vid_data [get_bd_ports hdmio_data] [get_bd_pins video_display/vid_data]
   connect_bd_net -net hdmi_int_1 [get_bd_ports hdmio_int_b] [get_bd_pins pl_interrupts/In0]
   connect_bd_net -net hdmi_clk_1 [get_bd_ports video_clk] [get_bd_pins video_display/vid_io_out_clk] [get_bd_pins video_capture/video_clk_2]
   connect_bd_net -net video_display_irq1 [get_bd_pins video_display/irq1] [get_bd_pins pl_interrupts/In5]
