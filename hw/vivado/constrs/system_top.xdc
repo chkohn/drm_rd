@@ -36,7 +36,7 @@ set_clock_groups -name clk_mux -physically_exclusive -group fmc_imageon_hdmii_cl
 
 # Use fastest clock of the BUFGMUX as the path that timing analysis should be done on
 # In this case, both clocks have the same period constraint, so either input 0 or input 1 can be selected
-set_case_analysis 0 [get_pins system_top_i/video_capture/vsrc_sel_1/video_sel]
+set_case_analysis 0 [get_pins system_top_i/video_capture/vtiming_mux_1/sel]
 
 ########################
 # Physical Constraints #
