@@ -321,18 +321,19 @@ void VideoPipe_Configure(const enum VideoTimingId Id)
 
 #ifdef USE_CAP
 	int sel = VMUX_SELECT_EXT;
-	enum TPG_Pattern pattern = V_TPG_ZonePlate;
+	enum TPG_Pattern pattern;
 
 	// Set Video Mux
 	VMux_Select(sel);
-	if (sel == VMUX_SELECT_EXT) {
-//		XVtc_GetTiming(XVtc_0);
+	if (sel == VMUX_SELECT_EXT)
 		pattern = V_TPG_ExtVideo;
-	}
+	else
+		pattern = V_TPG_ZonePlate;
 
 	// Configure and Start Video Timing Controller
 	XVtc_Configure(XVtc_1, Timing);
 	XVtc_Start(XVtc_1);
+//	XVtc_GetTiming(XVtc_1);
 
 	// Configure and Start Test Pattern Generator
 	TPG_SetPattern(pattern, 1);

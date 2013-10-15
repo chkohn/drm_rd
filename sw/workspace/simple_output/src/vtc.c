@@ -189,6 +189,11 @@ void XVtc_Configure(XVtc *Instance, const VideoTiming *Timing)
 	SourceSelect.HTotalSrc          = 1;
 	XVtc_SetSource(Instance, &SourceSelect);
 
+	// TODO workaround
+	u32 CtrlRegValue = XVtc_ReadReg(Instance->Config.BaseAddress, XVTC_CTL);
+	CtrlRegValue |= 0x00001000; // set bit 12 to speed up locking
+	XVtc_WriteReg(Instance->Config.BaseAddress, XVTC_CTL, CtrlRegValue);
+
 	XVtc_RegUpdate(Instance);
 };
 
@@ -196,12 +201,12 @@ void XVtc_Start(XVtc *Instance)
 {
 	debug_printf("Start Video Timing Controller\r\n");
 
-	XVtc_Enable(Instance, XVTC_EN_GENERATOR);
+	XVtc_Enable(Instance, (XVTC_EN_GENERATOR | XVTC_EN_DETECTOR));
 }
 
 void XVtc_Stop(XVtc *Instance)
 {
 	debug_printf("Stop Video Timing Controller\r\n");
 
-	XVtc_Disable(Instance, XVTC_EN_GENERATOR);
+	XVtc_Disable(Instance, (XVTC_EN_GENERATOR | XVTC_EN_DETECTOR));
 }
