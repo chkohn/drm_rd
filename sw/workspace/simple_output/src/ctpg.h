@@ -41,18 +41,19 @@
 #ifndef CTPG_H_
 #define CTPG_H_
 
-#include "tpg.h"
+#include "xtpg.h"
 #include "video_common.h"
 
 enum TPG_Pattern {
 	V_TPG_ColorBar,
 	V_TPG_ZonePlate,
-	V_TPG_ExtVideo
+	V_TPG_PassThrough
 };
 
-void TPG_SetPattern(const enum TPG_Pattern Pattern, int EnableBox);
-void TPG_Configure(const VideoTiming *Timing);
-void TPG_Start();
-void TPG_Stop();
+XTpg *XTpg_Initialize(u16 DeviceId);
+void TPG_SetPattern(XTpg *Instance, const enum TPG_Pattern Pattern, int EnableBox);
+void TPG_Configure(XTpg *Instance, const VideoTiming *Timing);
+void TPG_Start(XTpg *Instance);
+void TPG_Stop(XTpg *Instance);
 
 #endif /* CTPG_H_ */

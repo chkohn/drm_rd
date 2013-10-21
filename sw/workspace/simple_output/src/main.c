@@ -92,6 +92,7 @@ XAxiVdma *XAxiVdma_2;
 XAxiVdma *XAxiVdma_3;
 XVtc *XVtc_0;
 XVtc *XVtc_1;
+XTpg *XTpg_0;
 XOSD *XOSD_0;
 XSobel_filter* XSobel_filter_0;
 
@@ -320,13 +321,13 @@ void VideoPipe_Configure(const enum VideoTimingId Id)
 #endif
 
 #ifdef USE_CAP
-	int sel = VMUX_SELECT_EXT;
+	int sel = VMUX_SELECT_TPG;
 	enum TPG_Pattern pattern;
 
 	// Set Video Mux
 	VMux_Select(sel);
 	if (sel == VMUX_SELECT_EXT)
-		pattern = V_TPG_ExtVideo;
+		pattern = V_TPG_PassThrough;
 	else
 		pattern = V_TPG_ZonePlate;
 
@@ -336,9 +337,9 @@ void VideoPipe_Configure(const enum VideoTimingId Id)
 //	XVtc_GetTiming(XVtc_1);
 
 	// Configure and Start Test Pattern Generator
-	TPG_SetPattern(pattern, 1);
-	TPG_Configure(Timing);
-	TPG_Start();
+	TPG_SetPattern(XTpg_0, pattern, 1);
+	TPG_Configure(XTpg_0, Timing);
+	TPG_Start(XTpg_0);
 
 	// Configure and Start VDMA1 S2MM
 	XAxiVdma_SetupWriteChannel(XAxiVdma_1, Timing, FormatCAP, tpg_addr, 1, 1);
@@ -443,6 +444,9 @@ int main()
 
 	// Initialize Capture VTC
 	XVtc_1 = XVtc_Initialize(XPAR_VIDEO_CAPTURE_V_TC_1_DEVICE_ID);
+
+	// Initialize TPG
+	XTpg_0 = XTpg_Initialize(XPAR_VIDEO_CAPTURE_V_TPG_1_DEVICE_ID);
 
 	// Initialize VDMA_2
 	XAxiVdma_2 = XAxiVdma_Initialize(XPAR_VIDEO_PROCESSING_AXI_VDMA_M2M_DEVICE_ID);

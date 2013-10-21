@@ -39,58 +39,75 @@
 ******************************************************************************/
 
 #include "ctpg.h"
+#include <stdlib.h>
 
 
-void TPG_SetPattern(const enum TPG_Pattern Pattern, int EnableBox)
+XTpg *XTpg_Initialize(u16 DeviceId)
+{
+	XTpg *Instance = malloc(sizeof *Instance);
+	XTpg_Config *Config = XTpg_LookupConfig(DeviceId);
+	XTpg_CfgInitialize(Instance, Config, Config->BaseAddr);
+
+	return Instance;
+}
+
+void TPG_SetPattern(XTpg *Instance, const enum TPG_Pattern Pattern, int EnableBox)
 {
 	debug_printf("Set Pattern of Test Pattern Generator\r\n");
 
-	TPG_RegUpdateDisable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
+	XTpg_RegUpdateDisable(Instance->Config.BaseAddr);
 
 	// select Pattern
 	if (Pattern == V_TPG_ColorBar) {
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, 0x9);
+		XTpg_SetBackground(Instance, ColorBars);
+		XTpg_SetComponentMask(Instance, Comp_000000);
 	} else if (Pattern == V_TPG_ZonePlate) {
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, 0xA);
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_ZPLATE_HOR_CONTROL, (0x0<<16 | 0x90));
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_ZPLATE_VER_CONTROL, (0x0<<16 | 0x3));
-	} else if (Pattern == V_TPG_ExtVideo) {
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, 0x0);
+		XTpg_SetMotionSpeed(Instance, 0xA);
+		XTpg_EnableMotion(Instance, 1);
+		XTpg_SetBackground(Instance, ZonePlate);
+		XTpg_SetComponentMask(Instance, Comp_FFFF00);
+		XTpg_SetHsweepDelta(Instance, 0x90);
+		XTpg_SetVsweepDelta(Instance, 0x3);
+	} else if (Pattern == V_TPG_PassThrough) {
+		XTpg_SetBackground(Instance, PassThrough);
+		XTpg_SetComponentMask(Instance, Comp_000000);
 	} else {
 		xil_printf("Error: Invalid pattern selected\r\n");
 	}
 
 	// enable Box
 	if (EnableBox) {
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL, \
-					(TPG_ReadReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_PATTERN_CONTROL) | 0x1020));
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_BOX_COLOR, ARGB32_RED);
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_BOX_SIZE, 0x50);
-		TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_MOTION_SPEED, 0xA);
+		XTpg_SetMotionSpeed(Instance, 0xA);
+		XTpg_EnableMotion(Instance, 1);
+		XTpg_SetBoxSize(Instance, 0x50);
+		XTpg_SetBoxColor(Instance, VYUY_BLUE);
+		XTpg_EnableBox(Instance, 1);
+	} else {
+		XTpg_EnableBox(Instance, 0);
 	}
 
-    TPG_RegUpdateEnable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
+    XTpg_RegUpdateEnable(Instance->Config.BaseAddr);
 }
 
-void TPG_Configure(const VideoTiming *Timing)
+void TPG_Configure(XTpg *Instance, const VideoTiming *Timing)
 {
 	debug_printf("Configure Test Pattern Generator\r\n");
 
-	TPG_RegUpdateDisable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
-	TPG_WriteReg(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR, TPG_ACTIVE_SIZE, (Timing->Field0Height<<16 | Timing->LineWidth));
-    TPG_RegUpdateEnable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
+	XTpg_RegUpdateDisable(Instance->Config.BaseAddr);
+	XTpg_SetFrameSize(Instance, Timing->LineWidth, Timing->Field0Height);
+    XTpg_RegUpdateEnable(Instance->Config.BaseAddr);
 }
 
-void TPG_Start()
+void TPG_Start(XTpg *Instance)
 {
 	debug_printf("Start Test Pattern Generator\r\n");
 
-	TPG_Enable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
+	XTpg_Enable(Instance->Config.BaseAddr);
 }
 
-void TPG_Stop()
+void TPG_Stop(XTpg *Instance)
 {
 	debug_printf("Stop Test Pattern Generator\r\n");
 
-	TPG_Disable(XPAR_VIDEO_CAPTURE_V_TPG_1_BASEADDR);
+	XTpg_Disable(Instance->Config.BaseAddr);
 }
