@@ -345,7 +345,7 @@ proc create_hier_cell_video_processing { parentCell nameHier } {
   set_property -dict [ list CONFIG.c_m_axis_mm2s_tdata_width {16} CONFIG.c_s_axis_s2mm_tdata_width {16} CONFIG.c_num_fstores {1} CONFIG.c_use_mm2s_fsync {0} CONFIG.c_mm2s_genlock_mode {3} CONFIG.c_s2mm_genlock_mode {2} CONFIG.c_mm2s_linebuffer_depth {4096} CONFIG.c_s2mm_linebuffer_depth {4096} CONFIG.c_include_mm2s {1} CONFIG.c_enable_debug_info_7 {1} CONFIG.c_enable_debug_info_15 {1}  ] $axi_vdma_m2m
 
   # Create instance: sobel_filter_1, and set properties
-  set sobel_filter_1 [ create_bd_cell -type ip -vlnv xilinx.com:hls:sobel_filter:1.0 sobel_filter_1 ]
+  set sobel_filter_1 [ create_bd_cell -type ip -vlnv xilinx.com:hls:sobel_filter:2.0 sobel_filter_1 ]
 
   # Create interface connections
   connect_bd_intf_net -intf_net sobel_filter_1_output_stream [get_bd_intf_pins axi_vdma_m2m/S_AXIS_S2MM] [get_bd_intf_pins sobel_filter_1/OUTPUT_STREAM]
