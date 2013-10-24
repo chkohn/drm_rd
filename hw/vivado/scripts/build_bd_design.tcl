@@ -344,24 +344,25 @@ proc create_hier_cell_video_processing { parentCell nameHier } {
   set axi_vdma_m2m [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_vdma:6.0 axi_vdma_m2m ]
   set_property -dict [ list CONFIG.c_m_axis_mm2s_tdata_width {16} CONFIG.c_s_axis_s2mm_tdata_width {16} CONFIG.c_num_fstores {1} CONFIG.c_use_mm2s_fsync {0} CONFIG.c_mm2s_genlock_mode {3} CONFIG.c_s2mm_genlock_mode {2} CONFIG.c_mm2s_linebuffer_depth {4096} CONFIG.c_s2mm_linebuffer_depth {4096} CONFIG.c_include_mm2s {1} CONFIG.c_enable_debug_info_7 {1} CONFIG.c_enable_debug_info_15 {1}  ] $axi_vdma_m2m
 
-  # Create instance: sobel_filter_1, and set properties
-  set sobel_filter_1 [ create_bd_cell -type ip -vlnv xilinx.com:hls:sobel_filter:2.0 sobel_filter_1 ]
+  # Create instance: sobel_filter_2, and set properties
+  set sobel_filter_2 [ create_bd_cell -type ip -vlnv xilinx.com:hls:sobel_filter:2.0 sobel_filter_2 ]
+  set_property -dict [ list CONFIG.C_S_AXI_CONTROL_BUS_ADDR_WIDTH {9}  ] $sobel_filter_2
 
   # Create interface connections
-  connect_bd_intf_net -intf_net sobel_filter_1_output_stream [get_bd_intf_pins axi_vdma_m2m/S_AXIS_S2MM] [get_bd_intf_pins sobel_filter_1/OUTPUT_STREAM]
-  connect_bd_intf_net -intf_net axi_vdma_m2m_m_axis_mm2s [get_bd_intf_pins axi_vdma_m2m/M_AXIS_MM2S] [get_bd_intf_pins sobel_filter_1/INPUT_STREAM]
-  connect_bd_intf_net -intf_net s_axi_control_bus_1 [get_bd_intf_pins S_AXI_CONTROL_BUS] [get_bd_intf_pins sobel_filter_1/S_AXI_CONTROL_BUS]
   connect_bd_intf_net -intf_net axi_interconnect_gp0_m02_axi [get_bd_intf_pins S_AXI_LITE] [get_bd_intf_pins axi_vdma_m2m/S_AXI_LITE]
   connect_bd_intf_net -intf_net axi_vdma_m2m_m_axi_mm2s [get_bd_intf_pins M_AXI_MM2S] [get_bd_intf_pins axi_vdma_m2m/M_AXI_MM2S]
   connect_bd_intf_net -intf_net axi_vdma_m2m_m_axi_s2mm [get_bd_intf_pins M_AXI_S2MM] [get_bd_intf_pins axi_vdma_m2m/M_AXI_S2MM]
+  connect_bd_intf_net -intf_net axi_vdma_m2m_m_axis_mm2s [get_bd_intf_pins axi_vdma_m2m/M_AXIS_MM2S] [get_bd_intf_pins sobel_filter_2/INPUT_STREAM]
+  connect_bd_intf_net -intf_net sobel_filter_2_output_stream [get_bd_intf_pins axi_vdma_m2m/S_AXIS_S2MM] [get_bd_intf_pins sobel_filter_2/OUTPUT_STREAM]
+  connect_bd_intf_net -intf_net s_axi_control_bus_1 [get_bd_intf_pins S_AXI_CONTROL_BUS] [get_bd_intf_pins sobel_filter_2/S_AXI_CONTROL_BUS]
 
   # Create port connections
   connect_bd_net -net processing_system7_1_fclk_clk0 [get_bd_pins s_axi_lite_aclk] [get_bd_pins axi_vdma_m2m/s_axi_lite_aclk]
   connect_bd_net -net axi_vdma_m2m_mm2s_introut [get_bd_pins mm2s_introut] [get_bd_pins axi_vdma_m2m/mm2s_introut]
-  connect_bd_net -net processing_system7_1_fclk_clk1 [get_bd_pins s_axis_s2mm_aclk] [get_bd_pins axi_vdma_m2m/s_axis_s2mm_aclk] [get_bd_pins axi_vdma_m2m/m_axi_s2mm_aclk] [get_bd_pins axi_vdma_m2m/m_axis_mm2s_aclk] [get_bd_pins axi_vdma_m2m/m_axi_mm2s_aclk] [get_bd_pins sobel_filter_1/aclk]
+  connect_bd_net -net processing_system7_1_fclk_clk1 [get_bd_pins s_axis_s2mm_aclk] [get_bd_pins axi_vdma_m2m/s_axis_s2mm_aclk] [get_bd_pins axi_vdma_m2m/m_axi_s2mm_aclk] [get_bd_pins axi_vdma_m2m/m_axis_mm2s_aclk] [get_bd_pins axi_vdma_m2m/m_axi_mm2s_aclk] [get_bd_pins sobel_filter_2/aclk]
   connect_bd_net -net axi_vdma_m2m_s2mm_introut [get_bd_pins s2mm_introut] [get_bd_pins axi_vdma_m2m/s2mm_introut]
-  connect_bd_net -net sobel_filter_1_interrupt [get_bd_pins interrupt] [get_bd_pins sobel_filter_1/interrupt]
-  connect_bd_net -net aresetn_1 [get_bd_pins aresetn] [get_bd_pins sobel_filter_1/aresetn]
+  connect_bd_net -net aresetn_1 [get_bd_pins aresetn] [get_bd_pins sobel_filter_2/aresetn]
+  connect_bd_net -net sobel_filter_2_interrupt [get_bd_pins interrupt] [get_bd_pins sobel_filter_2/interrupt]
   
   # Restore current instance
   current_bd_instance $oldCurInst
@@ -534,15 +535,16 @@ connect_bd_intf_net -intf_net axi_interconnect_hp1_m00_axi [get_bd_intf_pins axi
   create_bd_addr_seg -range 0x10000 -offset 0x40060000 [get_bd_addr_spaces processing_system7_1/Data] [get_bd_addr_segs axi_vdma_1/S_AXI_LITE/Reg] SEG1
   create_bd_addr_seg -range 0x10000 -offset 0x40000000 [get_bd_addr_spaces processing_system7_1/Data] [get_bd_addr_segs video_display/axi_vdma_2/S_AXI_LITE/Reg] SEG5
   create_bd_addr_seg -range 0x10000 -offset 0x40070000 [get_bd_addr_spaces processing_system7_1/Data] [get_bd_addr_segs video_processing/axi_vdma_m2m/S_AXI_LITE/Reg] SEG3
-  create_bd_addr_seg -range 0x10000 -offset 0x40080000 [get_bd_addr_spaces processing_system7_1/Data] [get_bd_addr_segs video_processing/sobel_filter_1/S_AXI_CONTROL_BUS/Reg] SEG4
   create_bd_addr_seg -range 0x10000 -offset 0x40090000 [get_bd_addr_spaces processing_system7_1/Data] [get_bd_addr_segs axi_perf_mon_1/s_axi/Reg] SEG10
   create_bd_addr_seg -range 0x10000 -offset 0x400A0000 [get_bd_addr_spaces processing_system7_1/Data] [get_bd_addr_segs video_display/axi_vdma_3/S_AXI_LITE/Reg] SEG11
   create_bd_addr_seg -range 0x10000 -offset 0x400B0000 [get_bd_addr_spaces processing_system7_1/Data] [get_bd_addr_segs video_capture/v_tc_1/ctrl/Reg] SEG12
+  create_bd_addr_seg -range 0x10000 -offset 0x40080000 [get_bd_addr_spaces processing_system7_1/Data] [get_bd_addr_segs video_processing/sobel_filter_2/S_AXI_CONTROL_BUS/Reg] SEG4
   create_bd_addr_seg -range 0x40000000 -offset 0x0 [get_bd_addr_spaces axi_vdma_1/Data_MM2S] [get_bd_addr_segs processing_system7_1/S_AXI_HP0/HP0_DDR_LOWOCM] SEG1
   create_bd_addr_seg -range 0x40000000 -offset 0x0 [get_bd_addr_spaces axi_vdma_1/Data_S2MM] [get_bd_addr_segs processing_system7_1/S_AXI_HP0/HP0_DDR_LOWOCM] SEG2
   create_bd_addr_seg -range 0x40000000 -offset 0x0 [get_bd_addr_spaces video_processing/axi_vdma_m2m/Data_MM2S] [get_bd_addr_segs processing_system7_1/S_AXI_HP2/HP2_DDR_LOWOCM] SEG4
   create_bd_addr_seg -range 0x40000000 -offset 0x0 [get_bd_addr_spaces video_processing/axi_vdma_m2m/Data_S2MM] [get_bd_addr_segs processing_system7_1/S_AXI_HP2/HP2_DDR_LOWOCM] SEG5
   create_bd_addr_seg -range 0x40000000 -offset 0x0 [get_bd_addr_spaces video_display/axi_vdma_2/Data_MM2S] [get_bd_addr_segs processing_system7_1/S_AXI_HP0/HP0_DDR_LOWOCM] SEG3
+  create_bd_addr_seg -range 0x40000000 -offset 0x0 [get_bd_addr_spaces video_display/axi_vdma_3/Data_MM2S] [get_bd_addr_segs processing_system7_1/S_AXI_HP2/HP2_DDR_LOWOCM] SEG1
   
 
   # Restore current instance
