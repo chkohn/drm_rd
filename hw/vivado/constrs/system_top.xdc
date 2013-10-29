@@ -26,13 +26,13 @@ set_clock_groups -name async_clks -asynchronous -group {clk_75mhz clk_150mhz} -g
 # Physical Constraints #
 ########################
 
-# Clock Synthesizer (SI570) on ZC702
+# Clock Synthesizer (SI570) on ZC706
 set_property PACKAGE_PIN AF14 [get_ports video_clk_p]
 set_property PACKAGE_PIN AG14 [get_ports video_clk_n]
 set_property IOSTANDARD LVDS_25 [get_ports video_clk_*]
 set_property DIFF_TERM TRUE [get_ports video_clk_*]
 
-# HDMI Output (ADV7511) on ZC702
+# HDMI Output (ADV7511) on ZC706
 set_property PACKAGE_PIN P28 [get_ports hdmio_clk]
 set_property PACKAGE_PIN U21 [get_ports hdmio_vsync]
 set_property PACKAGE_PIN R22 [get_ports hdmio_hsync]
@@ -57,44 +57,44 @@ set_property PACKAGE_PIN AC22 [get_ports {hdmio_data[15]}]
 set_property IOSTANDARD LVCMOS25 [get_ports hdmio_*]
 set_property IOB TRUE [get_cells -hierarchical vid_out_formatter_i/in_*_mux_reg*]
 
-## I2C chain on FMC-IMAGEON
-#set_property PACKAGE_PIN AE18 [get_ports iic_scl_io];
-#set_property PACKAGE_PIN AE17 [get_ports iic_sda_io];
-#set_property PACKAGE_PIN AG15 [get_ports iic_rst];
+## I2C 2 Chain on FMC-IMAGEON
+#set_property PACKAGE_PIN AE18 [get_ports iic_scl_io]
+#set_property PACKAGE_PIN AE17 [get_ports iic_sda_io]
+#set_property PACKAGE_PIN AG15 [get_ports iic_rst]
 #set_property IOSTANDARD LVCMOS25 [get_ports iic_*]
 
-## VITA interface on FMC-IMAGEON
-#set_property PACKAGE_PIN AH17 [get_ports io_vita_clk_pll];
-#set_property PACKAGE_PIN AG16 [get_ports io_vita_reset_n];
-#set_property PACKAGE_PIN AH16 [get_ports io_vita_trigger[2]];
-#set_property PACKAGE_PIN AF18 [get_ports io_vita_trigger[1]];
-#set_property PACKAGE_PIN AF17 [get_ports io_vita_trigger[0]];
-#set_property PACKAGE_PIN AB15 [get_ports io_vita_monitor[0]];
-#set_property PACKAGE_PIN AB14 [get_ports io_vita_monitor[1]];
-#set_property PACKAGE_PIN AD16 [get_ports io_vita_spi_sclk];
-#set_property PACKAGE_PIN AD15 [get_ports io_vita_spi_ssel_n];
-#set_property PACKAGE_PIN AJ16 [get_ports io_vita_spi_mosi];
-#set_property PACKAGE_PIN AK16 [get_ports io_vita_spi_miso];
-#set_property PACKAGE_PIN AE13 [get_ports io_vita_clk_out_p];
-#set_property PACKAGE_PIN AF13 [get_ports io_vita_clk_out_n];
-#set_property PACKAGE_PIN AC14 [get_ports io_vita_sync_p];
-#set_property PACKAGE_PIN AC13 [get_ports io_vita_sync_n];
-#set_property PACKAGE_PIN AH14 [get_ports io_vita_data_p[0]];
-#set_property PACKAGE_PIN AH13 [get_ports io_vita_data_n[0]];
-#set_property PACKAGE_PIN AA15 [get_ports io_vita_data_p[1]];
-#set_property PACKAGE_PIN AA14 [get_ports io_vita_data_n[1]];
-#set_property PACKAGE_PIN AD14 [get_ports io_vita_data_p[2]];
-#set_property PACKAGE_PIN AD13 [get_ports io_vita_data_n[2]];
-#set_property PACKAGE_PIN AE16 [get_ports io_vita_data_p[3]];
-#set_property PACKAGE_PIN AE15 [get_ports io_vita_data_n[3]];
-#set_property PACKAGE_PIN AJ15 [get_ports io_vita_data_p[4]];
-#set_property PACKAGE_PIN AK15 [get_ports io_vita_data_n[4]];
-#set_property PACKAGE_PIN AB12 [get_ports io_vita_data_p[5]];
-#set_property PACKAGE_PIN AC12 [get_ports io_vita_data_n[5]];
-#set_property PACKAGE_PIN AG12 [get_ports io_vita_data_p[6]];
-#set_property PACKAGE_PIN AH12 [get_ports io_vita_data_n[6]];
-#set_property PACKAGE_PIN AE12 [get_ports io_vita_data_p[7]];
-#set_property PACKAGE_PIN AF12 [get_ports io_vita_data_n[7]];
+## VITA Interface on FMC-IMAGEON
+#set_property PACKAGE_PIN AH17 [get_ports io_vita_clk_pll]
+#set_property PACKAGE_PIN AG16 [get_ports io_vita_reset_n]
+#set_property PACKAGE_PIN AH16 [get_ports io_vita_trigger[2]]
+#set_property PACKAGE_PIN AF18 [get_ports io_vita_trigger[1]]
+#set_property PACKAGE_PIN AF17 [get_ports io_vita_trigger[0]]
+#set_property PACKAGE_PIN AB15 [get_ports io_vita_monitor[0]]
+#set_property PACKAGE_PIN AB14 [get_ports io_vita_monitor[1]]
+#set_property PACKAGE_PIN AD16 [get_ports io_vita_spi_sclk]
+#set_property PACKAGE_PIN AD15 [get_ports io_vita_spi_ssel_n]
+#set_property PACKAGE_PIN AJ16 [get_ports io_vita_spi_mosi]
+#set_property PACKAGE_PIN AK16 [get_ports io_vita_spi_miso]
+#set_property PACKAGE_PIN AE13 [get_ports io_vita_clk_out_p]
+#set_property PACKAGE_PIN AF13 [get_ports io_vita_clk_out_n]
+#set_property PACKAGE_PIN AC14 [get_ports io_vita_sync_p]
+#set_property PACKAGE_PIN AC13 [get_ports io_vita_sync_n]
+#set_property PACKAGE_PIN AH14 [get_ports io_vita_data_p[0]]
+#set_property PACKAGE_PIN AH13 [get_ports io_vita_data_n[0]]
+#set_property PACKAGE_PIN AA15 [get_ports io_vita_data_p[1]]
+#set_property PACKAGE_PIN AA14 [get_ports io_vita_data_n[1]]
+#set_property PACKAGE_PIN AD14 [get_ports io_vita_data_p[2]]
+#set_property PACKAGE_PIN AD13 [get_ports io_vita_data_n[2]]
+#set_property PACKAGE_PIN AE16 [get_ports io_vita_data_p[3]]
+#set_property PACKAGE_PIN AE15 [get_ports io_vita_data_n[3]]
+#set_property PACKAGE_PIN AJ15 [get_ports io_vita_data_p[4]]
+#set_property PACKAGE_PIN AK15 [get_ports io_vita_data_n[4]]
+#set_property PACKAGE_PIN AB12 [get_ports io_vita_data_p[5]]
+#set_property PACKAGE_PIN AC12 [get_ports io_vita_data_n[5]]
+#set_property PACKAGE_PIN AG12 [get_ports io_vita_data_p[6]]
+#set_property PACKAGE_PIN AH12 [get_ports io_vita_data_n[6]]
+#set_property PACKAGE_PIN AE12 [get_ports io_vita_data_p[7]]
+#set_property PACKAGE_PIN AF12 [get_ports io_vita_data_n[7]]
 
 #set_property IOSTANDARD LVCMOS25 [get_ports io_vita_clk_pll]
 #set_property IOSTANDARD LVCMOS25 [get_ports io_vita_reset_n]
@@ -105,6 +105,7 @@ set_property IOB TRUE [get_cells -hierarchical vid_out_formatter_i/in_*_mux_reg*
 #set_property IOSTANDARD LVDS_25 [get_ports io_vita_clk_out_*]
 #set_property IOSTANDARD LVDS_25 [get_ports io_vita_sync_*]
 #set_property IOSTANDARD LVDS_25 [get_ports io_vita_data_*]
+
 #set_property IOSTANDARD LVCMOS25 [get_ports io_vita_data_p[4]];
 #set_property IOSTANDARD LVCMOS25 [get_ports io_vita_data_n[4]];
 #set_property IOSTANDARD LVCMOS25 [get_ports io_vita_data_p[5]];
