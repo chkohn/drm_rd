@@ -436,7 +436,7 @@ int main()
 	XOSD_0 = XOSD_Initialize(XPAR_VIDEO_DISPLAY_V_OSD_1_DEVICE_ID);
 
 	// Configure HDMI Output
-	Status = ADV7511_SetVideoMode(ADV7511_0, V_VYUY);
+	Status = ADV7511_SetVideoMode(ADV7511_0, V_ARGB32);
 	if (Status == XST_FAILURE) {
 		xil_printf("ERROR : No monitor detected on HDMI output!\r\n");
 		exit(XST_FAILURE);

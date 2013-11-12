@@ -46,7 +46,7 @@
 
 /*
  * The video input format of the ADV7511 is set to YCbCr, 16-bit, 4:2:2,
- * ID 1 (separate syncs), Style 3. The video output format is set to
+ * ID 1 (separate syncs), Style 1. The video output format is set to
  * RGB, 24-bit, 4:4:4, DVI mode.
  *
  * CSC coefficients (registers 0x18 - 0x2F) are taken from tables 40/57
@@ -61,10 +61,10 @@ IicMsg ADV7511_HdmiRGB444[ADV7511_HDMI_RGB444_LEN] =
 	{0xD6, 0xC0}, 	// HPD Control
 					//    R0xD6[7:6] = HPD Control = 11 (always high)
 	{0x15, 0x01}, 	// Input YCbCr 4:2:2 with separate syncs
-	{0x16, 0x3C}, 	// Output format 4:4:4, Input Color Depth = 8
+	{0x16, 0x39}, 	// Output format 4:4:4, Input Color Depth = 8
 					//    R0x16[  7] = Output Video Format = 0 (4:4:4)
 					//    R0x16[5:4] = Input Video Color Depth = 11 (8 bits/color)
-					//    R0x16[3:2] = Input Video Style = 11 (style 3)
+					//    R0x16[3:2] = Input Video Style = 10 (style 1)
 					//    R0x16[  1] = DDR Input Edge = 0 (falling edge)
 					//    R0x16[  0] = Output Color Space = 0 (RGB)
 	{0x18, 0xAB}, 	// Color Space Conversion
